@@ -1,57 +1,189 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
-    <title>Almoxarife / Responsável pela Esterilização</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DentiBot - Painel de Almoxarifado</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; color: #333; }
-        h1 { color: #2c3e50; font-size: 1.8em; margin-bottom: 0.5em; }
-        h2 { color: #34495e; font-size: 1.4em; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 25px; margin-bottom: 10px; }
-        ul { list-style-type: disc; margin-left: 20px; padding: 0; }
-        ul ul { list-style-type: circle; margin-left: 30px; }
-        p { margin-bottom: 1em; }
-        .citation { font-size: 0.8em; color: #666; margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px; }
+        :root {
+            --background: #f8fafc;
+            --foreground: #475569;
+            --card: #ffffff;
+            --card-foreground: #475569;
+            --primary: #059669;
+            --primary-foreground: #ffffff;
+            --secondary: #f1f5f9;
+            --secondary-foreground: #475569;
+            --muted: #f0fdf4;
+            --muted-foreground: #374151;
+            --accent: #10b981;
+            --border: #e2e8f0;
+            --input: #e2e8f0;
+            --ring: #059669;
+        }
+
+        body { background-color: var(--background); color: var(--foreground); font-family: sans-serif; }
+        html { scroll-behavior: smooth; }
+        
+        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; border: 1px solid transparent; }
+        .btn-primary { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
+        .btn-primary:hover { background-color: #047857; border-color: #047857; }
+        .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); }
+        .btn-secondary:hover { background-color: #e2e8f0; }
+        .form-input, .form-select { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background-color: var(--background); transition: all 0.2s; }
+        .form-input:focus, .form-select:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
+        .sidebar-link.active { background-color: var(--muted); color: var(--primary); font-weight: 600; }
+        .sidebar-link.active i { color: var(--primary); }
+
+        .status-badge { padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; display: inline-block; }
+        .status-green { background-color: var(--muted); color: var(--primary); }
+        .status-blue { background-color: #eff6ff; color: #2563eb; }
+        .status-red { background-color: #fee2e2; color: #dc2626; }
+        .status-yellow { background-color: #fefce8; color: #ca8a04; }
     </style>
 </head>
-<body>
-    <h1>Almoxarife / Responsável pela Esterilização</h1>
-    <p>Este papel é focado na <strong>segurança dos instrumentos</strong> e no controle de estoque. A sua finalidade principal é a segurança e disponibilidade de instrumentos.</p>
+<body class="min-h-screen">
 
-    <h2>Funcionalidades</h2>
-    <ul>
-        <li><strong>Rastreamento de kits:</strong>
-            <ul>
-                <li>Controle por lote e ciclo de autoclave.</li>
-                <li>Status de cada kit: disponível, em esterilização, bloqueado.</li>
-            </ul>
-        </li>
-        <li><strong>Inventário digital:</strong>
-            <ul>
-                <li>Registro automático de entrada/saída de instrumentos e consumíveis. O inventário de instrumentos e consumíveis é uma atribuição essencial para este papel.</li>
-                <li>Notificações de estoque baixo.</li>
-            </ul>
-        </li>
-        <li><strong>Bloqueio e liberação de instrumentos:</strong>
-            <ul>
-                <li>Impede o uso de kits não esterilizados. A capacidade de liberar/bloquear kits na interface é uma atribuição fundamental.</li>
-                <li>Liberação apenas após confirmação no sistema.</li>
-            </ul>
-        </li>
-        <li><strong>Integração com DentiBot:</strong>
-            <ul>
-                <li>Comunicação direta com agenda da clínica para prever consumo de materiais. A comunicação com o DentiBot para garantir kits disponíveis é uma atribuição deste papel.</li>
-            </ul>
-        </li>
-    </ul>
+    <div class="flex h-screen">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-4 border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
+            <div class="flex items-center space-x-2 pb-4 border-b">
+                <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-primary"><span class="text-lg font-bold text-primary-foreground">D</span></div>
+                <span class="text-xl font-bold">DentiBot</span>
+            </div>
+            <nav class="mt-6">
+                <a href="#dashboard" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
+                <a href="#kits" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="scan-line"></i><span>Rastreamento de Kits</span></a>
+                <a href="#inventario" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="clipboard-list"></i><span>Inventário</span></a>
+                <a href="#demanda" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="calendar-check-2"></i><span>Previsão de Demanda</span></a>
+            </nav>
+        </aside>
 
-    <h2>Atribuições</h2>
-    <ul>
-        <li><strong>Garantir que todos os instrumentos estejam disponíveis e esterilizados</strong>.</li>
-        <li>Evitar riscos de infecção cruzada.</li>
-        <li><strong>Manter controle de estoque eficiente</strong> para reduzir desperdícios.</li>
-    </ul>
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-20">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex h-16 items-center justify-between">
+                        <button id="menu-open-btn" class="md:hidden text-gray-600"><i data-lucide="menu" class="h-6 w-6"></i></button>
+                        <h1 class="text-lg font-semibold text-gray-800">Painel de Almoxarifado</h1>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm hidden sm:block">Carlos</span>
+                            <i data-lucide="user-circle-2" class="h-8 w-8 text-gray-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-    <div class="citation">
-        <p><em>Nota: As informações sobre "Status de cada kit: disponível, em esterilização, bloqueado", "Registro automático de entrada/saída de instrumentos e consumíveis", "Notificações de estoque baixo", "Impede o uso de kits não esterilizados", "Liberação apenas após confirmação no sistema", "Comunicação direta com agenda da clínica para prever consumo de materiais" e "Evitar riscos de infecção cruzada" são detalhes provenientes da sua consulta inicial. Embora relacionadas às funcionalidades e à finalidade geral descritas, a granularidade específica desses pontos não está explicitamente detalhada na fonte. A fonte descreve as atribuições principais do Almoxarife/Responsável pela Esterilização como "Rastrear kits por lote/ciclo de autoclave", "Liberar/bloquear kits na interface", "Inventário de instrumentos e consumíveis" e "Comunicação com DentiBot para garantir kits disponíveis", com a finalidade de "Segurança e disponibilidade de instrumentos".</em></p>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
+                
+                <section id="dashboard">
+                    <h2 class="text-2xl font-bold mb-4">Visão Geral do Estoque</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Kits Disponíveis</p><p class="text-3xl font-bold text-green-600">42</p></div>
+                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Kits em Esterilização</p><p class="text-3xl font-bold text-blue-600">8</p></div>
+                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Itens com Estoque Baixo</p><p class="text-3xl font-bold text-yellow-600">3</p></div>
+                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Ciclos de Autoclave (Hoje)</p><p class="text-3xl font-bold">2</p></div>
+                    </div>
+                </section>
+
+                <section id="kits" class="bg-card rounded-xl shadow-md p-6">
+                    <div class="sm:flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Rastreamento de Kits Cirúrgicos</h2>
+                            <p class="text-muted-foreground">Controle o ciclo de vida de cada kit, do uso à esterilização.</p>
+                        </div>
+                        <button class="btn btn-primary mt-4 sm:mt-0 w-full sm:w-auto"><i data-lucide="plus-circle" class="mr-2 h-4 w-4"></i>Registrar Novo Kit</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50"><tr><th class="p-3">ID do Kit</th><th class="p-3">Status</th><th class="p-3">Ciclo Autoclave</th><th class="p-3">Validade</th><th class="p-3">Ações</th></tr></thead>
+                            <tbody>
+                                <tr class="border-t"><td>KIT-CIR-001</td><td><span class="status-badge status-green">Disponível</span></td><td>A-345</td><td>11/09/2025</td><td class="p-3"><button class="btn btn-secondary text-xs">Registrar Uso</button></td></tr>
+                                <tr class="border-t"><td>KIT-ENDO-003</td><td><span class="status-badge status-blue">Em Esterilização</span></td><td>A-346</td><td>--</td><td class="p-3"><button class="btn btn-secondary text-xs">Finalizar Ciclo</button></td></tr>
+                                <tr class="border-t"><td>KIT-CIR-002</td><td><span class="status-badge status-red">Bloqueado</span></td><td>A-342 (Falhou)</td><td>--</td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Motivo</button></td></tr>
+                                <tr class="border-t"><td>KIT-PROT-007</td><td><span class="status-badge status-green">Disponível</span></td><td>A-344</td><td>10/09/2025</td><td class="p-3"><button class="btn btn-secondary text-xs">Registrar Uso</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <section id="inventario" class="bg-card rounded-xl shadow-md p-6">
+                    <div class="sm:flex justify-between items-center mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold">Inventário de Consumíveis</h2>
+                            <p class="text-muted-foreground">Gerencie o estoque de materiais descartáveis e de uso diário.</p>
+                        </div>
+                        <div class="flex gap-4 mt-4 sm:mt-0">
+                            <button class="btn btn-secondary w-full sm:w-auto">Registrar Entrada</button>
+                            <button class="btn btn-secondary w-full sm:w-auto">Registrar Saída</button>
+                        </div>
+                    </div>
+                     <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50"><tr><th class="p-3">Item</th><th class="p-3">Qtd. em Estoque</th><th class="p-3">Estoque Mínimo</th><th class="p-3">Status</th></tr></thead>
+                            <tbody>
+                                <tr class="border-t"><td>Luvas de Procedimento (Caixa)</td><td>52</td><td>20</td><td><span class="text-green-600 font-semibold">OK</span></td></tr>
+                                <tr class="border-t"><td>Máscaras Descartáveis (Caixa)</td><td>15</td><td>15</td><td><span class="text-yellow-600 font-semibold">Baixo</span></td></tr>
+                                <tr class="border-t"><td>Resina Composta A2 (Un.)</td><td>8</td><td>10</td><td><span class="text-yellow-600 font-semibold">Baixo</span></td></tr>
+                                <tr class="border-t"><td>Agulhas de Anestesia (Caixa)</td><td>35</td><td>25</td><td><span class="text-green-600 font-semibold">OK</span></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <section id="demanda" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Previsão de Demanda (Próximas 48h)</h2>
+                    <p class="text-muted-foreground mb-6">Baseado na agenda da clínica para antecipar o consumo de materiais.</p>
+                     <div class="space-y-4">
+                        <div class="border rounded-lg p-4 bg-blue-50">
+                            <p class="font-semibold text-blue-800">Amanhã - 05/09/2025</p>
+                            <ul class="list-disc list-inside text-sm text-blue-700 mt-2">
+                                <li><strong>3x Procedimentos Cirúrgicos:</strong> Preparar 3 Kits Cirúrgicos (KIT-CIR).</li>
+                                <li><strong>5x Restaurações:</strong> Verificar estoque de Resina Composta.</li>
+                            </ul>
+                        </div>
+                        <div class="border rounded-lg p-4">
+                            <p class="font-semibold">Sábado - 06/09/2025</p>
+                             <ul class="list-disc list-inside text-sm text-gray-600 mt-2">
+                                <li><strong>8x Profilaxia/Limpeza:</strong> Sem demanda crítica de kits.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+
+            <footer class="text-center p-4 text-sm text-gray-500 border-t">
+                <p>&copy; 2025 DentiBot - Projeto de Engenharia de Software da UNICID.</p>
+            </footer>
+        </div>
     </div>
+    
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+    <script>
+        lucide.createIcons();
+        document.addEventListener('DOMContentLoaded', () => {
+            const sidebar = document.getElementById('sidebar'), menuOpenBtn = document.getElementById('menu-open-btn'), sidebarOverlay = document.getElementById('sidebar-overlay');
+            const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.remove('hidden'); };
+            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.add('hidden'); };
+            menuOpenBtn.addEventListener('click', openSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth < 768) closeSidebar(); }); });
+
+            const sections = document.querySelectorAll('main section'), navLinks = document.querySelectorAll('.sidebar-link');
+            const sectionObserver = new IntersectionObserver(entries => {
+                let activeId = '';
+                entries.forEach(entry => { if (entry.isIntersecting && entry.intersectionRatio > 0.1) activeId = entry.target.getAttribute('id'); });
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${activeId}`) {
+                        link.classList.add('active');
+                    }
+                });
+            }, { root: null, rootMargin: '0px', threshold: 0.1 });
+            sections.forEach(section => { sectionObserver.observe(section); });
+        });
+    </script>
 </body>
 </html>

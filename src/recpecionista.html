@@ -3,235 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DentiBot - Interface da Recepcionista / Atendente</title>
+    <title>DentiBot - Painel da Recepcionista</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: sans-serif; line-height: 1.6; margin: 20px; background-color: #f4f4f4; color: #333; }
-        header { background-color: #007BFF; color: white; padding: 15px 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
-        h1, h2, h3 { color: #0056b3; }
-        section { background-color: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        form div { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: bold; }
-        input[type="text"], input[type="date"], input[type="time"], input[type="email"], select, textarea {
-            width: calc(100% - 22px);
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-            margin-top: 5px;
+        :root {
+            --background: #f8fafc;
+            --foreground: #475569;
+            --card: #ffffff;
+            --card-foreground: #475569;
+            --primary: #059669;
+            --primary-foreground: #ffffff;
+            --secondary: #f1f5f9;
+            --secondary-foreground: #475569;
+            --muted: #f0fdf4;
+            --muted-foreground: #374151;
+            --accent: #10b981;
+            --border: #e2e8f0;
+            --input: #e2e8f0;
+            --ring: #059669;
         }
-        button {
-            background-color: #28a745;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-right: 10px;
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: sans-serif;
         }
-        button:hover { background-color: #218838; }
-        .info-box { background-color: #e9f7ef; border-left: 5px solid #28a745; padding: 10px; margin-top: 15px; border-radius: 4px; }
-        hr { border: 0; height: 1px; background: #ccc; margin: 30px 0; }
-        footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #666; }
+
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;
+            transition: all 0.2s; border: 1px solid transparent;
+        }
+        .btn-primary {
+            background-color: var(--primary); color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+        .btn-primary:hover { background-color: #047857; border-color: #047857; }
+        .btn-secondary {
+            background-color: var(--secondary); color: var(--secondary-foreground);
+            border-color: var(--border);
+        }
+        .btn-secondary:hover { background-color: #e2e8f0; }
+        
+        .form-input, .form-textarea, .form-select {
+            width: 100%; padding: 0.75rem; border-radius: 0.5rem;
+            border: 1px solid var(--border); background-color: var(--background);
+            transition: all 0.2s;
+        }
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none; border-color: var(--ring);
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+        }
+
+        .sidebar-link.active {
+            background-color: var(--muted); color: var(--primary); font-weight: 600;
+        }
+        .sidebar-link.active i { color: var(--primary); }
+
+        .info-box {
+            background-color: var(--muted); border-left: 4px solid var(--accent);
+            padding: 0.75rem 1rem; margin-top: 1rem; border-radius: 0.25rem;
+            color: var(--muted-foreground);
+        }
     </style>
 </head>
-<body>
-    <header>
-        <h1>DentiBot: Painel da Recepcionista / Atendente</h1>
-        <p>Este painel permite gerenciar agendamentos, comunicação e informações de pacientes no sistema DentiBot.</p>
-    </header>
+<body class="min-h-screen">
 
-    <main>
-        <section>
-            <h2>Agendamento Inteligente</h2>
-            <p>Insira consultas no calendário digital, defina prioridades e o sistema ajusta automaticamente conforme a disponibilidade dos dentistas. A finalidade do DentiBot é otimizar tarefas administrativas e operacionais, como cadastro de pacientes, controle de prontuários e agendamentos.</p>
-            <form>
-                <div>
-                    <label for="pacienteNome">Nome do Paciente:</label>
-                    <input type="text" id="pacienteNome" name="pacienteNome" placeholder="Nome Completo" required>
+    <div class="flex h-screen">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-4 border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
+            <div class="flex items-center space-x-2 pb-4 border-b">
+                <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-primary">
+                    <span class="text-lg font-bold text-primary-foreground">D</span>
                 </div>
-                <div>
-                    <label for="dentistaResponsavel">Dentista Responsável:</label>
-                    <select id="dentistaResponsavel" name="dentistaResponsavel" required>
-                        <option value="">-- Selecione o Dentista --</option>
-                        <option value="drSilva">Dr. João Silva</option>
-                        <option value="draSouza">Dra. Maria Souza</option>
-                        <option value="drOliveira">Dr. Pedro Oliveira</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="dataConsulta">Data da Consulta:</label>
-                    <input type="date" id="dataConsulta" name="dataConsulta" required>
-                </div>
-                <div>
-                    <label for="horaConsulta">Hora da Consulta:</label>
-                    <input type="time" id="horaConsulta" name="horaConsulta" required>
-                </div>
-                <div>
-                    <label for="tipoProcedimento">Tipo de Procedimento:</label>
-                    <select id="tipoProcedimento" name="tipoProcedimento" required>
-                        <option value="">-- Selecione o Procedimento --</option>
-                        <option value="avaliacao">Avaliação</option>
-                        <option value="limpeza">Profilaxia/Limpeza</option>
-                        <encia">Emergência</option>
-                    </select>
-                </div>
-                <button type="submit">Agendar Consulta</button>
-                <div class="info-box">
-                    <p>O sistema DentiBot ajustará automaticamente a disponibilidade dos dentistas e otimizará a agenda, considerando a finalidade de otimizar tempo.</p>
-                </div>
-            </form>
-        </section>
+                <span class="text-xl font-bold">DentiBot</span>
+            </div>
+            <nav class="mt-6">
+                <a href="#dashboard" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                    <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
+                </a>
+                <a href="#agendamento" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="calendar-plus"></i><span>Agendamento</span>
+                </a>
+                <a href="#confirmacao" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="mail-check"></i><span>Confirmações</span>
+                </a>
+                <a href="#reagendamento" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="calendar-clock"></i><span>Reagendamento</span>
+                </a>
+                <a href="#observacoes" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="notebook-pen"></i><span>Observações</span>
+                </a>
+                <a href="#convenios" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="shield-plus"></i><span>Convênios</span>
+                </a>
+            </nav>
+        </aside>
 
-        <hr>
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-20">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex h-16 items-center justify-between">
+                        <button id="menu-open-btn" class="md:hidden text-gray-600"><i data-lucide="menu" class="h-6 w-6"></i></button>
+                        <h1 class="text-lg font-semibold text-gray-800">Painel da Recepção</h1>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm hidden sm:block">Ana Paula</span>
+                            <i data-lucide="user-circle-2" class="h-8 w-8 text-gray-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
 
-        <section>
-            <h2>Confirmação Automática e Gerenciamento de Presença</h2>
-            <p>Envie lembretes e gerencie as respostas dos pacientes de forma integrada. O DentiBot atua na comunicação otimizada com os pacientes.</p>
-            <p>O sistema envia mensagens template de lembrete em intervalos programados (D-7, D-1, H-2 antes da consulta) via <strong>WhatsApp Business API</strong>, SMS ou e-mail, e recebe e processa respostas padronizadas dos pacientes (ex.: “Confirmo” ou “Remarcar”).</p>
-            <h3>Consultas Pendentes de Confirmação:</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Paciente</th>
-                        <th>Data/Hora</th>
-                        <th>Status</th>
-                        <th>Ação</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Carlos Santos</td>
-                        <td>25/11/2025 10:00</td>
-                        <td>Aguardando resposta (D-1)</td>
-                        <td><button type="button">Ver Detalhes</button></td>
-                    </tr>
-                    <tr>
-                        <td>Fernanda Lima</td>
-                        <td>26/11/2025 14:30</td>
-                        <td>Confirmado</td>
-                        <td><button type="button">Ver Detalhes</button></td>
-                    </tr>
-                    <tr>
-                        <td>Roberto Costa</td>
-                        <td>27/11/2025 09:00</td>
-                        <td>Aguardando resposta (D-7)</td>
-                        <td><button type="button">Ver Detalhes</button></td>
-                    </tr>
-                </tbody>
-            </table>
-            <h3>Atualização Manual de Status (se necessário):</h3>
-            <form>
-                <div>
-                    <label for="selectConsultaStatus">Selecione a Consulta:</label>
-                    <select id="selectConsultaStatus" name="selectConsultaStatus">
-                        <option value="">-- Selecione --</option>
-                        <option value="carlos">Carlos Santos - 25/11/2025 10:00</option>
-                        <option value="roberto">Roberto Costa - 27/11/2025 09:00</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="novoStatus">Novo Status:</label>
-                    <select id="novoStatus" name="novoStatus">
-                        <option value="confirmado">Confirmado</option>
-                        <option value="remarcado">Remarcado</option>
-                        <option value="cancelado">Cancelado</option>
-                        <option value="naoCompareceu">Não Compareceu</option>
-                    </select>
-                </div>
-                <button type="submit">Atualizar Status</button>
-                <div class="info-box">
-                    <p>A integração com a <strong>WhatsApp Business API</strong> e provedores de e-mail garante a comunicação automatizada e a rastreabilidade para auditoria.</p>
-                </div>
-            </form>
-        </section>
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
+                
+                <section id="dashboard">
+                    <h2 class="text-2xl font-bold mb-4">Visão Geral de Hoje</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="bg-card p-5 rounded-xl shadow flex items-center space-x-4">
+                            <div class="bg-blue-100 p-3 rounded-full"><i data-lucide="calendar-days" class="h-6 w-6 text-blue-600"></i></div>
+                            <div>
+                                <p class="text-3xl font-bold">12</p>
+                                <p class="text-muted-foreground">Consultas para Hoje</p>
+                            </div>
+                        </div>
+                        <div class="bg-card p-5 rounded-xl shadow flex items-center space-x-4">
+                            <div class="bg-orange-100 p-3 rounded-full"><i data-lucide="mail-warning" class="h-6 w-6 text-orange-600"></i></div>
+                            <div>
+                                <p class="text-3xl font-bold">3</p>
+                                <p class="text-muted-foreground">Confirmações Pendentes</p>
+                            </div>
+                        </div>
+                        <div class="bg-card p-5 rounded-xl shadow flex items-center space-x-4">
+                             <div class="bg-green-100 p-3 rounded-full"><i data-lucide="user-plus" class="h-6 w-6 text-green-600"></i></div>
+                            <div>
+                                <p class="text-3xl font-bold">2</p>
+                                <p class="text-muted-foreground">Novos Pacientes</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-        <hr>
+                <section id="agendamento" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Agendamento Inteligente</h2>
+                    <p class="text-muted-foreground mb-6">Insira novas consultas no calendário digital de forma rápida e eficiente.</p>
+                    <form>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label for="pacienteNome" class="font-medium">Nome do Paciente:</label>
+                                <input type="text" id="pacienteNome" name="pacienteNome" class="form-input mt-2" placeholder="Nome Completo" required>
+                            </div>
+                            <div>
+                                <label for="dentistaResponsavel" class="font-medium">Dentista Responsável:</label>
+                                <select id="dentistaResponsavel" name="dentistaResponsavel" class="form-select mt-2" required>
+                                    <option value="">-- Selecione o Dentista --</option>
+                                    <option value="drSilva">Dr. João Silva</option>
+                                    <option value="draSouza">Dra. Maria Souza</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="dataConsulta" class="font-medium">Data da Consulta:</label>
+                                <input type="date" id="dataConsulta" name="dataConsulta" class="form-input mt-2" required>
+                            </div>
+                            <div>
+                                <label for="horaConsulta" class="font-medium">Hora da Consulta:</label>
+                                <input type="time" id="horaConsulta" name="horaConsulta" class="form-input mt-2" required>
+                            </div>
+                        </div>
+                        <div class="mt-6">
+                            <label for="tipoProcedimento" class="font-medium">Tipo de Procedimento:</label>
+                            <select id="tipoProcedimento" name="tipoProcedimento" class="form-select mt-2" required>
+                                <option value="">-- Selecione o Procedimento --</option>
+                                <option value="avaliacao">Avaliação</option>
+                                <option value="limpeza">Profilaxia/Limpeza</option>
+                                <option value="emergencia">Emergência</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-6">
+                            <i data-lucide="calendar-plus" class="mr-2 h-4 w-4"></i>Agendar Consulta
+                        </button>
+                        <div class="info-box"><p>O sistema ajustará a agenda do dentista e iniciará o fluxo de confirmação automaticamente.</p></div>
+                    </form>
+                </section>
 
-        <section>
-            <h2>Reagendamento Simplificado</h2>
-            <p>Ajuste rapidamente consultas no calendário e notifique paciente e dentista. Uma das atribuições da recepcionista é reagendar e atualizar o status de confirmação.</p>
-            <form>
-                <div>
-                    <label for="consultaReagendar">Consulta a Reagendar:</label>
-                    <select id="consultaReagendar" name="consultaReagendar" required>
-                        <option value="">-- Selecione uma consulta --</option>
-                        <option value="carlos">Carlos Santos - 25/11/2025 10:00</option>
-                        <option value="ana">Ana Paula Silva - 28/11/2025 11:30</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="novaDataReagendamento">Nova Data:</label>
-                    <input type="date" id="novaDataReagendamento" name="novaDataReagendamento" required>
-                </div>
-                <div>
-                    <label for="novaHoraReagendamento">Nova Hora:</label>
-                    <input type="time" id="novaHoraReagendamento" name="novaHoraReagendamento" required>
-                </div>
-                <button type="submit">Reagendar e Notificar</button>
-                <div class="info-box">
-                    <p>O sistema enviará notificações automáticas ao paciente e ao dentista sobre o reagendamento, facilitando a comunicação.</p>
-                </div>
-            </form>
-        </section>
+                <section id="confirmacao" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Confirmação e Gerenciamento de Presença</h2>
+                    <p class="text-muted-foreground mb-6">Monitore o status das confirmações e atualize manualmente se necessário.</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="p-3 font-semibold text-sm">Paciente</th>
+                                    <th class="p-3 font-semibold text-sm">Data/Hora</th>
+                                    <th class="p-3 font-semibold text-sm">Status</th>
+                                    <th class="p-3 font-semibold text-sm">Ação</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="border-t"><td class="p-3">Carlos Santos</td><td class="p-3">25/11/2025 10:00</td><td class="p-3"><span class="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">Aguardando</span></td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Detalhes</button></td></tr>
+                                <tr class="border-t"><td class="p-3">Fernanda Lima</td><td class="p-3">26/11/2025 14:30</td><td class="p-3"><span class="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">Confirmado</span></td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Detalhes</button></td></tr>
+                                <tr class="border-t"><td class="p-3">Roberto Costa</td><td class="p-3">27/11/2025 09:00</td><td class="p-3"><span class="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">Aguardando</span></td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Detalhes</button></td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+                
+                <section id="reagendamento" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Reagendamento Simplificado</h2>
+                    <p class="text-muted-foreground mb-6">Ajuste consultas no calendário e notifique os envolvidos com um clique.</p>
+                    <form>
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div class="lg:col-span-3">
+                                <label for="consultaReagendar" class="font-medium">Consulta a Reagendar:</label>
+                                <select id="consultaReagendar" name="consultaReagendar" class="form-select mt-2" required>
+                                    <option value="">-- Selecione uma consulta --</option>
+                                    <option value="carlos">Carlos Santos - 25/11/2025 10:00</option>
+                                    <option value="ana">Ana Paula Silva - 28/11/2025 11:30</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="novaDataReagendamento" class="font-medium">Nova Data:</label>
+                                <input type="date" id="novaDataReagendamento" name="novaDataReagendamento" class="form-input mt-2" required>
+                            </div>
+                            <div>
+                                <label for="novaHoraReagendamento" class="font-medium">Nova Hora:</label>
+                                <input type="time" id="novaHoraReagendamento" name="novaHoraReagendamento" class="form-input mt-2" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-6">
+                             <i data-lucide="send" class="mr-2 h-4 w-4"></i>Reagendar e Notificar
+                        </button>
+                        <div class="info-box"><p>Notificações automáticas serão enviadas ao paciente e ao dentista.</p></div>
+                    </form>
+                </section>
+                
+                <section id="observacoes" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Registro de Observações</h2>
+                     <p class="text-muted-foreground mb-6">Adicione informações importantes para um atendimento personalizado.</p>
+                    <form>
+                        <div>
+                             <label for="pacienteObservacao" class="font-medium">Selecione o Paciente:</label>
+                            <select id="pacienteObservacao" name="pacienteObservacao" class="form-select mt-2" required>
+                                <option value="">-- Selecione um paciente --</option>
+                                <option value="ana">Ana Paula Silva</option>
+                                <option value="carlos">Carlos Eduardo Santos</option>
+                            </select>
+                        </div>
+                        <div class="mt-6">
+                            <label for="observacoesEspeciais" class="font-medium">Observações Especiais:</label>
+                            <textarea id="observacoesEspeciais" name="observacoesEspeciais" rows="4" class="form-textarea mt-2" placeholder="Ex: Paciente cadeirante, necessita de rampa. Alergia a Penicilina."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary mt-6">Salvar Observação</button>
+                    </form>
+                </section>
+                
+                <section id="convenios" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Integração com Convênios (TISS/TUSS)</h2>
+                     <p class="text-muted-foreground mb-6">Solicite e verifique autorizações de procedimentos de forma integrada.</p>
+                    <form>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                             <div>
+                                <label for="pacienteConvenio" class="font-medium">Selecione o Paciente:</label>
+                                <select id="pacienteConvenio" name="pacienteConvenio" class="form-select mt-2" required>
+                                    <option value="">-- Selecione um paciente --</option>
+                                    <option value="ana">Ana Paula Silva</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="numeroConvenio" class="font-medium">Nº da Carteirinha:</label>
+                                <input type="text" id="numeroConvenio" name="numeroConvenio" class="form-input mt-2" placeholder="Ex: 1234567890">
+                            </div>
+                            <div class="md:col-span-2">
+                                <label for="procedimentoConvenio" class="font-medium">Procedimento para Autorização:</label>
+                                <input type="text" id="procedimentoConvenio" name="procedimentoConvenio" class="form-input mt-2" placeholder="Ex: Restauração Amálgama Dente 36">
+                            </div>
+                        </div>
+                        <div class="mt-6 space-y-2 sm:space-y-0 sm:space-x-4">
+                            <button type="submit" class="btn btn-primary w-full sm:w-auto">Solicitar Autorização</button>
+                            <button type="button" class="btn btn-secondary w-full sm:w-auto">Checar Status</button>
+                        </div>
+                         <div class="info-box"><p>O sistema pode retornar a autorização ou glosa e enviar códigos TUSS para auditoria.</p></div>
+                    </form>
+                </section>
 
-        <hr>
+            </main>
 
-        <section>
-            <h2>Registro de Observações</h2>
-            <p>Inclua informações específicas do paciente para garantir um atendimento personalizado e seguro. A recepcionista pode registrar observações que impactam rotinas ou necessidades especiais.</p>
-            <form>
-                <div>
-                    <label for="pacienteObservacao">Selecione o Paciente:</label>
-                    <select id="pacienteObservacao" name="pacienteObservacao" required>
-                        <option value="">-- Selecione um paciente --</option>
-                        <option value="ana">Ana Paula Silva</option>
-                        <option value="carlos">Carlos Eduardo Santos</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="observacoesEspeciais">Observações (ex: paciente cadeirante, alergias, necessidades especiais):</label>
-                    <textarea id="observacoesEspeciais" name="observacoesEspeciais" rows="5" cols="70" placeholder="Ex: Paciente cadeirante, necessita de rampa. Alergia a Penicilina."></textarea>
-                </div>
-                <button type="submit">Salvar Observação</button>
-            </form>
-        </section>
+            <footer class="text-center p-4 text-sm text-gray-500 border-t">
+                <p>&copy; 2025 DentiBot - Projeto de Engenharia de Software da UNICID.</p>
+            </footer>
+        </div>
+    </div>
+    
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
 
-        <hr>
+    <script>
+        lucide.createIcons();
 
-        <section>
-            <h2>Integração com Convênios</h2>
-            <p>Solicite e cheque autorizações de procedimentos via <strong>TISS/TUSS</strong>, integrando informações de convênio à rotina do atendimento.</p>
-            <form>
-                <div>
-                    <label for="pacienteConvenio">Selecione o Paciente:</label>
-                    <select id="pacienteConvenio" name="pacienteConvenio" required>
-                        <option value="">-- Selecione um paciente --</option>
-                        <option value="ana">Ana Paula Silva</option>
-                        <option value="carlos">Carlos Eduardo Santos</option>
-                    </select>
-                </div>
-                <div>
-                    <label for="numeroConvenio">Número da Carteirinha do Convênio:</label>
-                    <input type="text" id="numeroConvenio" name="numeroConvenio" placeholder="Ex: 1234567890">
-                </div>
-                <div>
-                    <label for="procedimentoConvenio">Procedimento para Autorização:</label>
-                    <input type="text" id="procedimentoConvenio" name="procedimentoConvenio" placeholder="Ex: Restauração Amálgama Dente 36">
-                </div>
-                <button type="submit">Solicitar Autorização (TISS/TUSS)</button>
-                <button type="button">Checar Status da Autorização</button>
-                <div class="info-box">
-                    <p>O sistema DentiBot pode retornar a autorização ou glosa e enviar códigos TUSS, além de fornecer regras e protocolos para auditoria.</p>
-                </div>
-            </form>
-        </section>
-    </main>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Lógica da Sidebar
+            const sidebar = document.getElementById('sidebar');
+            const menuOpenBtn = document.getElementById('menu-open-btn');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+            const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.remove('hidden'); };
+            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.add('hidden'); };
+            menuOpenBtn.addEventListener('click', openSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth < 768) { closeSidebar(); } }); });
 
-    <footer>
-        <p>&copy; 2025 DentiBot - Projeto desenvolvido para a disciplina de Engenharia de Software da UNICID.</p>
-        <p>Orientação: Prof. Jadir Custodio Mendonça Junior.</p>
-        <p>Equipe de Desenvolvimento: Gustavo Roberto de Almeida Lopes, Baptista Luís Teixeira Chuma, Samuel Soares Ferraz, Moisés.</p>
-    </footer>
+            // Lógica da Sidebar Ativa com Scroll
+            const sections = document.querySelectorAll('main section');
+            const navLinks = document.querySelectorAll('.sidebar-link');
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.3 };
+            const sectionObserver = new IntersectionObserver((entries) => {
+                let activeId = '';
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        if (entry.intersectionRatio > 0) {
+                           activeId = entry.target.getAttribute('id');
+                        }
+                    }
+                });
+                 navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === `#${activeId}`) {
+                        link.classList.add('active');
+                    }
+                });
+            }, observerOptions);
+            sections.forEach(section => { sectionObserver.observe(section); });
+        });
+    </script>
 </body>
 </html>
