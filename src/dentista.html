@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DentiBot - Interface do Dentista</title>
+</head>
+<body>
+    <header>
+        <h1>DentiBot: Painel do Dentista</h1>
+        <p>Bem-vindo(a) ao sistema DentiBot, sua ferramenta para otimizar o atendimento e a gestão clínica.</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Controle da Cadeira Odontológica</h2>
+            <p>Selecione e execute rotinas automatizadas para a cadeira, permitindo comandos hands-free.</p>
+            <div>
+                <h3>Rotinas Automatizadas:</h3>
+                <button type="button">Ativar Iluminação</button>
+                <button type="button">Ativar Sucção</button>
+                <button type="button">Mover Cadeira para Posição de Início</button>
+                <button type="button">Mover Cadeira para Posição de Conclusão</button>
+                <button type="button">Ajustar Altura (Para Cima)</button>
+                <button type="button">Ajustar Altura (Para Baixo)</button>
+                <button type="button">Ajustar Encosto</button>
+                <!-- Comandos hands-free são ativados por voz, pedal ou botão estéril, não representados diretamente em HTML puro, mas associados a estas ações. -->
+                <p><i>Observação: Comandos hands-free (voz, pedal, botão estéril) estão habilitados para estas funções, garantindo esterilidade durante o atendimento.</i></p>
+            </div>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Registro Clínico Rápido</h2>
+            <p>Insira observações curtas diretamente no prontuário do paciente, vinculadas à auditoria de procedimentos.</p>
+            <form>
+                <label for="observacaoRapida">Observação Rápida:</label><br>
+                <textarea id="observacaoRapida" name="observacaoRapida" rows="4" cols="50" placeholder="Ex: Paciente com sensibilidade no dente 36. Necessário Raio-X."></textarea><br><br>
+                <button type="submit">Salvar Observação no Prontuário</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Checklist de Biossegurança</h2>
+            <p>Verifique itens obrigatórios antes do início do atendimento e confirme a biossegurança.</p>
+            <form>
+                <h3>Itens de Biossegurança:</h3>
+                <input type="checkbox" id="esterilizacaoConfirmada" name="esterilizacaoConfirmada">
+                <label for="esterilizacaoConfirmada"> Kits de instrumentos esterilizados e disponíveis</label><br>
+
+                <input type="checkbox" id="epiCompleto" name="epiCompleto">
+                <label for="epiCompleto"> Uso de EPI completo (luvas, máscara, óculos, jaleco)</label><br>
+
+                <input type="checkbox" id="instrumentosAdequados" name="instrumentosAdequados">
+                <label for="instrumentosAdequados"> Instrumentos adequados para o procedimento selecionado</label><br>
+
+                <input type="checkbox" id="superficiesDesinfetadas" name="superficiesDesinfetadas">
+                <label for="superficiesDesinfetadas"> Superfícies da cadeira e consultório desinfetadas</label><br><br>
+
+                <button type="submit">Confirmar Checklist de Biossegurança</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Prontuário Eletrônico Completo</h2>
+            <p>Acesse o histórico do paciente, registre anamnese, evolução clínica, e faça upload de documentos. O sistema busca otimizar a organização e a eficiência operacional.</p>
+
+            <div>
+                <h3>Seleção de Paciente:</h3>
+                <label for="selecionarPaciente">Paciente Atual:</label>
+                <select id="selecionarPaciente" name="pacienteAtual">
+                    <option value="">-- Selecione um paciente --</option>
+                    <option value="paciente1">Ana Paula Silva</option>
+                    <option value="paciente2">Carlos Eduardo Santos</option>
+                    <option value="paciente3">Mariana Costa</option>
+                </select>
+                <button type="button">Carregar Prontuário</button>
+            </div>
+            <br>
+            <fieldset>
+                <legend>Histórico do Paciente (Exemplo)</legend>
+                <p><strong>Nome:</strong> Ana Paula Silva</p>
+                <p><strong>Data de Nascimento:</strong> 15/03/1985</p>
+                <p><strong>Última Consulta:</strong> 20/10/2024</p>
+                <p><strong>Tratamento Atual:</strong> Restauração (dente 27)</p>
+            </fieldset>
+            <br>
+            <form>
+                <h3>Registro de Anamnese:</h3>
+                <label for="anamnese">Anamnese:</label><br>
+                <textarea id="anamnese" name="anamnese" rows="6" cols="70" placeholder="Histórico médico, alergias, medicações, queixa principal..."></textarea><br><br>
+
+                <h3>Evolução Clínica:</h3>
+                <label for="evolucaoClinica">Evolução do Atendimento:</label><br>
+                <textarea id="evolucaoClinica" name="evolucaoClinica" rows="8" cols="70" placeholder="Procedimentos realizados, intercorrências, orientações pós-atendimento..."></textarea><br><br>
+
+                <h3>Upload de Documentos (Imagens, Radiografias, Exames):</h3>
+                <input type="file" id="uploadDocumentos" name="documentos[]" multiple><br><br>
+
+                <h3>Assinatura Digital:</h3>
+                <p>Confirme os procedimentos e documentos com sua assinatura digital.</p>
+                <button type="button">Assinar Digitalmente</button>
+                <p><i>A assinatura digital de documentos é uma funcionalidade essencial para a modernização e eficiência do sistema.</i></p>
+                <br>
+                <button type="submit">Salvar Prontuário Completo</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Emergências</h2>
+            <p>Em caso de risco ou intercorrência, acione o E-Stop para travamento instantâneo de equipamentos.</p>
+            <button type="button" style="background-color: red; color: white; padding: 20px; font-size: 24px; border: none; cursor: pointer;">E-STOP (PARADA DE EMERGÊNCIA)</button>
+            <p><i>A segurança é uma prioridade, permitindo que os profissionais concentrem seus esforços na atenção clínica.</i></p>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 DentiBot - Projeto desenvolvido para a disciplina de Engenharia de Software da UNICID.</p>
+        <p>Orientação: Prof. Jadir Custodio Mendonça Junior.</p>
+    </footer>
+</body>
+</html>

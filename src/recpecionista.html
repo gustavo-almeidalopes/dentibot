@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DentiBot - Interface da Recepcionista / Atendente</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; margin: 20px; background-color: #f4f4f4; color: #333; }
+        header { background-color: #007BFF; color: white; padding: 15px 20px; text-align: center; border-radius: 8px; margin-bottom: 20px; }
+        h1, h2, h3 { color: #0056b3; }
+        section { background-color: white; padding: 20px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        form div { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input[type="text"], input[type="date"], input[type="time"], input[type="email"], select, textarea {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            margin-top: 5px;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-right: 10px;
+        }
+        button:hover { background-color: #218838; }
+        .info-box { background-color: #e9f7ef; border-left: 5px solid #28a745; padding: 10px; margin-top: 15px; border-radius: 4px; }
+        hr { border: 0; height: 1px; background: #ccc; margin: 30px 0; }
+        footer { text-align: center; margin-top: 30px; font-size: 0.9em; color: #666; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>DentiBot: Painel da Recepcionista / Atendente</h1>
+        <p>Este painel permite gerenciar agendamentos, comunicação e informações de pacientes no sistema DentiBot.</p>
+    </header>
+
+    <main>
+        <section>
+            <h2>Agendamento Inteligente</h2>
+            <p>Insira consultas no calendário digital, defina prioridades e o sistema ajusta automaticamente conforme a disponibilidade dos dentistas. A finalidade do DentiBot é otimizar tarefas administrativas e operacionais, como cadastro de pacientes, controle de prontuários e agendamentos.</p>
+            <form>
+                <div>
+                    <label for="pacienteNome">Nome do Paciente:</label>
+                    <input type="text" id="pacienteNome" name="pacienteNome" placeholder="Nome Completo" required>
+                </div>
+                <div>
+                    <label for="dentistaResponsavel">Dentista Responsável:</label>
+                    <select id="dentistaResponsavel" name="dentistaResponsavel" required>
+                        <option value="">-- Selecione o Dentista --</option>
+                        <option value="drSilva">Dr. João Silva</option>
+                        <option value="draSouza">Dra. Maria Souza</option>
+                        <option value="drOliveira">Dr. Pedro Oliveira</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="dataConsulta">Data da Consulta:</label>
+                    <input type="date" id="dataConsulta" name="dataConsulta" required>
+                </div>
+                <div>
+                    <label for="horaConsulta">Hora da Consulta:</label>
+                    <input type="time" id="horaConsulta" name="horaConsulta" required>
+                </div>
+                <div>
+                    <label for="tipoProcedimento">Tipo de Procedimento:</label>
+                    <select id="tipoProcedimento" name="tipoProcedimento" required>
+                        <option value="">-- Selecione o Procedimento --</option>
+                        <option value="avaliacao">Avaliação</option>
+                        <option value="limpeza">Profilaxia/Limpeza</option>
+                        <encia">Emergência</option>
+                    </select>
+                </div>
+                <button type="submit">Agendar Consulta</button>
+                <div class="info-box">
+                    <p>O sistema DentiBot ajustará automaticamente a disponibilidade dos dentistas e otimizará a agenda, considerando a finalidade de otimizar tempo.</p>
+                </div>
+            </form>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Confirmação Automática e Gerenciamento de Presença</h2>
+            <p>Envie lembretes e gerencie as respostas dos pacientes de forma integrada. O DentiBot atua na comunicação otimizada com os pacientes.</p>
+            <p>O sistema envia mensagens template de lembrete em intervalos programados (D-7, D-1, H-2 antes da consulta) via <strong>WhatsApp Business API</strong>, SMS ou e-mail, e recebe e processa respostas padronizadas dos pacientes (ex.: “Confirmo” ou “Remarcar”).</p>
+            <h3>Consultas Pendentes de Confirmação:</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Paciente</th>
+                        <th>Data/Hora</th>
+                        <th>Status</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Carlos Santos</td>
+                        <td>25/11/2025 10:00</td>
+                        <td>Aguardando resposta (D-1)</td>
+                        <td><button type="button">Ver Detalhes</button></td>
+                    </tr>
+                    <tr>
+                        <td>Fernanda Lima</td>
+                        <td>26/11/2025 14:30</td>
+                        <td>Confirmado</td>
+                        <td><button type="button">Ver Detalhes</button></td>
+                    </tr>
+                    <tr>
+                        <td>Roberto Costa</td>
+                        <td>27/11/2025 09:00</td>
+                        <td>Aguardando resposta (D-7)</td>
+                        <td><button type="button">Ver Detalhes</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3>Atualização Manual de Status (se necessário):</h3>
+            <form>
+                <div>
+                    <label for="selectConsultaStatus">Selecione a Consulta:</label>
+                    <select id="selectConsultaStatus" name="selectConsultaStatus">
+                        <option value="">-- Selecione --</option>
+                        <option value="carlos">Carlos Santos - 25/11/2025 10:00</option>
+                        <option value="roberto">Roberto Costa - 27/11/2025 09:00</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="novoStatus">Novo Status:</label>
+                    <select id="novoStatus" name="novoStatus">
+                        <option value="confirmado">Confirmado</option>
+                        <option value="remarcado">Remarcado</option>
+                        <option value="cancelado">Cancelado</option>
+                        <option value="naoCompareceu">Não Compareceu</option>
+                    </select>
+                </div>
+                <button type="submit">Atualizar Status</button>
+                <div class="info-box">
+                    <p>A integração com a <strong>WhatsApp Business API</strong> e provedores de e-mail garante a comunicação automatizada e a rastreabilidade para auditoria.</p>
+                </div>
+            </form>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Reagendamento Simplificado</h2>
+            <p>Ajuste rapidamente consultas no calendário e notifique paciente e dentista. Uma das atribuições da recepcionista é reagendar e atualizar o status de confirmação.</p>
+            <form>
+                <div>
+                    <label for="consultaReagendar">Consulta a Reagendar:</label>
+                    <select id="consultaReagendar" name="consultaReagendar" required>
+                        <option value="">-- Selecione uma consulta --</option>
+                        <option value="carlos">Carlos Santos - 25/11/2025 10:00</option>
+                        <option value="ana">Ana Paula Silva - 28/11/2025 11:30</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="novaDataReagendamento">Nova Data:</label>
+                    <input type="date" id="novaDataReagendamento" name="novaDataReagendamento" required>
+                </div>
+                <div>
+                    <label for="novaHoraReagendamento">Nova Hora:</label>
+                    <input type="time" id="novaHoraReagendamento" name="novaHoraReagendamento" required>
+                </div>
+                <button type="submit">Reagendar e Notificar</button>
+                <div class="info-box">
+                    <p>O sistema enviará notificações automáticas ao paciente e ao dentista sobre o reagendamento, facilitando a comunicação.</p>
+                </div>
+            </form>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Registro de Observações</h2>
+            <p>Inclua informações específicas do paciente para garantir um atendimento personalizado e seguro. A recepcionista pode registrar observações que impactam rotinas ou necessidades especiais.</p>
+            <form>
+                <div>
+                    <label for="pacienteObservacao">Selecione o Paciente:</label>
+                    <select id="pacienteObservacao" name="pacienteObservacao" required>
+                        <option value="">-- Selecione um paciente --</option>
+                        <option value="ana">Ana Paula Silva</option>
+                        <option value="carlos">Carlos Eduardo Santos</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="observacoesEspeciais">Observações (ex: paciente cadeirante, alergias, necessidades especiais):</label>
+                    <textarea id="observacoesEspeciais" name="observacoesEspeciais" rows="5" cols="70" placeholder="Ex: Paciente cadeirante, necessita de rampa. Alergia a Penicilina."></textarea>
+                </div>
+                <button type="submit">Salvar Observação</button>
+            </form>
+        </section>
+
+        <hr>
+
+        <section>
+            <h2>Integração com Convênios</h2>
+            <p>Solicite e cheque autorizações de procedimentos via <strong>TISS/TUSS</strong>, integrando informações de convênio à rotina do atendimento.</p>
+            <form>
+                <div>
+                    <label for="pacienteConvenio">Selecione o Paciente:</label>
+                    <select id="pacienteConvenio" name="pacienteConvenio" required>
+                        <option value="">-- Selecione um paciente --</option>
+                        <option value="ana">Ana Paula Silva</option>
+                        <option value="carlos">Carlos Eduardo Santos</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="numeroConvenio">Número da Carteirinha do Convênio:</label>
+                    <input type="text" id="numeroConvenio" name="numeroConvenio" placeholder="Ex: 1234567890">
+                </div>
+                <div>
+                    <label for="procedimentoConvenio">Procedimento para Autorização:</label>
+                    <input type="text" id="procedimentoConvenio" name="procedimentoConvenio" placeholder="Ex: Restauração Amálgama Dente 36">
+                </div>
+                <button type="submit">Solicitar Autorização (TISS/TUSS)</button>
+                <button type="button">Checar Status da Autorização</button>
+                <div class="info-box">
+                    <p>O sistema DentiBot pode retornar a autorização ou glosa e enviar códigos TUSS, além de fornecer regras e protocolos para auditoria.</p>
+                </div>
+            </form>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 DentiBot - Projeto desenvolvido para a disciplina de Engenharia de Software da UNICID.</p>
+        <p>Orientação: Prof. Jadir Custodio Mendonça Junior.</p>
+        <p>Equipe de Desenvolvimento: Gustavo Roberto de Almeida Lopes, Baptista Luís Teixeira Chuma, Samuel Soares Ferraz, Moisés.</p>
+    </footer>
+</body>
+</html>
