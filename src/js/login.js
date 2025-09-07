@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.onload = function () {
     try {
       google.accounts.id.initialize({
-        client_id: "658794348332-rne6f1ovun7c8l942o1i53h15a6c7u34.apps.googleusercontent.com", // Lembre-se de usar seu Client ID real
+        client_id: "USAR_ID_REAL_DO_CLIENTE", // Lembre-se de usar seu Client ID real
         callback: handleCredentialResponse,
       });
       google.accounts.id.renderButton(document.getElementById("buttonDiv"), {
@@ -108,4 +108,5 @@ document.addEventListener("DOMContentLoaded", () => {
     alert("Cadastro concluído! Bem-vindo, " + novoUsuario.name);
     redirecionarUsuario(novoUsuario);
   });
+
 });
