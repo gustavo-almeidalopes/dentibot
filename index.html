@@ -1,135 +1,55 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>DentiBot - Transformando a Gestão Odontológica</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --background: #ffffff;
-            --foreground: #475569;
-            --card: #f1f5f9;
-            --card-foreground: #475569;
-            --primary: #059669;
-            --primary-foreground: #ffffff;
-            --secondary: #f1f5f9;
-            --secondary-foreground: #475569;
-            --muted: #f0fdf4;
-            --muted-foreground: #374151;
-            --accent: #10b981;
-            --border: #d1d5db;
-        }
-
-        body {
-            background-color: var(--background);
-            color: var(--foreground);
-            font-family: sans-serif;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
-            font-weight: 500;
-            border: 1px solid;
-        }
-
-        .button {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.75rem 1.5rem;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: background-color 0.2s;
-        }
-
-        .button-primary {
-            background-color: var(--primary);
-            color: var(--primary-foreground);
-        }
-
-        .button-primary:hover {
-            background-color: #047857;
-        }
-
-        .button-outline {
-            background-color: transparent;
-            border: 1px solid var(--border);
-            color: var(--foreground);
-        }
-
-        .button-outline:hover {
-            background-color: var(--muted);
-        }
-
-        .card {
-            background-color: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 0.5rem;
-            padding: 2rem;
-            transition: box-shadow 0.2s;
-        }
-
-        .card:hover {
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--foreground);
-        }
-        
-        .icon {
-            width: 2.5rem;
-            height: 2.5rem;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        .icon-sm {
-            width: 1rem;
-            height: 1rem;
-            margin-right: 0.5rem;
-        }
-
-        .section-content {
-            max-height: 0;
-            opacity: 0;
-            overflow: hidden;
-            color: var(--muted-foreground);
-            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out, margin-top 0.5s ease-in-out;
-        }
-
-        .feature-section.expanded .section-content {
-            max-height: 500px;
-            opacity: 1;
-            margin-top: 1rem; 
-        }
-
-    </style>
+    <link rel="stylesheet" href="style.css" />
 </head>
 <body class="min-h-screen">
-
-    <header class="sticky top-0 z-50 border-b" style="background-color: rgba(255, 255, 255, 0.6); backdrop-filter: blur(10px);">
+    
+    <header class="sticky top-0 z-50 border-b border-gray-200" style="background-color: var(--header-bg);">
         <div class="container mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex h-16 items-center justify-between">
-                <div class="flex items-center space-x-2">
+                <a href="/" class="flex items-center space-x-2" aria-label="Página Inicial">
                     <div class="h-8 w-8 rounded-lg flex items-center justify-center" style="background-color: var(--primary);">
                         <span class="text-lg font-bold" style="color: var(--primary-foreground);">D</span>
                     </div>
-                    <span class="text-xl font-bold">DentiBot</span>
-                </div>
+                    <span class="text-xl font-bold">TROCAR PELO LOGO !!!</span>
+                </a>
                 <nav class="hidden md:flex items-center space-x-8">
-                    <a href="#features" class="transition-colors" style="color: var(--muted-foreground);">Funcionalidades</a>
-                    <a href="#benefits" class="transition-colors" style="color: var(--muted-foreground);">Benefícios</a>
-                    <a href="#testimonials" class="transition-colors" style="color: var(--muted-foreground);">Depoimentos</a>
+                    <a href="#features" class="nav-link">Funcionalidades</a>
+                    <a href="#benefits" class="nav-link">Benefícios</a>
+                    <a href="#testimonials" class="nav-link">Depoimentos</a>
                 </nav>
-                <a href="#" class="button button-primary">Começar Grátis</a>
-                <a href="#" class="button button-primary">Login</a>
+                <div class="hidden md:flex items-center space-x-3">
+                    <a href="#" class="button button-highlight">Começar Grátis</a>
+                    <a href="src/pages/login.html" class="button button-outline">Login</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Abrir menu principal</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="hidden" id="mobile-menu">
+            <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+                <a href="#features" class="nav-link block rounded-md px-3 py-2 text-base font-medium">Funcionalidades</a>
+                <a href="#benefits" class="nav-link block rounded-md px-3 py-2 text-base font-medium">Benefícios</a>
+                <a href="#testimonials" class="nav-link block rounded-md px-3 py-2 text-base font-medium">Depoimentos</a>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-4 space-y-3">
+                <a href="#" class="button button-highlight w-full">Começar Grátis</a>
+                <a href="src/pages/login.html" class="button button-outline w-full">Login</a>
             </div>
         </div>
     </header>
@@ -165,46 +85,46 @@
                 </p>
             </div>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="card feature-section">
+                <div class="feature-section">
                     <i data-lucide="users" class="icon"></i>
-                    <h3 class="card-title">Gestão de Pacientes</h3>
+                    <h3 class="text-xl font-bold">Gestão de Pacientes</h3>
                     <div class="section-content">
-                        <p>Cadastro completo e gerenciamento de informações dos pacientes.</p>
+                        <p class="text-gray-600">Cadastro completo e gerenciamento de informações dos pacientes.</p>
                     </div>
                 </div>
-                <div class="card feature-section">
+                <div class="feature-section">
                     <i data-lucide="file-text" class="icon"></i>
-                    <h3 class="card-title">Prontuário Digital</h3>
+                    <h3 class="text-xl font-bold">Prontuário Digital</h3>
                     <div class="section-content">
-                        <p>Prontuário eletrônico seguro e acessível a qualquer momento.</p>
+                        <p class="text-gray-600">Prontuário eletrônico seguro e acessível a qualquer momento.</p>
                     </div>
                 </div>
-                <div class="card feature-section">
+                <div class="feature-section">
                     <i data-lucide="calendar" class="icon"></i>
-                    <h3 class="card-title">Agendamento Inteligente</h3>
+                    <h3 class="text-xl font-bold">Agendamento Inteligente</h3>
                     <div class="section-content">
-                        <p>Sistema de agendamento com confirmação automática de consultas.</p>
+                        <p class="text-gray-600">Sistema de agendamento com confirmação automática de consultas.</p>
                     </div>
                 </div>
-                <div class="card feature-section">
+                <div class="feature-section">
                     <i data-lucide="bar-chart-3" class="icon"></i>
-                    <h3 class="card-title">Controle de Estoque</h3>
+                    <h3 class="text-xl font-bold">Controle de Estoque</h3>
                     <div class="section-content">
-                        <p>Gerenciamento completo do inventário de instrumentos e consumíveis.</p>
+                        <p class="text-gray-600">Gerenciamento completo do inventário de instrumentos e consumíveis.</p>
                     </div>
                 </div>
-                <div class="card feature-section">
+                <div class="feature-section">
                     <i data-lucide="message-square" class="icon"></i>
-                    <h3 class="card-title">Comunicação Otimizada</h3>
+                    <h3 class="text-xl font-bold">Comunicação Otimizada</h3>
                     <div class="section-content">
-                        <p>Lembretes automáticos via WhatsApp, SMS e e-mail.</p>
+                        <p class="text-gray-600">Lembretes automáticos via WhatsApp, SMS e e-mail.</p>
                     </div>
                 </div>
-                <div class="card feature-section">
+                <div class="feature-section">
                     <i data-lucide="shield" class="icon"></i>
-                    <h3 class="card-title">Assinatura Digital</h3>
+                    <h3 class="text-xl font-bold">Assinatura Digital</h3>
                     <div class="section-content">
-                        <p>Suporte completo para assinatura digital de documentos.</p>
+                        <p class="text-gray-600">Suporte completo para assinatura digital de documentos.</p>
                     </div>
                 </div>
             </div>
@@ -251,7 +171,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card p-8">
+                    <div class="p-8 rounded-lg" style="background-color: var(--card); border: 1px solid var(--border);">
                         <div class="text-center">
                             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6" style="background-color: rgba(5, 150, 105, 0.1);">
                                 <i data-lucide="check-circle" class="w-8 h-8" style="color: var(--primary);"></i>
@@ -259,9 +179,9 @@
                             <h3 class="text-2xl font-bold mb-4">Sistema Integrado</h3>
                             <p class="mb-6" style="color: var(--muted-foreground);">Todas as funcionalidades em uma única plataforma.</p>
                             <div class="space-y-3 text-left">
-                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="icon-sm" style="color: var(--accent);"></i> Integração com WhatsApp Business</div>
-                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="icon-sm" style="color: var(--accent);"></i> Conexão com Google Maps</div>
-                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="icon-sm" style="color: var(--accent);"></i> Sistemas de Convênios (TISS/TUSS)</div>
+                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="mr-2 h-4 w-4" style="color: var(--accent);"></i> Integração com WhatsApp Business</div>
+                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="mr-2 h-4 w-4" style="color: var(--accent);"></i> Conexão com Google Maps</div>
+                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="mr-2 h-4 w-4" style="color: var(--accent);"></i> Sistemas de Convênios (TISS/TUSS)</div>
                             </div>
                         </div>
                     </div>
@@ -277,54 +197,53 @@
                 <p class="text-xl" style="color: var(--muted-foreground);">Depoimentos de profissionais que já transformaram suas clínicas.</p>
             </div>
             <div class="grid md:grid-cols-3 gap-8">
-                <div class="card">
-                    <div class="flex items-center mb-4">
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
+                <div class="feature-section"> <div class="flex items-center mb-4">
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
                     </div>
-                    <p class="mb-4" style="color: var(--muted-foreground);">"xxxxxx"</p>
+                    <p class="mb-4" style="color: var(--muted-foreground);">"A gestão do consultório ficou muito mais simples e eficiente com o DentiBot. Recomendo a todos os colegas!"</p>
                     <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(5, 150, 105, 0.1);"><span class="font-semibold" style="color: var(--primary);">DR</span></div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(74,157,174,0.1);"><span class="font-semibold" style="color: var(--primary);">DR</span></div>
                         <div>
-                            <p class="font-semibold">xxxxxx</p>
-                            <p class="text-sm" style="color: var(--muted-foreground);">Clínica X</p>
+                            <p class="font-semibold">Dr. João Silva</p>
+                            <p class="text-sm" style="color: var(--muted-foreground);">Clínica Sorriso Feliz</p>
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="flex items-center mb-4">
-                         <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
+
+                <div class="feature-section"> <div class="flex items-center mb-4">
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
                     </div>
-                    <p class="mb-4" style="color: var(--muted-foreground);">"xxxxxx"</p>
+                    <p class="mb-4" style="color: var(--muted-foreground);">"O agendamento automático e os lembretes via WhatsApp mudaram a forma como interagimos com os pacientes. Incrível!"</p>
                     <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(5, 150, 105, 0.1);"><span class="font-semibold" style="color: var(--primary);">AM</span></div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(74,157,174,0.1);"><span class="font-semibold" style="color: var(--primary);">AM</span></div>
                         <div>
-                            <p class="font-semibold">xxxxxx</p>
-                            <p class="text-sm" style="color: var(--muted-foreground);">Clinica Y</p>
+                            <p class="font-semibold">Dra. Ana Mello</p>
+                            <p class="text-sm" style="color: var(--muted-foreground);">Clínica OdontoMais</p>
                         </div>
                     </div>
                 </div>
-                <div class="card">
-                    <div class="flex items-center mb-4">
-                         <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
-                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--accent); color: var(--accent);"></i>
+
+                <div class="feature-section"> <div class="flex items-center mb-4">
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
                     </div>
-                    <p class="mb-4" style="color: var(--muted-foreground);">"xxxxxx"</p>
+                    <p class="mb-4" style="color: var(--muted-foreground);">"A segurança dos dados e a conformidade com a LGPD nos deram total tranquilidade. Uma ferramenta indispensável."</p>
                     <div class="flex items-center">
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(5, 150, 105, 0.1);"><span class="font-semibold" style="color: var(--primary);">CS</span></div>
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(74,157,174,0.1);"><span class="font-semibold" style="color: var(--primary);">CS</span></div>
                         <div>
-                            <p class="font-semibold">xxxxxx</p>
-                            <p class="text-sm" style="color: var(--muted-foreground);">Clinica Z</p>
+                            <p class="font-semibold">Dr. Carlos Souza</p>
+                            <p class="text-sm" style="color: var(--muted-foreground);">Consultório Integral</p>
                         </div>
                     </div>
                 </div>
@@ -354,25 +273,8 @@
         </div>
     </footer>
 
-    <script>
-      lucide.createIcons();
-    </script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const sections = document.querySelectorAll('.feature-section');
-
-            sections.forEach(section => {
-                section.addEventListener('mouseenter', () => {
-                    section.classList.add('expanded');
-                });
-
-                section.addEventListener('mouseleave', () => {
-                    section.classList.remove('expanded');
-                });
-            });
-        });
-    </script>
-    </body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script>lucide.createIcons();</script>
+    <script src="script.js"></script>
+</body>
 </html>
-
