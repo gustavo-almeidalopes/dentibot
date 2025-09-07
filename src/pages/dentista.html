@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DentiBot - Interface do Dentista</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --background: #f8fafc; 
+            --foreground: #475569;
+            --card: #ffffff;
+            --card-foreground: #475569;
+            --primary: #059669;
+            --primary-foreground: #ffffff;
+            --secondary: #f1f5f9;
+            --secondary-foreground: #475569;
+            --muted: #f0fdf4;
+            --muted-foreground: #374151;
+            --accent: #10b981;
+            --border: #e2e8f0;
+            --input: #e2e8f0;
+            --ring: #059669;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--foreground);
+            font-family: sans-serif;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .btn-primary {
+            background-color: var(--primary);
+            color: var(--primary-foreground);
+            border-color: var(--primary);
+        }
+        .btn-primary:hover {
+            background-color: #047857;
+            border-color: #047857;
+        }
+        .btn-secondary {
+            background-color: var(--secondary);
+            color: var(--secondary-foreground);
+            border-color: var(--border);
+        }
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .form-input, .form-textarea, .form-select {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            background-color: var(--background);
+            transition: all 0.2s;
+        }
+        .form-input:focus, .form-textarea:focus, .form-select:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+        }
+
+        .sidebar-link.active {
+            background-color: var(--muted);
+            color: var(--primary);
+            font-weight: 600;
+        }
+        .sidebar-link.active i {
+            color: var(--primary);
+        }
+
+        #fixed-estop-container.is-visible {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <div class="flex h-screen">
+        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-4 border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
+            <div class="flex items-center space-x-2 pb-4 border-b">
+                <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-primary">
+                    <span class="text-lg font-bold text-primary-foreground">D</span>
+                </div>
+                <span class="text-xl font-bold">DentiBot</span>
+            </div>
+            <nav class="mt-6">
+                <a href="#cadeira" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100">
+                    <i data-lucide="sofa"></i><span>Controle da Cadeira</span>
+                </a>
+                <a href="#registro-rapido" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="pen-square"></i><span>Registro Rápido</span>
+                </a>
+                <a href="#biosseguranca" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="shield-check"></i><span>Biossegurança</span>
+                </a>
+                <a href="#prontuario" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="file-text"></i><span>Prontuário Completo</span>
+                </a>
+                <a href="#emergencia" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
+                    <i data-lucide="alert-triangle"></i><span>Emergência</span>
+                </a>
+            </nav>
+        </aside>
+
+        <div class="flex-1 flex flex-col overflow-y-auto">
+            <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-20">
+                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+                    <div class="flex h-16 items-center justify-between">
+                         <button id="menu-open-btn" class="md:hidden text-gray-600">
+                            <i data-lucide="menu" class="h-6 w-6"></i>
+                        </button>
+                        <h1 class="text-lg font-semibold text-gray-800">Painel do Dentista</h1>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-sm hidden sm:block">Dra. Carolina</span>
+                            <i data-lucide="user-circle-2" class="h-8 w-8 text-gray-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
+
+                <section id="cadeira" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Controle da Cadeira Odontológica</h2>
+                    <p class="text-muted-foreground mb-6">Selecione e execute rotinas automatizadas para a cadeira.</p>
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        <button type="button" class="btn btn-secondary"><i data-lucide="lightbulb" class="mr-2 h-4 w-4"></i>Ativar Iluminação</button>
+                        <button type="button" class="btn btn-secondary"><i data-lucide="wind" class="mr-2 h-4 w-4"></i>Ativar Sucção</button>
+                        <button type="button" class="btn btn-secondary">Posição Início</button>
+                        <button type="button" class="btn btn-secondary">Posição Conclusão</button>
+                        <button type="button" class="btn btn-secondary"><i data-lucide="arrow-up" class="mr-2 h-4 w-4"></i>Ajustar Altura</button>
+                        <button type="button" class="btn btn-secondary"><i data-lucide="arrow-down" class="mr-2 h-4 w-4"></i>Ajustar Altura</button>
+                        <button type="button" class="btn btn-secondary">Ajustar Encosto</button>
+                    </div>
+                     <p class="text-sm text-muted-foreground mt-4"><i><b>Observação:</b> Comandos hands-free (voz, pedal) estão habilitados para estas funções.</i></p>
+                </section>
+
+                <section id="registro-rapido" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Registro Clínico Rápido</h2>
+                    <p class="text-muted-foreground mb-4">Insira observações curtas diretamente no prontuário do paciente.</p>
+                    <form>
+                        <label for="observacaoRapida" class="font-medium">Observação Rápida:</label>
+                        <textarea id="observacaoRapida" name="observacaoRapida" rows="3" class="form-textarea mt-2" placeholder="Ex: Paciente com sensibilidade no dente 36. Necessário Raio-X."></textarea>
+                        <button type="submit" class="btn btn-primary mt-4">Salvar Observação</button>
+                    </form>
+                </section>
+
+                <section id="biosseguranca" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Checklist de Biossegurança</h2>
+                    <p class="text-muted-foreground mb-6">Verifique itens obrigatórios antes do início do atendimento.</p>
+                    <form class="space-y-4">
+                        <label class="flex items-center cursor-pointer"><input type="checkbox" class="h-5 w-5 rounded text-primary focus:ring-primary"><span class="ml-3 text-card-foreground">Kits de instrumentos esterilizados e disponíveis</span></label>
+                        <label class="flex items-center cursor-pointer"><input type="checkbox" class="h-5 w-5 rounded text-primary focus:ring-primary"><span class="ml-3 text-card-foreground">Uso de EPI completo (luvas, máscara, óculos, jaleco)</span></label>
+                        <label class="flex items-center cursor-pointer"><input type="checkbox" class="h-5 w-5 rounded text-primary focus:ring-primary"><span class="ml-3 text-card-foreground">Instrumentos adequados para o procedimento</span></label>
+                        <label class="flex items-center cursor-pointer"><input type="checkbox" class="h-5 w-5 rounded text-primary focus:ring-primary"><span class="ml-3 text-card-foreground">Superfícies da cadeira e consultório desinfetadas</span></label>
+                        <button type="submit" class="btn btn-primary mt-6">Confirmar Checklist</button>
+                    </form>
+                </section>
+
+                <section id="prontuario" class="bg-card rounded-xl shadow-md p-6">
+                    <h2 class="text-2xl font-bold mb-2">Prontuário Eletrônico Completo</h2>
+                    <p class="text-muted-foreground mb-6">Acesse o histórico completo do paciente e registre a evolução clínica.</p>
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+                        <div class="flex-1">
+                            <label for="selecionarPaciente" class="font-medium">Paciente Atual:</label>
+                            <select id="selecionarPaciente" name="pacienteAtual" class="form-select mt-2">
+                                <option value="">-- Selecione um paciente --</option>
+                                <option value="paciente1">Ana Paula Silva</option>
+                                <option value="paciente2">Carlos Eduardo Santos</option>
+                                <option value="paciente3">Mariana Costa</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-secondary mt-4 sm:mt-8 w-full sm:w-auto">Carregar Prontuário</button>
+                    </div>
+                    <div class="mt-6 border-t pt-6 space-y-6">
+                        <form class="space-y-6">
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Anamnese</h3>
+                                <textarea id="anamnese" name="anamnese" rows="5" class="form-textarea" placeholder="Histórico médico, alergias, medicações..."></textarea>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Evolução Clínica</h3>
+                                <textarea id="evolucaoClinica" name="evolucaoClinica" rows="6" class="form-textarea" placeholder="Procedimentos realizados, intercorrências..."></textarea>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Upload de Documentos</h3>
+                                <input type="file" id="uploadDocumentos" name="documentos[]" multiple class="form-input file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+                            </div>
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-t pt-6">
+                                <button type="button" class="btn btn-secondary w-full sm:w-auto"><i data-lucide="signature" class="mr-2 h-4 w-4"></i>Assinar Digitalmente</button>
+                                <button type="submit" class="btn btn-primary mt-4 sm:mt-0 w-full sm:w-auto">Salvar Prontuário Completo</button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+
+                <section id="emergencia" class="bg-card rounded-xl shadow-md p-6">
+                     <h2 class="text-2xl font-bold mb-2 text-red-600">Emergências</h2>
+                     <p class="text-muted-foreground mb-4">Em caso de risco, acione o botão para travamento instantâneo de equipamentos.</p>
+                     <button type="button" class="w-full text-lg font-bold py-4 px-6 rounded-lg bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors">
+                        <i data-lucide="power-off" class="mr-3 h-6 w-6"></i>
+                        E-STOP (PARADA DE EMERGÊNCIA)
+                     </button>
+                </section>
+                
+            </main>
+
+            <footer class="text-center p-4 text-sm text-gray-500 border-t">
+                <p>&copy; 2025 DentiBot - Projeto de Engenharia de Software da UNICID. Orientador: Prof. Jadir Custodio Mendonça Junior.</p>
+            </footer>
+        </div>
+    </div>
+    
+    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+
+    <div id="fixed-estop-container" class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 backdrop-blur-lg border-t border-gray-200 z-40 transition-transform duration-300 transform translate-y-full">
+        <div class="container mx-auto px-0 sm:px-6 lg:px-8 max-w-5xl">
+             <button type="button" class="w-full text-lg font-bold py-3 px-6 rounded-lg bg-red-600 text-white flex items-center justify-center hover:bg-red-700 transition-colors">
+                <i data-lucide="power-off" class="mr-3 h-6 w-6"></i>
+                E-STOP (PARADA DE EMERGÊNCIA)
+             </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- LÓGICA DA SIDEBAR ---
+            const sidebar = document.getElementById('sidebar');
+            const menuOpenBtn = document.getElementById('menu-open-btn');
+            const sidebarOverlay = document.getElementById('sidebar-overlay');
+
+            function openSidebar() {
+                sidebar.classList.remove('-translate-x-full');
+                sidebarOverlay.classList.remove('hidden');
+            }
+            function closeSidebar() {
+                sidebar.classList.add('-translate-x-full');
+                sidebarOverlay.classList.add('hidden');
+            }
+            menuOpenBtn.addEventListener('click', openSidebar);
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            document.querySelectorAll('.sidebar-link').forEach(link => {
+                link.addEventListener('click', () => {
+                    if (window.innerWidth < 768) { closeSidebar(); }
+                });
+            });
+
+            // --- LÓGICA SIDEBAR ATIVA COM SCROLL ---
+            const sections = document.querySelectorAll('main section');
+            const navLinks = document.querySelectorAll('.sidebar-link');
+            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.4 };
+            const sectionObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                            link.classList.remove('active');
+                            if (link.getAttribute('href') === `#${id}`) {
+                                link.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, observerOptions);
+            sections.forEach(section => { sectionObserver.observe(section); });
+
+            // --- NOVO: LÓGICA PARA EXIBIR O BOTÃO E-STOP FIXO ---
+            const cadeiraSection = document.getElementById('cadeira');
+            const fixedEstopContainer = document.getElementById('fixed-estop-container');
+
+            const estopObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    // Se a seção da cadeira está visível na tela
+                    if (entry.isIntersecting) {
+                        fixedEstopContainer.classList.add('is-visible');
+                    } else {
+                        // Se a seção da cadeira NÃO está visível
+                        fixedEstopContainer.classList.remove('is-visible');
+                    }
+                });
+            }, { 
+                root: null,
+                threshold: 0.1
+            });
+
+            estopObserver.observe(cadeiraSection);
+        });
+    </script>
+</body>
+</html>
