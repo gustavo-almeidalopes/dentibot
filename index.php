@@ -57,7 +57,7 @@ $title = "DentiBot - Transformando a Gestão Odontológica";
                 </nav>
                 <div class="hidden md:flex items-center space-x-3">
                     <a href="#" class="button button-highlight">Começar Grátis</a>
-                    <a href="src/pages/login.html" class="button button-outline">Login</a>
+                    <a href="src/pages/login.php" class="button button-outline">Login</a>
                 </div>
                 <div class="md:hidden">
                     <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
@@ -308,4 +308,5 @@ $title = "DentiBot - Transformando a Gestão Odontológica";
     <script>lucide.createIcons();</script>
     <script src="script.js"></script>
 </body>
+
 </html>
