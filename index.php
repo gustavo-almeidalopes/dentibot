@@ -1,0 +1,311 @@
+<?php
+require_once __DIR__ . "/config/auth.php";
+
+if (isset($_SESSION["user_id"])) {
+    switch ($_SESSION["user_role"]) {
+        case "recepcionista":
+            header("Location: /src/pages/recepcionista.php");
+            break;
+        case "dentista":
+            header("Location: /src/pages/dentista.php");
+            break;
+        case "coordenador":
+            header("Location: /src/pages/coordenador.php");
+            break;
+        default:
+            header("Location: /src/pages/cliente.php");
+    }
+    exit;
+}
+
+header("Location: /src/pages/login.php");
+exit;
+
+<?php
+$title = "DentiBot - Transformando a Gestão Odontológica";
+//$logoPath = "";
+//$faviconPath = "";
+?>
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title><?php echo htmlspecialchars($title); ?</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body class="min-h-screen">
+    
+    <header class="sticky top-0 z-50 border-b border-gray-200" style="background-color: var(--header-bg);">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <a href="/" class="flex items-center space-x-2" aria-label="Página Inicial">
+                    <div class="h-8 w-8 rounded-lg flex items-center justify-center" style="background-color: var(--primary);">
+                        <span class="text-lg font-bold" style="color: var(--primary-foreground);">D</span>
+                    </div>
+                    
+                    <img id="logo" src="<?php echo htmlspecialchars($logoPath); ?>" alt="Logo DentiBot>
+                    <span class="text-xl font-bold">TROCAR PELO LOGO !!!</span>
+                </a>
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="#features" class="nav-link">Funcionalidades</a>
+                    <a href="#benefits" class="nav-link">Benefícios</a>
+                    <a href="#testimonials" class="nav-link">Depoimentos</a>
+                </nav>
+                <div class="hidden md:flex items-center space-x-3">
+                    <a href="#" class="button button-highlight">Começar Grátis</a>
+                    <a href="src/pages/login.html" class="button button-outline">Login</a>
+                </div>
+                <div class="md:hidden">
+                    <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
+                        <span class="sr-only">Abrir menu principal</span>
+                        <svg class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <svg class="hidden h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="hidden" id="mobile-menu">
+            <div class="space-y-1 px-2 pt-2 pb-3 sm:px-3">
+                <a href="#features" class="nav-link block rounded-md px-3 py-2 text-base font-medium">Funcionalidades</a>
+                <a href="#benefits" class="nav-link block rounded-md px-3 py-2 text-base font-medium">Benefícios</a>
+                <a href="#testimonials" class="nav-link block rounded-md px-3 py-2 text-base font-medium">Depoimentos</a>
+            </div>
+            <div class="border-t border-gray-200 px-4 py-4 space-y-3">
+                <a href="#" class="button button-highlight w-full">Começar Grátis</a>
+                <a href="src/pages/login.html" class="button button-outline w-full">Login</a>
+            </div>
+        </div>
+    </header>
+
+    <section class="py-20 lg:py-32" style="background: linear-gradient(to bottom, rgba(240, 253, 244, 0.5), var(--background));">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto text-center">
+                <span class="badge mb-6" style="background-color: rgba(16, 185, 129, 0.1); color: var(--accent); border-color: rgba(16, 185, 129, 0.2);">
+                    Inovação em Gestão Odontológica
+                </span>
+                <h1 class="text-4xl lg:text-6xl font-bold mb-6">
+                    Simplifique a gestão do seu consultório com o <span style="color: var(--primary);">DentiBot</span>
+                </h1>
+                <p class="text-xl mb-8 max-w-2xl mx-auto" style="color: var(--muted-foreground);">
+                    Sistema completo de gestão para clínicas odontológicas. Automatize tarefas e foque no que realmente importa: seus pacientes.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#" class="button button-primary text-lg">
+                        Começar Teste Grátis <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
+                    </a>
+                    <a href="#" class="button button-outline text-lg">Ver Demonstração</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="features" class="py-20">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4">Funcionalidades Completas</h2>
+                <p class="text-xl max-w-2xl mx-auto" style="color: var(--muted-foreground);">
+                    Tudo que você precisa para gerenciar seu consultório de forma eficiente.
+                </p>
+            </div>
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="feature-section">
+                    <i data-lucide="users" class="icon"></i>
+                    <h3 class="text-xl font-bold">Gestão de Pacientes</h3>
+                    <div class="section-content">
+                        <p class="text-gray-600">Cadastro completo e gerenciamento de informações dos pacientes.</p>
+                    </div>
+                </div>
+                <div class="feature-section">
+                    <i data-lucide="file-text" class="icon"></i>
+                    <h3 class="text-xl font-bold">Prontuário Digital</h3>
+                    <div class="section-content">
+                        <p class="text-gray-600">Prontuário eletrônico seguro e acessível a qualquer momento.</p>
+                    </div>
+                </div>
+                <div class="feature-section">
+                    <i data-lucide="calendar" class="icon"></i>
+                    <h3 class="text-xl font-bold">Agendamento Inteligente</h3>
+                    <div class="section-content">
+                        <p class="text-gray-600">Sistema de agendamento com confirmação automática de consultas.</p>
+                    </div>
+                </div>
+                <div class="feature-section">
+                    <i data-lucide="bar-chart-3" class="icon"></i>
+                    <h3 class="text-xl font-bold">Controle de Estoque</h3>
+                    <div class="section-content">
+                        <p class="text-gray-600">Gerenciamento completo do inventário de instrumentos e consumíveis.</p>
+                    </div>
+                </div>
+                <div class="feature-section">
+                    <i data-lucide="message-square" class="icon"></i>
+                    <h3 class="text-xl font-bold">Comunicação Otimizada</h3>
+                    <div class="section-content">
+                        <p class="text-gray-600">Lembretes automáticos via WhatsApp, SMS e e-mail.</p>
+                    </div>
+                </div>
+                <div class="feature-section">
+                    <i data-lucide="shield" class="icon"></i>
+                    <h3 class="text-xl font-bold">Assinatura Digital</h3>
+                    <div class="section-content">
+                        <p class="text-gray-600">Suporte completo para assinatura digital de documentos.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="benefits" class="py-20" style="background-color: rgba(240, 253, 244, 0.3);">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-4xl mx-auto">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl lg:text-4xl font-bold mb-4">Por que escolher o DentiBot?</h2>
+                    <p class="text-xl" style="color: var(--muted-foreground);">
+                        Desenvolvido para superar os desafios das clínicas odontológicas.
+                    </p>
+                </div>
+                <div class="grid md:grid-cols-2 gap-12 items-center">
+                    <div class="space-y-8">
+                        <div class="flex items-start space-x-4">
+                            <i data-lucide="zap" style="color: var(--accent);"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Aumento da Produtividade</h3>
+                                <p style="color: var(--muted-foreground);">Reduza o tempo gasto em tarefas administrativas e foque no atendimento.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <i data-lucide="dollar-sign" style="color: var(--accent);"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Solução Acessível</h3>
+                                <p style="color: var(--muted-foreground);">Preços justos para clínicas de pequeno e médio porte, sem comprometer a qualidade.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                           <i data-lucide="clock" style="color: var(--accent);"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Implementação Rápida</h3>
+                                <p style="color: var(--muted-foreground);">Sistema intuitivo que não requer treinamentos complexos.</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start space-x-4">
+                            <i data-lucide="shield" style="color: var(--accent);"></i>
+                            <div>
+                                <h3 class="text-lg font-semibold mb-2">Segurança e Conformidade</h3>
+                                <p style="color: var(--muted-foreground);">Totalmente em conformidade com a LGPD e padrões de segurança.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-8 rounded-lg" style="background-color: var(--card); border: 1px solid var(--border);">
+                        <div class="text-center">
+                            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full mb-6" style="background-color: rgba(5, 150, 105, 0.1);">
+                                <i data-lucide="check-circle" class="w-8 h-8" style="color: var(--primary);"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold mb-4">Sistema Integrado</h3>
+                            <p class="mb-6" style="color: var(--muted-foreground);">Todas as funcionalidades em uma única plataforma.</p>
+                            <div class="space-y-3 text-left">
+                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="mr-2 h-4 w-4" style="color: var(--accent);"></i> Integração com WhatsApp Business</div>
+                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="mr-2 h-4 w-4" style="color: var(--accent);"></i> Conexão com Google Maps</div>
+                                <div class="flex items-center text-sm" style="color: var(--muted-foreground);"><i data-lucide="check-circle" class="mr-2 h-4 w-4" style="color: var(--accent);"></i> Sistemas de Convênios (TISS/TUSS)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="testimonials" class="py-20">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4">O que nossos clientes dizem</h2>
+                <p class="text-xl" style="color: var(--muted-foreground);">Depoimentos de profissionais que já transformaram suas clínicas.</p>
+            </div>
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="feature-section"> <div class="flex items-center mb-4">
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                    </div>
+                    <p class="mb-4" style="color: var(--muted-foreground);">"A gestão do consultório ficou muito mais simples e eficiente com o DentiBot. Recomendo a todos os colegas!"</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(74,157,174,0.1);"><span class="font-semibold" style="color: var(--primary);">DR</span></div>
+                        <div>
+                            <p class="font-semibold">Dr. João Silva</p>
+                            <p class="text-sm" style="color: var(--muted-foreground);">Clínica X</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-section"> <div class="flex items-center mb-4">
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                    </div>
+                    <p class="mb-4" style="color: var(--muted-foreground);">"O agendamento automático e os lembretes via WhatsApp mudaram a forma como interagimos com os pacientes. Incrível!"</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(74,157,174,0.1);"><span class="font-semibold" style="color: var(--primary);">AM</span></div>
+                        <div>
+                            <p class="font-semibold">Dra. Ana Mello</p>
+                            <p class="text-sm" style="color: var(--muted-foreground);">Clínica Y</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="feature-section"> <div class="flex items-center mb-4">
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                        <i data-lucide="star" class="h-4 w-4" style="fill: var(--highlight); color: var(--highlight);"></i>
+                    </div>
+                    <p class="mb-4" style="color: var(--muted-foreground);">"A segurança dos dados e a conformidade com a LGPD nos deram total tranquilidade. Uma ferramenta indispensável."</p>
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center mr-3" style="background-color: rgba(74,157,174,0.1);"><span class="font-semibold" style="color: var(--primary);">CS</span></div>
+                        <div>
+                            <p class="font-semibold">Dr. Carlos Souza</p>
+                            <p class="text-sm" style="color: var(--muted-foreground);">Consultório Z</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-20" style="background-color: var(--primary);">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="max-w-3xl mx-auto text-center">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-6" style="color: var(--primary-foreground);">Pronto para transformar sua clínica?</h2>
+                <p class="text-xl mb-8" style="color: rgba(255, 255, 255, 0.9);">Junte-se a centenas de profissionais que já escolheram o DentiBot.</p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="#" class="button text-lg" style="background-color: var(--primary-foreground); color: var(--primary);">
+                        Começar Teste Grátis de 30 Dias <i data-lucide="arrow-right" class="ml-2 h-4 w-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer style="background-color: var(--card); border-top: 1px solid var(--border);">
+        <div class="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="text-center" style="color: var(--muted-foreground);">
+                <p>&copy; 2025 DentiBot. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script>lucide.createIcons();</script>
+    <script src="script.js"></script>
+</body>
+</html>
