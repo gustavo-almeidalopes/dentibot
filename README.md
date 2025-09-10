@@ -9,7 +9,6 @@ O DentiBot é um sistema de gestão odontológica inovador e acessível, desenvo
 O sistema integra funcionalidades essenciais de gestão clínica, incluindo:
 - Prontuário digital seguro e acessível a qualquer momento.
 - Agendamento inteligente com confirmação automática.
-- Controle de estoque e financeiro.
 - Emissão de relatórios gerenciais.
 - Assinatura digital de documentos.
 - Comunicação otimizada com pacientes via WhatsApp, SMS e e-mail.
