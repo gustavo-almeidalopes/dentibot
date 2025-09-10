@@ -115,5 +115,6 @@ O projeto está em desenvolvimento. Instruções serão adicionadas conforme o c
 - ALVES, V. P. Efetividade da inteligência artificial em detectar cárie dentária. Revista Cromg, v. 2023, p. 1-10, 2023. Disponível em: [link](https://revista.cromg.org.br/index.php/rcromg/article/download/490/275/2219). Acesso em: 24 ago. 2025.
 
 ## Licença
+MIT License
 
 Versão: 1.1.0 (04/09/2025)  
