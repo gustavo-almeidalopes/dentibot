@@ -1,6 +1,6 @@
 # DentiBot: Inovação em Gestão Odontológica com Sistema de Software
 
-![DentiBot Logo](./logo.png) <!-- Faça o upload da imagem do logo para o repositório e substitua por './logo.png' ou URL hospedada -->
+![DentiBot Logo](../)
 
 ## Descrição
 
