@@ -154,7 +154,8 @@ document.addEventListener("DOMContentLoaded", () => {
             case "dentista": window.location.href = "dentista.html"; break;
             case "recepcionista": window.location.href = "recepcionista.html"; break;
             case "almoxarifado": window.location.href = "almoxarifado.html"; break;
-            default: window.location.href = "cliente.html";
+            case "cliente": window.location.href = "cliente.html"; break;
+            default: window.location.href = "selectperfil.html";
         }
     }
 
