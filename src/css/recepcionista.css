@@ -1,0 +1,96 @@
+:root {
+    --background: #f8fafc;
+    --foreground: #475569;
+    --card: #ffffff;
+    --card-foreground: #475569;
+    --primary: #059669;
+    --primary-foreground: #ffffff;
+    --secondary: #f1f5f9;
+    --secondary-foreground: #475569;
+    --muted: #f0fdf4;
+    --muted-foreground: #374151;
+    --accent: #10b981;
+    --border: #e2e8f0;
+    --input: #e2e8f0;
+    --ring: #059669;
+}
+
+body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: sans-serif;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    transition: all 0.2s;
+    border: 1px solid transparent;
+}
+
+.btn-primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    border-color: var(--primary);
+}
+
+.btn-primary:hover {
+    background-color: #047857;
+    border-color: #047857;
+}
+
+.btn-secondary {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border-color: var(--border);
+}
+
+.btn-secondary:hover {
+    background-color: #e2e8f0;
+}
+
+.form-input,
+.form-textarea,
+.form-select {
+    width: 100%;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    transition: all 0.2s;
+}
+
+.form-input:focus,
+.form-textarea:focus,
+.form-select:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
+}
+
+.sidebar-link.active {
+    background-color: var(--muted);
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.sidebar-link.active i {
+    color: var(--primary);
+}
+
+.info-box {
+    background-color: var(--muted);
+    border-left: 4px solid var(--accent);
+    padding: 0.75rem 1rem;
+    margin-top: 1rem;
+    border-radius: 0.25rem;
+    color: var(--muted-foreground);
+}

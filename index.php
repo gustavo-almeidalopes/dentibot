@@ -1,9 +1,38 @@
+<?php
+require_once __DIR__ . "/config/auth.php";
+
+if (isset($_SESSION["user_id"])) {
+    switch ($_SESSION["user_role"]) {
+        case "recepcionista":
+            header("Location: /src/pages/recepcionista.php");
+            break;
+        case "dentista":
+            header("Location: /src/pages/dentista.php");
+            break;
+        case "coordenador":
+            header("Location: /src/pages/coordenador.php");
+            break;
+        default:
+            header("Location: /src/pages/cliente.php");
+    }
+    exit;
+}
+
+header("Location: /src/pages/login.php");
+exit;
+
+<?php
+$title = "DentiBot - Transformando a Gestão Odontológica";
+//$logoPath = "";
+//$faviconPath = "";
+?>
+
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>DentiBot - Transformando a Gestão Odontológica</title>
+    <title><?php echo htmlspecialchars($title); ?</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <link rel="stylesheet" href="style.css" />
@@ -17,6 +46,8 @@
                     <div class="h-8 w-8 rounded-lg flex items-center justify-center" style="background-color: var(--primary);">
                         <span class="text-lg font-bold" style="color: var(--primary-foreground);">D</span>
                     </div>
+                    
+                    <img id="logo" src="<?php echo htmlspecialchars($logoPath); ?>" alt="Logo DentiBot>
                     <span class="text-xl font-bold">TROCAR PELO LOGO !!!</span>
                 </a>
                 <nav class="hidden md:flex items-center space-x-8">
@@ -26,7 +57,7 @@
                 </nav>
                 <div class="hidden md:flex items-center space-x-3">
                     <a href="#" class="button button-highlight">Começar Grátis</a>
-                    <a href="src/pages/login.html" class="button button-outline">Login</a>
+                    <a href="src/pages/login.php" class="button button-outline">Login</a>
                 </div>
                 <div class="md:hidden">
                     <button id="mobile-menu-button" type="button" class="inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500" aria-controls="mobile-menu" aria-expanded="false">
@@ -273,19 +304,8 @@
         </div>
     </footer>
 
-        <!-- Botão Flutuante WhatsApp -->
-    <a href="https://wa.me/5511941212737?text=Olá%2C+gostaria+de+saber+mais+sobre+o+DentiBot"
-    class="whatsapp-button"
-    target="_blank"
-    aria-label="Fale conosco no WhatsApp">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" class="w-7 h-7" viewBox="0 0 16 16">
-            <path d="M13.601 2.326A7.902 7.902 0 0 0 8.002 0a7.94 7.94 0 0 0-6.74 11.588L0 16l4.524-1.235A7.94 7.94 0 0 0 8.002 16a7.9 7.9 0 0 0 5.599-13.674zM8.002 14.5a6.47 6.47 0 0 1-3.288-.894l-.235-.14-2.682.732.724-2.617-.152-.27A6.466 6.466 0 0 1 1.5 8c0-3.584 2.918-6.5 6.502-6.5a6.48 6.48 0 0 1 6.5 6.5c0 3.584-2.918 6.5-6.5 6.5zm3.62-4.833c-.197-.099-1.16-.571-1.34-.636-.181-.066-.313-.099-.445.098-.132.198-.511.637-.626.767-.115.132-.231.149-.428.05-.197-.1-.833-.307-1.587-.981-.587-.52-.981-1.16-1.097-1.356-.115-.198-.012-.304.086-.403.089-.089.198-.231.297-.347.099-.115.132-.198.198-.33.066-.132.033-.248-.017-.347-.05-.099-.445-1.073-.61-1.466-.161-.389-.325-.336-.445-.342-.115-.007-.248-.007-.38-.007-.132 0-.347.05-.529.248-.182.198-.695.68-.695 1.658 0 .977.713 1.922.813 2.052.099.132 1.402 2.144 3.402 3.007.476.205.847.327 1.137.418.477.151.911.129 1.255.078.383-.057 1.16-.474 1.323-.932.163-.457.163-.849.115-.932-.049-.084-.18-.132-.377-.231z"/>
-        </svg>
-    </a>
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
     <script>lucide.createIcons();</script>
     <script src="script.js"></script>
 </body>
 </html>
-

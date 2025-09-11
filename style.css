@@ -123,3 +123,22 @@ body {
 .section-content {
     margin-top: 0.5rem;
 }
+
+/* Botão Flutuante WhatsApp */
+.whatsapp-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25D366; /* Verde oficial do WhatsApp */
+    color: white;
+    padding: 14px;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    z-index: 9999;
+}
+
+.whatsapp-button:hover {
+    background-color: #1ebe5d;
+    transform: scale(1.1);
+}
