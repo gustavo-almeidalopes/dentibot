@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
+
+/* Variáveis Globais de Cor e Estilo */
+:root {
+    --primary: #4A9DAE;
+    --primary-foreground: #f8f8ff;
+    --secondary: #B3EBF2;
+    --secondary-foreground: #475569;
+    --highlight: #FFC067;
+    --success: #80EF80;
+    --card: #f8fafc;
+    --border: #d1d5db;
+    --foreground: #334155;
+    --foreground-muted: #64748b;
+    --header-bg: #f8f8ff;
+}
+
+/* Estilos Gerais do Corpo */
+body {
+    font-family: 'Ubuntu', sans-serif;
+    background-color: #f8f8ff;
+    color: var(--foreground);
+}
+
+/* Links de Navegação */
+.nav-link {
+    color: var(--foreground-muted);
+    transition: color .2s;
+}
+.nav-link:hover {
+    color: var(--primary);
+}
+
+/* ======================================================== */
+/* Botões (COM O NOVO EFEITO DE HOVER)                      */
+/* ======================================================== */
+.button {
+    position: relative; /* Essencial para posicionar a seta */
+    overflow: hidden;   /* Esconde a seta antes da animação */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    border-radius: 9999px; /* Começa 100% arredondado */
+    font-weight: 600;
+    text-decoration: none;
+    /* Adicionamos border-radius à transição */
+    transition: all 0.35s ease;
+}
+
+/* A Seta (inicialmente invisível) */
+.button::after {
+    content: '→';
+    position: absolute;
+    right: 1.5rem;
+    font-size: 1.25em; /* Tamanho da seta */
+    opacity: 0;
+    transform: translateX(10px); /* Começa um pouco à direita */
+    transition: all 0.35s ease;
+}
+
+/* Efeito ao passar o mouse */
+.button:hover {
+    border-radius: 0.5rem; /* Muda para "quadrado" (com cantos levemente arredondados) */
+    padding-right: 3rem;   /* Aumenta o padding à direita para dar espaço à seta */
+}
+
+/* Animação da seta ao passar o mouse */
+.button:hover::after {
+    opacity: 1;
+    transform: translateX(0); /* Move a seta para a posição visível */
+}
+
+/* Cores dos botões (sem alteração) */
+.button-primary {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+}
+.button-primary:hover {
+    background-color: #3c8898;
+}
+.button-outline {
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+.button-outline:hover {
+    background-color: var(--secondary);
+}
+.button-highlight {
+    background-color: var(--highlight);
+    color: #000;
+}
+.button-highlight:hover {
+    filter: brightness(0.9);
+}
+
+/* Badge */
+.badge {
+    display: inline-block;
+    background-color: var(--secondary);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+
+/* Feature Cards (Efeitos de hover removidos) */
+.feature-section {
+    background-color: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 1rem;
+    padding: 1.5rem;
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.feature-section:hover {
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+    transform: translateY(-5px);
+}
+
+/* O conteúdo das features agora é sempre visível */
+.section-content {
+    margin-top: 0.5rem;
+}
+
+/* Botão Flutuante WhatsApp */
+.whatsapp-button {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #25D366; /* Verde oficial do WhatsApp */
+    color: white;
+    padding: 14px;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease, background-color 0.3s ease;
+    z-index: 9999;
+}
+
+.whatsapp-button:hover {
+    background-color: #1ebe5d;
+    transform: scale(1.1);
+}
