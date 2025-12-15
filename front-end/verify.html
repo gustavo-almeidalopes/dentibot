@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Verificação 2FA</title>
+    <style>
+        body { 
+            font-family: Arial; 
+            max-width: 350px; 
+            margin: 60px auto; 
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 10px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            font-size: 16px;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #msg { margin-top: 15px; color: red; }
+    </style>
+</head>
+<body>
+
+    <h2>Verificação 2FA</h2>
+
+    <p>Digite o código enviado para seu e-mail, SMS ou app autenticador.</p>
+
+    <input id="token" placeholder="Código de 6 dígitos">
+
+    <button onclick="verify()">Validar Código</button>
+
+    <div id="msg"></div>
+
+    <script>
+        async function verify() {
+            const token = document.getElementById("token").value;
+
+            const resp = await fetch("http://127.0.0.1:5000/verify-2fa", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",    // Mantém sessão do /login
+                body: JSON.stringify({ token })
+            });
+
+            const result = await resp.json();
+
+            if (result.status === "sucesso") {
+                window.location.href = "success.html";
+                return;
+            }
+
+            document.getElementById("msg").innerText = result.erro || "Código inválido.";
+        }
+    </script>
+
+</body>
+</html>
