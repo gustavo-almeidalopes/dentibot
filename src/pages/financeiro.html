@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — Financeiro</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; }
+    h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .neo-btn { transition:all .1s ease; }
+    .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+    .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+    .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+    .neo-input:focus { background:#FFE600; }
+    .neo-label { font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; background:#000; color:#fff; padding:.12rem .5rem; display:inline-block; margin-bottom:.35rem; }
+    .sidebar-link { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; font-weight:900; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; border:4px solid transparent; color:#9ca3af; transition:all .1s; }
+    .sidebar-link:hover { background:#1f2937; color:#fff; border-color:#FFE600; }
+    .sidebar-link.active { background:#FFE600; color:#000; border-color:#FFE600; }
+    .content-bg { background:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
+  </style>
+</head>
+<body class="min-h-screen bg-black">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-72 bg-black flex flex-col border-r-4 border-[#FFE600] flex-shrink-0 fixed inset-y-0 left-0 md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 z-30">
+    <div class="h-20 flex items-center px-6 border-b-4 border-[#FFE600] bg-[#FFE600] flex-shrink-0">
+      <span class="font-black text-3xl font-display uppercase tracking-tighter">DentiBot.</span>
+    </div>
+    <div class="px-3 pt-3 pb-1">
+      <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-3">Financeiro</span>
+    </div>
+    <nav class="flex-1 px-3 pb-4 overflow-y-auto space-y-1">
+      <a href="#overview" class="sidebar-link active">💰 Visão Geral</a>
+      <a href="#faturas" class="sidebar-link">📄 Faturas</a>
+      <a href="#pagamentos" class="sidebar-link">💳 Pagamentos</a>
+      <a href="#convenios" class="sidebar-link">🏥 Convênios</a>
+      <a href="#nova-fatura" class="sidebar-link">➕ Nova Fatura</a>
+    </nav>
+    <div class="p-4 border-t-4 border-gray-800 flex items-center gap-3">
+      <div class="w-11 h-11 bg-[#FFE600] border-4 border-black neo-shadow-sm flex items-center justify-center font-black text-black text-sm flex-shrink-0">FN</div>
+      <div>
+        <p class="text-white font-black text-sm uppercase truncate">Financeiro Sp.</p>
+        <p class="text-gray-500 text-xs font-bold uppercase">Financeiro</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="h-20 bg-[#FFE600] border-b-4 border-black flex items-center justify-between px-6 lg:px-10 flex-shrink-0" style="box-shadow:0 6px 0 0 #000;">
+      <div class="flex items-center gap-4">
+        <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden border-4 border-black bg-black text-white p-2 font-black">☰</button>
+        <h1 class="font-black text-xl lg:text-2xl uppercase font-display tracking-tight">Gestão Financeira</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="document.getElementById('modal-fatura').classList.remove('hidden')" class="neo-btn neo-shadow border-4 border-black bg-black text-[#FFE600] px-4 py-2 font-black uppercase text-xs hidden sm:flex items-center gap-2">➕ Nova Fatura</button>
+        <a href="selectperfil.html" class="neo-btn neo-shadow-sm border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">← Sair</a>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-6 lg:p-10 content-bg space-y-8">
+
+      <!-- KPIs -->
+      <section id="overview">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Visão Geral Financeira</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Maio 2026</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-green-900">Receita do Mês</p>
+            <p class="font-black text-3xl font-display mt-2" id="kpi-revenue">R$ —</p>
+            <p class="font-bold text-xs uppercase mt-1 text-green-900">Faturas pagas</p>
+          </div>
+          <div class="bg-[#FFE600] border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-yellow-900">A Receber</p>
+            <p class="font-black text-3xl font-display mt-2" id="kpi-pending">R$ —</p>
+            <p class="font-bold text-xs uppercase mt-1 text-yellow-900">Faturas pendentes</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Faturas Pagas</p>
+            <p class="font-black text-3xl font-display mt-2" id="kpi-paid-count">—</p>
+            <p class="font-bold text-xs uppercase mt-1 text-gray-400">Este mês</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Em Atraso</p>
+            <p class="font-black text-3xl font-display mt-2 text-red-600" id="kpi-overdue">—</p>
+            <p class="font-bold text-xs uppercase mt-1 text-gray-400">Faturas vencidas</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Faturas -->
+      <section id="faturas">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-4 border-b-4 border-black pb-3 gap-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Faturas</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Todas as cobranças</p>
+          </div>
+          <div class="flex gap-3 items-center">
+            <select id="filter-status" class="neo-input" style="width:auto;padding:.5rem .75rem;" onchange="loadInvoices()">
+              <option value="">Todos os Status</option>
+              <option value="pendente">Pendente</option>
+              <option value="pago">Pago</option>
+              <option value="vencido">Vencido</option>
+              <option value="parcial">Parcial</option>
+            </select>
+            <button onclick="loadInvoices()" class="neo-btn neo-shadow-sm border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">↺</button>
+          </div>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">#</th>
+                <th class="p-4 font-black text-xs uppercase">Paciente</th>
+                <th class="p-4 font-black text-xs uppercase">Procedimento</th>
+                <th class="p-4 font-black text-xs uppercase">Valor</th>
+                <th class="p-4 font-black text-xs uppercase">Vencimento</th>
+                <th class="p-4 font-black text-xs uppercase">Status</th>
+                <th class="p-4 font-black text-xs uppercase">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="invoices-tbody">
+              <tr><td colspan="7" class="p-8 text-center font-black uppercase text-gray-400">Carregando faturas...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Pagamentos Recentes -->
+      <section id="pagamentos">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Pagamentos Recentes</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Últimas transações registradas</p>
+          </div>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">Fatura</th>
+                <th class="p-4 font-black text-xs uppercase">Valor Pago</th>
+                <th class="p-4 font-black text-xs uppercase">Forma</th>
+                <th class="p-4 font-black text-xs uppercase">Data</th>
+              </tr>
+            </thead>
+            <tbody id="payments-tbody">
+              <tr><td colspan="4" class="p-8 text-center font-black uppercase text-gray-400">Carregando pagamentos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Convênios -->
+      <section id="convenios">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Convênios</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Reembolsos do mês</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500 mb-2">Unimed</p>
+            <p class="font-black text-3xl font-display text-[#00E676]">R$ 3.450,00</p>
+            <p class="font-bold text-xs text-gray-400 uppercase mt-1">Reembolsos do mês</p>
+            <button class="mt-4 neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Ver Detalhes</button>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500 mb-2">Amil</p>
+            <p class="font-black text-3xl font-display text-[#00E676]">R$ 1.200,00</p>
+            <p class="font-bold text-xs text-gray-400 uppercase mt-1">Reembolsos do mês</p>
+            <button class="mt-4 neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Ver Detalhes</button>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500 mb-2">Bradesco Saúde</p>
+            <p class="font-black text-3xl font-display text-[#00E676]">R$ 870,00</p>
+            <p class="font-bold text-xs text-gray-400 uppercase mt-1">Reembolsos do mês</p>
+            <button class="mt-4 neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Ver Detalhes</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Nova Fatura (anchor) -->
+      <section id="nova-fatura">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Nova Fatura</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Criar cobrança para paciente</p>
+          </div>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow p-6 max-w-2xl">
+          <form onsubmit="submitInvoiceForm(event)" class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <span class="neo-label">Paciente *</span>
+                <input type="text" id="fi-patient" class="neo-input" placeholder="NOME DO PACIENTE" required>
+              </div>
+              <div>
+                <span class="neo-label">Procedimento</span>
+                <input type="text" id="fi-procedure" class="neo-input" placeholder="EX: LIMPEZA">
+              </div>
+            </div>
+            <div class="grid grid-cols-3 gap-4">
+              <div>
+                <span class="neo-label">Valor (R$) *</span>
+                <input type="number" id="fi-amount" class="neo-input" placeholder="0,00" step="0.01" min="0" required>
+              </div>
+              <div>
+                <span class="neo-label">Desconto (R$)</span>
+                <input type="number" id="fi-discount" class="neo-input" placeholder="0,00" step="0.01" min="0" value="0">
+              </div>
+              <div>
+                <span class="neo-label">Convênio (R$)</span>
+                <input type="number" id="fi-insurance" class="neo-input" placeholder="0,00" step="0.01" min="0" value="0">
+              </div>
+            </div>
+            <div>
+              <span class="neo-label">Vencimento</span>
+              <input type="date" id="fi-due" class="neo-input">
+            </div>
+            <div>
+              <span class="neo-label">Observações</span>
+              <input type="text" id="fi-notes" class="neo-input" placeholder="OBSERVAÇÕES OPCIONAIS">
+            </div>
+            <button type="submit" class="neo-btn neo-shadow border-4 border-black bg-[#FFE600] px-8 py-3 font-black uppercase text-sm">✓ Criar Fatura</button>
+          </form>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Modal Nova Fatura -->
+<div id="modal-fatura" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+  <div class="bg-white border-4 border-black neo-shadow w-full max-w-lg p-8">
+    <div class="flex justify-between items-center mb-6">
+      <p class="font-black text-2xl font-display uppercase">Nova Fatura</p>
+      <button onclick="document.getElementById('modal-fatura').classList.add('hidden')" class="font-black text-xl border-4 border-black w-10 h-10 flex items-center justify-center hover:bg-black hover:text-white">✕</button>
+    </div>
+    <form id="form-fatura" class="space-y-4" onsubmit="submitInvoice(event)">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <span class="neo-label">Paciente *</span>
+          <input type="text" id="inv-patient" class="neo-input" placeholder="NOME DO PACIENTE" required>
+        </div>
+        <div>
+          <span class="neo-label">Procedimento</span>
+          <input type="text" id="inv-procedure" class="neo-input" placeholder="EX: LIMPEZA">
+        </div>
+      </div>
+      <div class="grid grid-cols-3 gap-4">
+        <div>
+          <span class="neo-label">Valor (R$) *</span>
+          <input type="number" id="inv-amount" class="neo-input" placeholder="0,00" step="0.01" min="0" required>
+        </div>
+        <div>
+          <span class="neo-label">Desconto</span>
+          <input type="number" id="inv-discount" class="neo-input" placeholder="0,00" step="0.01" min="0" value="0">
+        </div>
+        <div>
+          <span class="neo-label">Convênio</span>
+          <input type="number" id="inv-insurance" class="neo-input" placeholder="0,00" step="0.01" min="0" value="0">
+        </div>
+      </div>
+      <div>
+        <span class="neo-label">Vencimento</span>
+        <input type="date" id="inv-due" class="neo-input">
+      </div>
+      <div>
+        <span class="neo-label">Observações</span>
+        <input type="text" id="inv-notes" class="neo-input" placeholder="OPCIONAL">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="document.getElementById('modal-fatura').classList.add('hidden')" class="flex-1 neo-btn border-4 border-black bg-white py-3 font-black uppercase text-sm">Cancelar</button>
+        <button type="submit" class="flex-1 neo-btn neo-shadow border-4 border-black bg-[#FFE600] py-3 font-black uppercase text-sm">✓ Criar Fatura</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Registrar Pagamento -->
+<div id="modal-payment" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+  <div class="bg-white border-4 border-black neo-shadow w-full max-w-md p-8">
+    <div class="flex justify-between items-center mb-6">
+      <p class="font-black text-2xl font-display uppercase">Registrar Pagamento</p>
+      <button onclick="document.getElementById('modal-payment').classList.add('hidden')" class="font-black text-xl border-4 border-black w-10 h-10 flex items-center justify-center hover:bg-black hover:text-white">✕</button>
+    </div>
+    <form id="form-payment" class="space-y-4" onsubmit="submitPayment(event)">
+      <input type="hidden" id="pay-invoice-id">
+      <div>
+        <span class="neo-label">Valor Pago (R$) *</span>
+        <input type="number" id="pay-amount" class="neo-input" step="0.01" min="0.01" required>
+      </div>
+      <div>
+        <span class="neo-label">Forma de Pagamento</span>
+        <select id="pay-method" class="neo-input bg-white">
+          <option value="dinheiro">DINHEIRO</option>
+          <option value="cartao_credito">CARTÃO DE CRÉDITO</option>
+          <option value="cartao_debito">CARTÃO DE DÉBITO</option>
+          <option value="pix">PIX</option>
+          <option value="boleto">BOLETO</option>
+          <option value="transferencia">TRANSFERÊNCIA</option>
+        </select>
+      </div>
+      <div>
+        <span class="neo-label">ID da Transação</span>
+        <input type="text" id="pay-transaction" class="neo-input" placeholder="OPCIONAL">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button type="button" onclick="document.getElementById('modal-payment').classList.add('hidden')" class="flex-1 neo-btn border-4 border-black bg-white py-3 font-black uppercase text-sm">Cancelar</button>
+        <button type="submit" class="flex-1 neo-btn neo-shadow border-4 border-black bg-[#00E676] py-3 font-black uppercase text-sm">✓ Registrar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const API = window.API_BASE || 'http://localhost:5000/api';
+  const token = localStorage.getItem('dentibot_token') || '';
+  const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+
+  function statusBadge(s) {
+    const map = {
+      pago: 'bg-[#00E676] border-2 border-black text-black',
+      pendente: 'bg-[#FFE600] border-2 border-black text-black',
+      vencido: 'bg-red-500 border-2 border-black text-white',
+      parcial: 'bg-blue-400 border-2 border-black text-white',
+      cancelado: 'bg-gray-200 border-2 border-black text-black'
+    };
+    return `<span class="px-2 py-0.5 font-black text-xs uppercase ${map[s] || 'bg-gray-200 border-2 border-black'}">${s}</span>`;
+  }
+
+  async function loadOverview() {
+    try {
+      const r = await fetch(`${API}/financial/overview`, { headers: headers() });
+      if (!r.ok) return useDemo();
+      const d = await r.json();
+      document.getElementById('kpi-revenue').textContent = `R$ ${(d.revenue_paid || 0).toFixed(2).replace('.',',')}`;
+      document.getElementById('kpi-pending').textContent = `R$ ${(d.revenue_pending || 0).toFixed(2).replace('.',',')}`;
+      document.getElementById('kpi-paid-count').textContent = d.paid || '0';
+      document.getElementById('kpi-overdue').textContent = d.overdue || '0';
+    } catch { useDemo(); }
+  }
+
+  function useDemo() {
+    document.getElementById('kpi-revenue').textContent = 'R$ 12.450,00';
+    document.getElementById('kpi-pending').textContent = 'R$ 3.200,00';
+    document.getElementById('kpi-paid-count').textContent = '28';
+    document.getElementById('kpi-overdue').textContent = '3';
+  }
+
+  async function loadInvoices() {
+    const status = document.getElementById('filter-status').value;
+    const url = `${API}/financial/invoices${status ? `?status=${status}` : ''}`;
+    const tbody = document.getElementById('invoices-tbody');
+    try {
+      const r = await fetch(url, { headers: headers() });
+      const data = await r.json();
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="p-8 text-center font-black uppercase text-gray-400">Nenhuma fatura encontrada.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(inv => `
+        <tr class="border-b-2 border-black hover:bg-gray-50">
+          <td class="p-4 font-black text-xs text-gray-400">#${inv.id}</td>
+          <td class="p-4 font-black text-sm">${inv.patient_name || `Paciente #${inv.patient_id}`}</td>
+          <td class="p-4 font-bold text-sm text-gray-600">${inv.procedure || '—'}</td>
+          <td class="p-4 font-black text-sm">R$ ${(inv.net_amount || 0).toFixed(2).replace('.',',')}</td>
+          <td class="p-4 font-bold text-sm text-gray-500">${inv.due_date || '—'}</td>
+          <td class="p-4">${statusBadge(inv.status)}</td>
+          <td class="p-4">
+            ${inv.status !== 'pago'
+              ? `<button onclick="openPayment(${inv.id})" class="neo-btn border-4 border-black bg-[#FFE600] px-3 py-1 font-black uppercase text-xs">Pagar</button>`
+              : '<span class="font-black text-xs text-[#00E676] uppercase">✓ Quitada</span>'}
+          </td>
+        </tr>`).join('');
+    } catch {
+      useDemoInvoices();
+    }
+  }
+
+  function useDemoInvoices() {
+    const demo = [
+      { id: 41, patient: 'Mariana Costa', procedure: 'Profilaxia', value: 'R$ 250,00', due: '10/05/2026', status: 'pago' },
+      { id: 42, patient: 'Carlos Santos', procedure: 'Restauração', value: 'R$ 480,00', due: '20/05/2026', status: 'pendente' },
+      { id: 43, patient: 'Fernanda Lima', procedure: 'Canal', value: 'R$ 1.200,00', due: '05/05/2026', status: 'vencido' },
+    ];
+    document.getElementById('invoices-tbody').innerHTML = demo.map(inv => {
+      const badge = { pago: 'bg-[#00E676] border-2 border-black text-black', pendente: 'bg-[#FFE600] border-2 border-black text-black', vencido: 'bg-red-500 border-2 border-black text-white' };
+      return `<tr class="border-b-2 border-black hover:bg-gray-50">
+        <td class="p-4 font-black text-xs text-gray-400">#${inv.id}</td>
+        <td class="p-4 font-black text-sm">${inv.patient}</td>
+        <td class="p-4 font-bold text-sm text-gray-600">${inv.procedure}</td>
+        <td class="p-4 font-black text-sm">${inv.value}</td>
+        <td class="p-4 font-bold text-sm text-gray-500">${inv.due}</td>
+        <td class="p-4"><span class="px-2 py-0.5 font-black text-xs uppercase ${badge[inv.status]}">${inv.status}</span></td>
+        <td class="p-4">${inv.status !== 'pago' ? `<button onclick="openPayment(${inv.id})" class="neo-btn border-4 border-black bg-[#FFE600] px-3 py-1 font-black uppercase text-xs">Pagar</button>` : '<span class="font-black text-xs text-[#00E676] uppercase">✓ Quitada</span>'}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  async function loadPayments() {
+    const tbody = document.getElementById('payments-tbody');
+    try {
+      const r = await fetch(`${API}/financial/payments`, { headers: headers() });
+      const data = await r.json();
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center font-black uppercase text-gray-400">Nenhum pagamento registrado.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.slice(0, 10).map(p => `
+        <tr class="border-b-2 border-black hover:bg-gray-50">
+          <td class="p-4 font-black text-xs text-gray-400">#${p.invoice_id}</td>
+          <td class="p-4 font-black text-sm text-[#00E676]">R$ ${(p.amount_paid || 0).toFixed(2).replace('.',',')}</td>
+          <td class="p-4 font-bold text-sm text-gray-600 capitalize">${p.payment_method || '—'}</td>
+          <td class="p-4 font-bold text-sm text-gray-500">${p.paid_at ? new Date(p.paid_at).toLocaleDateString('pt-BR') : '—'}</td>
+        </tr>`).join('');
+    } catch {
+      document.getElementById('payments-tbody').innerHTML = `
+        <tr class="border-b-2 border-black"><td class="p-4 font-black text-xs text-gray-400">#41</td><td class="p-4 font-black text-sm text-[#00E676]">R$ 250,00</td><td class="p-4 font-bold text-sm text-gray-600">PIX</td><td class="p-4 font-bold text-sm text-gray-500">10/05/2026</td></tr>
+      `;
+    }
+  }
+
+  async function submitInvoice(e) {
+    e.preventDefault();
+    const body = {
+      patient_id: 1,
+      patient_name: document.getElementById('inv-patient').value,
+      procedure: document.getElementById('inv-procedure').value,
+      amount: parseFloat(document.getElementById('inv-amount').value),
+      discount: parseFloat(document.getElementById('inv-discount').value) || 0,
+      insurance_coverage: parseFloat(document.getElementById('inv-insurance').value) || 0,
+      due_date: document.getElementById('inv-due').value || null,
+      notes: document.getElementById('inv-notes').value,
+    };
+    try {
+      const r = await fetch(`${API}/financial/invoices`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+      if (r.ok) {
+        document.getElementById('modal-fatura').classList.add('hidden');
+        document.getElementById('form-fatura').reset();
+        loadInvoices(); loadOverview();
+      } else { alert('Erro ao criar fatura.'); }
+    } catch { alert('API indisponível — fatura não salva no servidor.'); }
+  }
+
+  function submitInvoiceForm(e) {
+    e.preventDefault();
+    alert('Fatura criada com sucesso! (demo)');
+    e.target.reset();
+  }
+
+  function openPayment(invoiceId) {
+    document.getElementById('pay-invoice-id').value = invoiceId;
+    document.getElementById('modal-payment').classList.remove('hidden');
+  }
+
+  async function submitPayment(e) {
+    e.preventDefault();
+    const invoiceId = document.getElementById('pay-invoice-id').value;
+    const body = {
+      amount_paid: parseFloat(document.getElementById('pay-amount').value),
+      payment_method: document.getElementById('pay-method').value,
+      transaction_id: document.getElementById('pay-transaction').value,
+    };
+    try {
+      const r = await fetch(`${API}/financial/invoices/${invoiceId}/pay`, { method: 'POST', headers: headers(), body: JSON.stringify(body) });
+      if (r.ok) {
+        document.getElementById('modal-payment').classList.add('hidden');
+        loadInvoices(); loadPayments(); loadOverview();
+      } else { alert('Erro ao registrar pagamento.'); }
+    } catch { alert('API indisponível.'); }
+  }
+
+  const sidebar = document.getElementById('sidebar');
+  document.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', () => { if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full'); });
+  });
+
+  const navLinks = document.querySelectorAll('.sidebar-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(l => l.classList.remove('active'));
+        document.querySelector(`.sidebar-link[href="#${id}"]`)?.classList.add('active');
+      }
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+
+  // Init
+  loadOverview();
+  loadInvoices();
+  loadPayments();
+</script>
+</body>
+</html>

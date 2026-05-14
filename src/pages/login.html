@@ -1,256 +1,946 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description"
-    content="Acesse ou crie sua conta no DentiBot, o sistema de gestão para sua clínica odontológica.">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — Acesso Seguro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --green: #00E676;
+      --yellow: #FFE600;
+      --orange: #FF8C00;
+      --red: #FF3D00;
+      --black: #000;
+      --bg: #f4f4f0;
+      --white: #fff;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg);
+      background-image: radial-gradient(#00000018 1px, transparent 1px);
+      background-size: 20px 20px;
+      min-height: 100vh;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    h1, h2, h3, .display { font-family: 'Space Grotesk', sans-serif; }
 
-  <title>DentiBot — Cadastro e Login</title>
+    .wrap { width: 100%; max-width: 460px; }
 
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="css/login.css">
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+    /* Logo */
+    .logo { display: flex; align-items: center; gap: .75rem; justify-content: center; margin-bottom: 2rem; text-decoration: none; }
+    .logo-mark { width: 52px; height: 52px; background: var(--green); border: 4px solid var(--black); box-shadow: 4px 4px 0 0 var(--black); display: flex; align-items: center; justify-content: center; font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 1.75rem; color: var(--black); }
+    .logo-text { font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: 2rem; text-transform: uppercase; letter-spacing: -.03em; color: var(--black); }
+
+    /* Card */
+    .card { background: var(--white); border: 4px solid var(--black); box-shadow: 6px 6px 0 0 var(--black); }
+
+    /* Tabs */
+    .tabs { display: flex; border-bottom: 4px solid var(--black); }
+    .tab-btn {
+      flex: 1; padding: .65rem .5rem;
+      border: none; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 900;
+      font-size: .75rem; text-transform: uppercase; letter-spacing: .08em;
+      background: var(--white); color: var(--black);
+      border-right: 4px solid var(--black); transition: background .1s;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn.active { background: var(--black); color: var(--white); }
+    .tab-btn:not(.active):hover { background: var(--yellow); }
+
+    /* Panels */
+    .panel { display: none; padding: 2rem; }
+    .panel.active { display: block; }
+
+    /* Labels & inputs */
+    .field { margin-bottom: 1rem; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+    .neo-label {
+      display: inline-block; font-size: .65rem; font-weight: 900;
+      text-transform: uppercase; letter-spacing: .1em;
+      background: var(--black); color: var(--white);
+      padding: .15rem .5rem; margin-bottom: .35rem;
+    }
+    .neo-input {
+      width: 100%; border: 4px solid var(--black);
+      padding: .7rem 1rem; font-family: 'Inter', sans-serif;
+      font-weight: 700; font-size: .95rem; background: var(--white);
+      outline: none; transition: background .15s; color: var(--black);
+      appearance: none;
+    }
+    .neo-input:focus { background: var(--yellow); }
+    .neo-input.error { border-color: var(--red); background: #fff0ee; }
+    .neo-input:disabled { opacity: .5; cursor: not-allowed; }
+    .input-wrap { position: relative; }
+    .toggle-pass {
+      position: absolute; right: .75rem; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer;
+      font-family: 'Space Grotesk', sans-serif; font-weight: 900;
+      font-size: .65rem; text-transform: uppercase; color: #666;
+    }
+    .toggle-pass:hover { color: var(--black); }
+    select.neo-input { background-image: none; cursor: pointer; }
+
+    /* Buttons */
+    .neo-btn {
+      display: block; width: 100%; padding: .85rem 1rem;
+      border: 4px solid var(--black); font-family: 'Space Grotesk', sans-serif;
+      font-weight: 900; font-size: .9rem; text-transform: uppercase;
+      letter-spacing: .05em; cursor: pointer; text-align: center;
+      text-decoration: none; transition: transform .1s, box-shadow .1s;
+      box-shadow: 6px 6px 0 0 var(--black);
+    }
+    .neo-btn:hover:not(:disabled) { transform: translate(2px, 2px); box-shadow: 4px 4px 0 0 var(--black); }
+    .neo-btn:active:not(:disabled) { transform: translate(6px, 6px); box-shadow: none; }
+    .neo-btn:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
+    .btn-green { background: var(--green); color: var(--black); }
+    .btn-yellow { background: var(--yellow); color: var(--black); }
+    .btn-black { background: var(--black); color: var(--white); }
+    .btn-white { background: var(--white); color: var(--black); box-shadow: 4px 4px 0 0 var(--black); }
+    .btn-sm { padding: .55rem 1rem; font-size: .75rem; box-shadow: 4px 4px 0 0 var(--black); }
+
+    /* Password strength */
+    .strength-bar { height: 6px; border: 2px solid var(--black); margin-top: .4rem; background: #eee; }
+    .strength-fill { height: 100%; width: 0; transition: width .3s, background .3s; }
+    .strength-label { font-size: .65rem; font-weight: 900; text-transform: uppercase; margin-top: .25rem; }
+
+    /* Error / info messages */
+    .msg { padding: .6rem .8rem; border: 3px solid var(--black); font-size: .8rem; font-weight: 700; margin-bottom: .75rem; display: none; }
+    .msg.show { display: block; }
+    .msg-error { background: #ffecec; border-color: var(--red); color: var(--red); }
+    .msg-success { background: #e8fff0; border-color: var(--green); color: #006630; }
+    .msg-info { background: #fffde8; border-color: var(--yellow); color: #5a4a00; }
+
+    /* Lockout banner */
+    .lockout-banner {
+      background: var(--red); color: var(--white); border: 4px solid var(--black);
+      padding: .75rem 1rem; font-weight: 900; font-size: .85rem;
+      text-align: center; display: none; margin-bottom: 1rem;
+    }
+    .lockout-banner.show { display: block; }
+
+    /* Checkbox */
+    .check-row { display: flex; align-items: flex-start; gap: .5rem; margin-bottom: .75rem; }
+    .check-row input[type=checkbox] { width: 20px; height: 20px; min-width: 20px; border: 3px solid var(--black); cursor: pointer; accent-color: var(--green); margin-top: .1rem; }
+    .check-row label { font-size: .78rem; font-weight: 600; line-height: 1.4; cursor: pointer; }
+
+    /* 2FA radio */
+    .radio-group { display: flex; gap: .5rem; margin-top: .35rem; }
+    .radio-opt { flex: 1; border: 4px solid var(--black); padding: .5rem; text-align: center; cursor: pointer; font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: .7rem; text-transform: uppercase; transition: background .1s; }
+    .radio-opt input { display: none; }
+    .radio-opt:has(input:checked) { background: var(--green); }
+    .radio-opt:not(:has(input:checked)):hover { background: var(--yellow); }
+
+    /* LGPD notice box */
+    .lgpd-box {
+      background: #fffff0; border: 3px solid var(--black);
+      padding: 1rem; margin: 1.25rem 0; font-size: .75rem; line-height: 1.6;
+    }
+    .lgpd-box summary { font-weight: 900; text-transform: uppercase; font-size: .7rem; cursor: pointer; letter-spacing: .05em; }
+    .lgpd-box ul { padding-left: 1.1rem; margin-top: .5rem; }
+    .lgpd-box li { margin-bottom: .25rem; }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.6); z-index: 100;
+      align-items: center; justify-content: center; padding: 1rem;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box { background: var(--white); border: 4px solid var(--black); box-shadow: 8px 8px 0 0 var(--black); width: 100%; max-width: 360px; padding: 2rem; text-align: center; }
+
+    /* 2FA code inputs */
+    .code-inputs { display: flex; gap: .4rem; justify-content: center; margin: 1.25rem 0; }
+    .code-input {
+      width: 44px; height: 56px; border: 4px solid var(--black);
+      text-align: center; font-size: 1.5rem; font-weight: 900;
+      font-family: 'Space Grotesk', sans-serif; background: var(--white);
+      outline: none;
+    }
+    .code-input:focus { background: var(--yellow); }
+
+    /* Divider */
+    .divider { display: flex; align-items: center; gap: .75rem; margin: 1rem 0; }
+    .divider-line { flex: 1; height: 3px; background: var(--black); }
+    .divider span { font-family: 'Space Grotesk', sans-serif; font-weight: 900; font-size: .7rem; text-transform: uppercase; }
+
+    /* Security badge */
+    .security-strip {
+      display: flex; align-items: center; justify-content: center;
+      gap: .5rem; margin-top: .75rem;
+      font-size: .65rem; font-weight: 900; text-transform: uppercase;
+      letter-spacing: .06em; color: #555;
+    }
+    .security-strip span { background: var(--black); color: var(--white); padding: .1rem .4rem; font-size: .6rem; }
+
+    /* Footer */
+    .page-foot { text-align: center; font-size: .65rem; font-weight: 700; text-transform: uppercase; color: #888; margin-top: 1.25rem; letter-spacing: .06em; }
+
+    /* Spinner */
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(0,0,0,.3); border-top-color: var(--black); border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: .4rem; }
+
+    a { color: var(--black); }
+    a:hover { text-decoration: none; }
+
+    @media (max-width: 500px) {
+      .field-row { grid-template-columns: 1fr; }
+      .panel { padding: 1.5rem; }
+    }
+  </style>
 </head>
+<body>
 
-<body class="bg-gray-50 flex items-center justify-center min-h-screen">
-  <main class="w-full max-w-md mx-auto p-6 md:p-8">
+<div class="wrap">
 
-    <!-- LOGIN -->
-    <section id="loginCard" class="login-card bg-white p-8 rounded-lg shadow-md">
-      <header class="text-center mb-6">
-        <div class="mx-auto w-16 h-16 rounded-lg flex items-center justify-center mb-3"
-          style="background-color:var(--primary);">
-          <span class="text-white font-bold text-2xl">D</span>
+  <!-- Logo -->
+  <a href="../../index.html" class="logo">
+    <div class="logo-mark">D</div>
+    <span class="logo-text">DentiBot</span>
+  </a>
+
+  <!-- Main card -->
+  <div class="card">
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-login"    onclick="showTab('login')">Entrar</button>
+      <button class="tab-btn"        id="tab-register" onclick="showTab('register')">Criar Conta</button>
+      <button class="tab-btn"        id="tab-recovery" onclick="showTab('recovery')">Recuperar</button>
+    </div>
+
+    <!-- ══ LOGIN PANEL ══ -->
+    <div id="panel-login" class="panel active">
+      <h1 class="display" style="font-size:1.5rem;font-weight:900;text-transform:uppercase;margin-bottom:.25rem;">Acesse sua conta</h1>
+      <p style="font-size:.82rem;color:#666;margin-bottom:1.25rem;">Gerencie sua clínica com segurança e privacidade.</p>
+
+      <div id="login-lockout" class="lockout-banner">
+        🔒 Muitas tentativas. Aguarde <span id="lockout-timer">5:00</span> para tentar novamente.
+      </div>
+
+      <div id="login-msg" class="msg"></div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)" novalidate>
+        <div class="field">
+          <span class="neo-label">Usuário</span>
+          <input type="text" id="login-user" class="neo-input" placeholder="SEU USUÁRIO" autocomplete="username" required>
         </div>
-        <h1 class="login-title">Entrar no DentiBot</h1>
-        <p class="login-subtitle mt-2">Acesse sua conta para gerenciar sua clínica.</p>
-      </header>
-
-      <div id="buttonDiv" class="mb-4"></div>
-      <div class="separator">ou</div>
-
-      <form id="loginForm" class="space-y-4">
-        <div>
-          <label for="email" class="block text-sm font-medium mb-1">E-mail</label>
-          <input id="email" name="email" type="email" autocomplete="email" required
-            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="teste@demo.com">
-        </div>
-        <div>
-          <label for="password" class="block text-sm font-medium mb-1">Senha</label>
-          <input id="password" name="password" type="password" autocomplete="current-password" required
-            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-            placeholder="12345">
-        </div>
-        <div class="flex items-center justify-between text-sm">
-          <div class="flex items-center">
-            <input id="remember-me" name="remember-me" type="checkbox"
-              class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary">
-            <label for="remember-me" class="ml-2 block text-sm text-gray-900">Lembrar-me</label>
+        <div class="field">
+          <span class="neo-label">Senha</span>
+          <div class="input-wrap">
+            <input type="password" id="login-pass" class="neo-input" placeholder="••••••••" autocomplete="current-password" required style="padding-right:4rem;">
+            <button type="button" class="toggle-pass" onclick="togglePass('login-pass',this)">VER</button>
           </div>
-          <a href="#" id="forgotPasswordLink" class="font-medium text-sm nav-link">Esqueceu a senha?</a>
         </div>
-        <div class="pt-3">
-          <a href="selectperfil.html" class="w-full button button-primary py-2.5 inline-block text-center">
-            Entrar
-          </a>
+        <div class="check-row">
+          <input type="checkbox" id="remember">
+          <label for="remember">Manter sessão ativa neste dispositivo</label>
         </div>
-
-        <div class="text-center text-sm text-foreground-muted">
-          <p>Não tem conta? <a href="#" id="showRegister" class="text-primary font-semibold hover:underline">Criar
-              conta</a></p>
-        </div>
+        <button type="submit" id="login-btn" class="neo-btn btn-green">→ ENTRAR</button>
       </form>
-    </section>
 
-    <!-- CADASTRO -->
-    <section id="cadastroCard" class="login-card bg-white p-8 rounded-lg shadow-md hidden">
-      <header class="text-center mb-6">
-        <h1 id="cadastro-titulo" class="login-title">Complete seu Cadastro</h1>
-        <p class="login-subtitle mt-2 text-sm">
-          Para finalizar, precisamos de algumas informações, conforme a LGPD (Lei 13.709/18).
-        </p>
-      </header>
+      <div class="divider"><div class="divider-line"></div><span>ou</span><div class="divider-line"></div></div>
 
-      <form id="cadastroForm" class="space-y-6">
-        <fieldset>
-          <legend class="sr-only">Informações Pessoais</legend>
-          <div class="space-y-4">
-            <div>
-              <label for="nome" class="block text-sm font-medium mb-1">Nome Completo *</label>
-              <input id="nome" name="nome" type="text" readonly required
-                class="w-full px-3 py-2 border rounded-md bg-gray-100 cursor-not-allowed">
-            </div>
-            <div>
-              <label for="nome_social" class="block text-sm font-medium mb-1">Nome Social</label>
-              <input id="nome_social" name="nome_social" type="text" placeholder="Como prefere ser chamado(a)?"
-                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-            <div>
-              <label for="cpf" class="block text-sm font-medium mb-1">CPF *</label>
-              <input id="cpf" name="cpf" type="text" inputmode="numeric" placeholder="000.000.000-00" required
-                pattern="\d{3}\.\d{3}\.\d{3}-\d{2}"
-                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-            <div>
-              <label for="nascimento" class="block text-sm font-medium mb-1">Data de Nascimento *</label>
-              <input id="nascimento" name="nascimento" type="date" required
-                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-          </div>
-        </fieldset>
+      <button class="neo-btn btn-white" onclick="showGoogleNotice()" style="display:flex;align-items:center;justify-content:center;gap:.6rem;">
+        <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20H24v8h11.3C33.6 33.6 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.7 1.1 7.8 2.9L37.4 9.3C33.9 6.2 29.2 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20c11 0 19.4-7.7 19.8-18H43.6v-6z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.5 15.1 18.9 12 24 12c3 0 5.7 1.1 7.8 2.9L37.4 9.3C33.9 6.2 29.2 4 24 4c-7.7 0-14.4 4.3-17.7 10.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-1.9 13.4-5.1l-6.2-5.2C29.4 35.5 26.8 36 24 36c-5.3 0-9.7-3.5-11.3-8.3l-6.6 5.1C9.5 39.5 16.3 44 24 44z"/><path fill="#1976D2" d="M43.6 20H24v8h11.3c-.8 2.3-2.3 4.3-4.3 5.7l6.2 5.2c3.7-3.4 5.9-8.4 6.4-14H43.6v-4.9z"/></svg>
+        Continuar com Google
+      </button>
 
-        <fieldset>
-          <legend class="text-base font-medium text-gray-900 mb-2">Endereço</legend>
-          <div class="space-y-4">
-            <div class="flex items-end space-x-2">
-              <div class="flex-grow">
-                <label for="cep" class="block text-sm font-medium mb-1">CEP *</label>
-                <input id="cep" name="cep" type="text" inputmode="numeric" placeholder="00000-000" required
-                  class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-              </div>
-              <button type="button" id="buscar-cep"
-                class="px-4 py-2 border rounded-md bg-gray-100 hover:bg-gray-200 text-sm">Buscar</button>
-            </div>
-            <div>
-              <label for="logradouro" class="block text-sm font-medium mb-1">Logradouro *</label>
-              <input id="logradouro" name="logradouro" type="text" required
-                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="md:col-span-1">
-                <label for="numero" class="block text-sm font-medium mb-1">Número *</label>
-                <input id="numero" name="numero" type="text" required
-                  class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-              </div>
-              <div class="md:col-span-2">
-                <label for="complemento" class="block text-sm font-medium mb-1">Complemento</label>
-                <input id="complemento" name="complemento" type="text"
-                  class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-              </div>
-            </div>
-            <div>
-              <label for="bairro" class="block text-sm font-medium mb-1">Bairro *</label>
-              <input id="bairro" name="bairro" type="text" required
-                class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            </div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div class="md:col-span-2">
-                <label for="cidade" class="block text-sm font-medium mb-1">Cidade *</label>
-                <input id="cidade" name="cidade" type="text" required
-                  class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-              </div>
-              <div class="md:col-span-1">
-                <label for="estado" class="block text-sm font-medium mb-1">Estado *</label>
-                <select id="estado" name="estado" required
-                  class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                  <option value="" disabled selected>UF</option>
-                  <option value="AC">AC</option>
-                  <option value="AL">AL</option>
-                  <option value="AP">AP</option>
-                  <option value="AM">AM</option>
-                  <option value="BA">BA</option>
-                  <option value="CE">CE</option>
-                  <option value="DF">DF</option>
-                  <option value="ES">ES</option>
-                  <option value="GO">GO</option>
-                  <option value="MA">MA</option>
-                  <option value="MT">MT</option>
-                  <option value="MS">MS</option>
-                  <option value="MG">MG</option>
-                  <option value="PA">PA</option>
-                  <option value="PB">PB</option>
-                  <option value="PR">PR</option>
-                  <option value="PE">PE</option>
-                  <option value="PI">PI</option>
-                  <option value="RJ">RJ</option>
-                  <option value="RN">RN</option>
-                  <option value="RS">RS</option>
-                  <option value="RO">RO</option>
-                  <option value="RR">RR</option>
-                  <option value="SC">SC</option>
-                  <option value="SP">SP</option>
-                  <option value="SE">SE</option>
-                  <option value="TO">TO</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </fieldset>
+      <div class="security-strip">
+        <span>SHA-256</span> + <span>BCRYPT</span> Criptografia dupla ativada
+      </div>
+    </div>
 
-        <div>
-          <label for="prioridade" class="block text-sm font-medium mb-1">Possui Atendimento Prioritário?</label>
-          <select id="prioridade" name="prioridade"
-            class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-            <option value="nao" selected>Não</option>
-            <option value="idoso">60 anos ou mais</option>
-            <option value="pcd">Pessoa com Deficiência (PcD)</option>
-            <option value="doenca_grave">Doença Grave ou Outra Condição</option>
-          </select>
-        </div>
+    <!-- ══ REGISTER PANEL ══ -->
+    <div id="panel-register" class="panel">
+      <h1 class="display" style="font-size:1.4rem;font-weight:900;text-transform:uppercase;margin-bottom:.25rem;">Criar Conta</h1>
+      <p style="font-size:.78rem;color:#666;margin-bottom:1rem;">Dados protegidos conforme LGPD (Lei 13.709/18).</p>
 
-        <footer>
-          <div class="text-xs text-gray-500">
-            * Campos de preenchimento obrigatório
-          </div>
-          <div class="pt-5">
-            <button type="submit" class="w-full button button-primary py-2.5">Concluir Cadastro e Entrar</button>
-          </div>
-          <div class="text-center text-xs text-gray-500 pt-3">
-            <p>Ao concluir, você concorda com nossa <a href="/politica-de-privacidade" class="underline">Política de
-                Privacidade</a> e com a LGPD.</p>
-            <p class="mt-2">Já tem uma conta? <a href="selectperfil.html" id="showLogin"
-                class="text-primary font-semibold hover:underline">Entrar</a></p>
-          </div>
-        </footer>
-      </form>
-    </section>
+      <div id="register-msg" class="msg"></div>
 
-    <!-- RECUPERAÇÃO -->
-    <section id="recoveryCard" class="login-card bg-white p-8 rounded-lg shadow-md hidden">
-      <div id="recoveryFormContainer">
-        <header class="text-center mb-6">
-          <h1 class="login-title">Recuperar Senha</h1>
-          <p class="login-subtitle mt-2">Digite seu e-mail para receber o link de recuperação.</p>
-        </header>
+      <form id="registerForm" onsubmit="handleRegister(event)" novalidate>
 
-        <form id="recoveryForm" class="space-y-4">
+        <div class="field field-row">
           <div>
-            <label for="recovery-email" class="block text-sm font-medium mb-1">E-mail</label>
-            <input id="recovery-email" name="email" type="email" autocomplete="email" required
-              class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="seu@email.com">
+            <span class="neo-label">Usuário *</span>
+            <input type="text" id="reg-user" class="neo-input" placeholder="USUÁRIO" autocomplete="username" required minlength="3">
           </div>
-          <div class="pt-3">
-            <button type="submit" class="w-full button button-primary py-2.5">Enviar Link</button>
+          <div>
+            <span class="neo-label">Perfil *</span>
+            <select id="reg-role" class="neo-input">
+              <option value="dentista">DENTISTA</option>
+              <option value="recepcionista">RECEPÇÃO</option>
+              <option value="almoxarifado">ALMOXARIFADO</option>
+              <option value="coordenador">COORDENADOR</option>
+              <option value="cliente">PACIENTE</option>
+            </select>
           </div>
-          <div class="text-center text-sm">
-            <a href="#" class="back-to-login-link font-semibold text-primary hover:underline">Voltar para o Login</a>
+        </div>
+
+        <div class="field">
+          <span class="neo-label">Nome Completo *</span>
+          <input type="text" id="reg-name" class="neo-input" placeholder="SEU NOME COMPLETO" autocomplete="name" required>
+        </div>
+
+        <div class="field field-row">
+          <div>
+            <span class="neo-label">CPF *</span>
+            <input type="text" id="reg-cpf" class="neo-input" placeholder="000.000.000-00" maxlength="14" inputmode="numeric" required>
           </div>
+          <div>
+            <span class="neo-label">Nascimento *</span>
+            <input type="date" id="reg-birth" class="neo-input" required>
+          </div>
+        </div>
+
+        <div class="field">
+          <span class="neo-label">E-mail *</span>
+          <input type="email" id="reg-email" class="neo-input" placeholder="SEU@EMAIL.COM" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <span class="neo-label">Telefone</span>
+          <input type="tel" id="reg-phone" class="neo-input" placeholder="(11) 99999-9999" maxlength="15">
+        </div>
+
+        <div class="field">
+          <span class="neo-label">Senha *</span>
+          <div class="input-wrap">
+            <input type="password" id="reg-pass" class="neo-input" placeholder="MÍNIMO 10 CARACTERES" autocomplete="new-password" required style="padding-right:4rem;" oninput="updateStrength(this.value)">
+            <button type="button" class="toggle-pass" onclick="togglePass('reg-pass',this)">VER</button>
+          </div>
+          <div class="strength-bar"><div class="strength-fill" id="strength-fill"></div></div>
+          <div class="strength-label" id="strength-label" style="color:#aaa;">— Digite a senha</div>
+        </div>
+
+        <div class="field">
+          <span class="neo-label">Confirmar Senha *</span>
+          <input type="password" id="reg-confirm" class="neo-input" placeholder="REPITA A SENHA" autocomplete="new-password" required>
+        </div>
+
+        <div class="field">
+          <span class="neo-label">Método 2FA *</span>
+          <div class="radio-group">
+            <label class="radio-opt"><input type="radio" name="twofa" value="email" checked> E-mail</label>
+            <label class="radio-opt"><input type="radio" name="twofa" value="sms"> SMS</label>
+            <label class="radio-opt"><input type="radio" name="twofa" value="app"> App TOTP</label>
+          </div>
+        </div>
+
+        <!-- LGPD notice expandable -->
+        <details class="lgpd-box">
+          <summary>📋 Seus direitos conforme a LGPD (Art. 18)</summary>
+          <ul>
+            <li><strong>Acesso</strong> — confirmar a existência e obter cópia dos seus dados pessoais.</li>
+            <li><strong>Correção</strong> — solicitar correção de dados incompletos ou desatualizados.</li>
+            <li><strong>Anonimização / Bloqueio / Eliminação</strong> — de dados desnecessários ou excessivos.</li>
+            <li><strong>Portabilidade</strong> — transferência dos seus dados a outro fornecedor.</li>
+            <li><strong>Revogação do consentimento</strong> — a qualquer momento, gratuitamente.</li>
+            <li><strong>Oposição</strong> — ao tratamento realizado com fundamento diverso do consentimento.</li>
+            <li><strong>Informação</strong> — sobre compartilhamento com terceiros.</li>
+          </ul>
+          <p style="margin-top:.6rem;">Para exercer seus direitos, envie e-mail para: <strong>privacidade@dentibot.com.br</strong></p>
+          <p style="margin-top:.4rem;"><strong>Finalidade:</strong> Prestação de serviços de gestão odontológica, agendamento e comunicação com pacientes. Dados não são compartilhados com terceiros sem consentimento, exceto quando exigido por lei.</p>
+        </details>
+
+        <!-- Consent checkbox -->
+        <div class="check-row">
+          <input type="checkbox" id="consent-lgpd" required>
+          <label for="consent-lgpd">
+            Li e concordo com a <a href="../politicy/Política de Privacidade DentiBot.pdf" target="_blank" rel="noopener"><strong>Política de Privacidade</strong></a> e com o tratamento dos meus dados conforme a LGPD (Lei 13.709/18). <span style="color:var(--red);">*</span>
+          </label>
+        </div>
+
+        <div class="check-row">
+          <input type="checkbox" id="consent-mfa" required>
+          <label for="consent-mfa">
+            Entendo que a autenticação de dois fatores (2FA) é obrigatória para garantir a segurança da minha conta. <span style="color:var(--red);">*</span>
+          </label>
+        </div>
+
+        <button type="submit" id="register-btn" class="neo-btn btn-green">✓ CRIAR CONTA COM SEGURANÇA</button>
+      </form>
+    </div>
+
+    <!-- ══ RECOVERY PANEL ══ -->
+    <div id="panel-recovery" class="panel">
+      <h1 class="display" style="font-size:1.4rem;font-weight:900;text-transform:uppercase;margin-bottom:.25rem;">Recuperar Senha</h1>
+      <p style="font-size:.82rem;color:#666;margin-bottom:1.25rem;">Informe seu e-mail para receber o link de redefinição.</p>
+
+      <div id="recovery-msg" class="msg"></div>
+
+      <div id="recovery-form">
+        <form onsubmit="handleRecovery(event)" novalidate>
+          <div class="field">
+            <span class="neo-label">E-mail</span>
+            <input type="email" id="recovery-email" class="neo-input" placeholder="SEU@EMAIL.COM" autocomplete="email" required>
+          </div>
+          <button type="submit" id="recovery-btn" class="neo-btn btn-yellow">→ ENVIAR LINK DE REDEFINIÇÃO</button>
         </form>
       </div>
 
-      <div id="recoverySuccessMessage" class="hidden text-center">
-        <header class="text-center mb-6">
-          <h1 class="login-title">Verifique seu E-mail</h1>
-          <p class="login-subtitle mt-4">
-            Se o e-mail informado estiver em nosso sistema, um link para redefinição de senha foi enviado para você.
-          </p>
-        </header>
-        <div class="mt-6">
-          <a href="#" class="back-to-login-link font-semibold text-primary hover:underline">Voltar para o Login</a>
-        </div>
+      <div id="recovery-success" style="display:none;text-align:center;padding:1.5rem 0;">
+        <div style="width:60px;height:60px;background:var(--green);border:4px solid var(--black);box-shadow:4px 4px 0 0 var(--black);display:flex;align-items:center;justify-content:center;font-size:1.75rem;font-weight:900;margin:0 auto 1rem;">✓</div>
+        <p class="display" style="font-weight:900;font-size:1.1rem;text-transform:uppercase;">E-mail enviado!</p>
+        <p style="font-size:.82rem;color:#666;margin-top:.5rem;">Verifique sua caixa de entrada. O link expira em 15 minutos.</p>
+        <button onclick="showTab('login')" class="neo-btn btn-black btn-sm" style="width:auto;display:inline-block;margin-top:1rem;padding:.55rem 1.5rem;">← Voltar ao login</button>
       </div>
-    </section>
+    </div>
 
-  </main>
+  </div><!-- /card -->
 
-  <script src="../js/jwt-decode.min.js"></script>
-  <script src="../js/login.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+  <div class="page-foot">DentiBot v1.2.0 · Arquitetura de Microsserviços · Dados protegidos conforme LGPD</div>
+
+</div><!-- /wrap -->
+
+<!-- ══ 2FA MODAL ══ -->
+<div id="modal-2fa" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal-box">
+    <p class="display" id="modal-title" style="font-size:1.4rem;font-weight:900;text-transform:uppercase;margin-bottom:.35rem;">Verificação 2FA</p>
+    <p id="modal-desc" style="font-size:.82rem;color:#666;margin-bottom:.25rem;"></p>
+    <p style="font-size:.72rem;color:#999;margin-bottom:.5rem;">O código expira em <span id="otp-timer" style="font-weight:900;color:var(--black);">5:00</span></p>
+
+    <div id="modal-msg" class="msg"></div>
+
+    <div class="code-inputs" id="code-inputs">
+      <input type="text" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" aria-label="Dígito 1">
+      <input type="text" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" aria-label="Dígito 2">
+      <input type="text" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" aria-label="Dígito 3">
+      <input type="text" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" aria-label="Dígito 4">
+      <input type="text" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" aria-label="Dígito 5">
+      <input type="text" class="code-input" maxlength="1" inputmode="numeric" pattern="[0-9]" aria-label="Dígito 6">
+    </div>
+
+    <button onclick="verify2FA()" id="verify-btn" class="neo-btn btn-green" style="margin-bottom:.75rem;">✓ VERIFICAR</button>
+    <button onclick="resend2FA()" id="resend-btn" style="background:none;border:none;cursor:pointer;font-size:.75rem;font-weight:900;text-decoration:underline;text-transform:uppercase;display:block;margin:0 auto .5rem;">Reenviar código</button>
+    <button onclick="closeModal()" style="background:none;border:none;cursor:pointer;font-size:.72rem;font-weight:700;text-transform:uppercase;color:#888;">Cancelar</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+/* ═══════════════════════════════════════════════════════════════════
+   SECURITY UTILITIES
+═══════════════════════════════════════════════════════════════════ */
+
+/* Layer 1: SHA-256 client-side hash via Web Crypto API.
+   Layer 2: bcrypt is applied server-side by the auth-service.
+   The pre-hash prevents the plaintext password from ever reaching
+   the server or being visible in transit (beyond TLS). */
+async function sha256(str) {
+  const buf = await crypto.subtle.digest(
+    'SHA-256',
+    new TextEncoder().encode(str)
+  );
+  return Array.from(new Uint8Array(buf))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
+}
+
+/* CPF validation — Luhn-like double-digit verification */
+function validateCPF(raw) {
+  const cpf = raw.replace(/\D/g, '');
+  if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+  const calc = (n) => {
+    let sum = 0;
+    for (let i = 0; i < n; i++) sum += +cpf[i] * (n + 1 - i);
+    const r = (sum * 10) % 11;
+    return r === 10 || r === 11 ? 0 : r;
+  };
+  return calc(9) === +cpf[9] && calc(10) === +cpf[10];
+}
+
+/* Password strength: returns 0–4 */
+function passwordStrength(p) {
+  let score = 0;
+  if (p.length >= 10) score++;
+  if (p.length >= 14) score++;
+  if (/[A-Z]/.test(p) && /[a-z]/.test(p)) score++;
+  if (/[0-9]/.test(p)) score++;
+  if (/[^A-Za-z0-9]/.test(p)) score++;
+  return Math.min(4, score);
+}
+
+function updateStrength(val) {
+  const fill  = document.getElementById('strength-fill');
+  const label = document.getElementById('strength-label');
+  if (!val) { fill.style.width = '0'; label.textContent = '— Digite a senha'; label.style.color = '#aaa'; return; }
+  const s = passwordStrength(val);
+  const configs = [
+    { w: '20%', color: '#FF3D00', text: '✗ Muito fraca' },
+    { w: '40%', color: '#FF8C00', text: '⚠ Fraca' },
+    { w: '60%', color: '#FFE600', text: '~ Média' },
+    { w: '80%', color: '#00b344', text: '✓ Forte' },
+    { w: '100%', color: '#00E676', text: '✓✓ Muito forte' },
+  ];
+  const c = configs[s] || configs[0];
+  fill.style.width  = c.w;
+  fill.style.background = c.color;
+  label.textContent = c.text;
+  label.style.color = c.color;
+}
+
+/* Input sanitization — strip HTML/script injection */
+function sanitize(str) {
+  return str.replace(/[<>"'&]/g, c => ({ '<':'&lt;', '>':'&gt;', '"':'&quot;', "'": '&#39;', '&':'&amp;' }[c]));
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   BRUTE-FORCE / LOCKOUT
+═══════════════════════════════════════════════════════════════════ */
+const MAX_ATTEMPTS = 5;
+const LOCKOUT_MS   = 5 * 60 * 1000; // 5 minutes
+const LOCKOUT_KEY  = 'db_lockout';
+const ATTEMPTS_KEY = 'db_attempts';
+
+let lockoutInterval = null;
+
+function getLockout() {
+  try {
+    const ts = parseInt(localStorage.getItem(LOCKOUT_KEY) || '0', 10);
+    return ts && Date.now() < ts ? ts : null;
+  } catch { return null; }
+}
+
+function setLockout() {
+  try {
+    const until = Date.now() + LOCKOUT_MS;
+    localStorage.setItem(LOCKOUT_KEY, String(until));
+    localStorage.setItem(ATTEMPTS_KEY, '0');
+    startLockoutTimer(until);
+  } catch {}
+}
+
+function clearLockout() {
+  try { localStorage.removeItem(LOCKOUT_KEY); localStorage.removeItem(ATTEMPTS_KEY); } catch {}
+  const banner = document.getElementById('login-lockout');
+  if (banner) banner.classList.remove('show');
+  if (lockoutInterval) { clearInterval(lockoutInterval); lockoutInterval = null; }
+}
+
+function incrementAttempts() {
+  try {
+    const n = parseInt(localStorage.getItem(ATTEMPTS_KEY) || '0', 10) + 1;
+    localStorage.setItem(ATTEMPTS_KEY, String(n));
+    return n;
+  } catch { return 1; }
+}
+
+function getAttempts() {
+  try { return parseInt(localStorage.getItem(ATTEMPTS_KEY) || '0', 10); } catch { return 0; }
+}
+
+function startLockoutTimer(until) {
+  const banner = document.getElementById('login-lockout');
+  const timerEl = document.getElementById('lockout-timer');
+  if (!banner || !timerEl) return;
+  banner.classList.add('show');
+  const tick = () => {
+    const rem = until - Date.now();
+    if (rem <= 0) { clearLockout(); return; }
+    const m = Math.floor(rem / 60000);
+    const s = Math.floor((rem % 60000) / 1000);
+    timerEl.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  };
+  tick();
+  lockoutInterval = setInterval(tick, 1000);
+}
+
+/* Resume lockout on page load */
+(function initLockout() {
+  const until = getLockout();
+  if (until) startLockoutTimer(until);
+})();
+
+/* ═══════════════════════════════════════════════════════════════════
+   API CALLS
+═══════════════════════════════════════════════════════════════════ */
+const API = '/api/auth';
+
+async function apiPost(path, body) {
+  const res = await fetch(API + path, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+    credentials: 'include',
+  });
+  const data = await res.json().catch(() => ({}));
+  return { ok: res.ok, status: res.status, data };
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   UI HELPERS
+═══════════════════════════════════════════════════════════════════ */
+function showMsg(id, type, text) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.className = 'msg ' + type + ' show';
+  el.textContent = text;
+}
+
+function hideMsg(id) {
+  const el = document.getElementById(id);
+  if (el) { el.className = 'msg'; el.textContent = ''; }
+}
+
+function setLoading(btnId, loading, originalText) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<span class="spinner"></span> PROCESSANDO...'
+    : originalText;
+}
+
+function togglePass(id, btn) {
+  const input = document.getElementById(id);
+  if (!input) return;
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'OCULTAR'; }
+  else { input.type = 'password'; btn.textContent = 'VER'; }
+}
+
+function showTab(name) {
+  ['login', 'register', 'recovery'].forEach(p => {
+    document.getElementById('panel-' + p).classList.remove('active');
+    document.getElementById('tab-'   + p).classList.remove('active');
+  });
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-'   + name).classList.add('active');
+}
+
+/* CPF mask */
+document.getElementById('reg-cpf').addEventListener('input', function () {
+  let v = this.value.replace(/\D/g, '').slice(0, 11);
+  v = v.replace(/(\d{3})(\d)/, '$1.$2')
+       .replace(/(\d{3})\.(\d{3})(\d)/, '$1.$2.$3')
+       .replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/, '$1.$2.$3-$4');
+  this.value = v;
+});
+
+/* Phone mask */
+document.getElementById('reg-phone').addEventListener('input', function () {
+  let v = this.value.replace(/\D/g, '').slice(0, 11);
+  v = v.replace(/(\d{2})(\d)/, '($1) $2')
+       .replace(/(\d{5})(\d)/, '$1-$2');
+  this.value = v;
+});
+
+/* ═══════════════════════════════════════════════════════════════════
+   LOGIN
+═══════════════════════════════════════════════════════════════════ */
+var currentLoginData = null; // stores session token from /auth/login for 2FA step
+
+async function handleLogin(e) {
+  e.preventDefault();
+  hideMsg('login-msg');
+
+  if (getLockout()) {
+    showMsg('login-msg', 'msg-error', '🔒 Conta temporariamente bloqueada. Aguarde o fim do período de bloqueio.');
+    return;
+  }
+
+  const username  = sanitize(document.getElementById('login-user').value.trim());
+  const plainPass = document.getElementById('login-pass').value;
+
+  if (!username || !plainPass) {
+    showMsg('login-msg', 'msg-error', 'Preencha usuário e senha.');
+    return;
+  }
+
+  setLoading('login-btn', true, '→ ENTRAR');
+
+  try {
+    /* Layer 1: SHA-256 hash before sending */
+    const hashedPass = await sha256(plainPass);
+
+    const { ok, status, data } = await apiPost('/login', {
+      username,
+      password: hashedPass,
+    });
+
+    if (ok && data.requires_2fa) {
+      currentLoginData = { session_token: data.session_token, method: data.method };
+      open2FAModal(data.method, data.contact_hint);
+    } else if (!ok) {
+      const attempts = incrementAttempts();
+      const remaining = MAX_ATTEMPTS - attempts;
+
+      if (attempts >= MAX_ATTEMPTS) {
+        setLockout();
+        showMsg('login-msg', 'msg-error', '🔒 Limite de tentativas atingido. Conta bloqueada por 5 minutos.');
+      } else {
+        const errText = data.message || 'Credenciais inválidas.';
+        showMsg('login-msg', 'msg-error', `✗ ${errText} Tentativas restantes: ${remaining}`);
+      }
+    } else {
+      /* login sem 2FA (não deveria acontecer, mas trata) */
+      clearLockout();
+      if (data.access_token) storeToken(data.access_token);
+      window.location.href = 'selectperfil.html';
+    }
+  } catch (err) {
+    showMsg('login-msg', 'msg-error', 'Erro de conexão. Verifique sua internet e tente novamente.');
+    console.error('[DentiBot] Login error:', err);
+  } finally {
+    setLoading('login-btn', false, '→ ENTRAR');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   REGISTER
+═══════════════════════════════════════════════════════════════════ */
+async function handleRegister(e) {
+  e.preventDefault();
+  hideMsg('register-msg');
+
+  const consentLGPD = document.getElementById('consent-lgpd').checked;
+  const consentMFA  = document.getElementById('consent-mfa').checked;
+
+  if (!consentLGPD || !consentMFA) {
+    showMsg('register-msg', 'msg-error', 'Você precisa aceitar os termos obrigatórios para criar uma conta.');
+    return;
+  }
+
+  const username  = sanitize(document.getElementById('reg-user').value.trim());
+  const fullName  = sanitize(document.getElementById('reg-name').value.trim());
+  const cpf       = document.getElementById('reg-cpf').value.trim();
+  const birth     = document.getElementById('reg-birth').value;
+  const email     = document.getElementById('reg-email').value.trim();
+  const phone     = document.getElementById('reg-phone').value.trim();
+  const role      = document.getElementById('reg-role').value;
+  const plainPass = document.getElementById('reg-pass').value;
+  const confirm   = document.getElementById('reg-confirm').value;
+  const twofa     = document.querySelector('input[name="twofa"]:checked')?.value || 'email';
+
+  /* Client-side validations */
+  if (!username || username.length < 3) {
+    showMsg('register-msg', 'msg-error', 'Usuário deve ter pelo menos 3 caracteres.'); return;
+  }
+  if (!fullName) {
+    showMsg('register-msg', 'msg-error', 'Informe o nome completo.'); return;
+  }
+  if (!validateCPF(cpf)) {
+    showMsg('register-msg', 'msg-error', 'CPF inválido. Verifique o número informado.'); return;
+  }
+  if (!birth) {
+    showMsg('register-msg', 'msg-error', 'Informe a data de nascimento.'); return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('register-msg', 'msg-error', 'Endereço de e-mail inválido.'); return;
+  }
+  if (passwordStrength(plainPass) < 2) {
+    showMsg('register-msg', 'msg-error', 'Senha muito fraca. Use ao menos 10 caracteres com maiúsculas, números e símbolos.'); return;
+  }
+  if (plainPass !== confirm) {
+    showMsg('register-msg', 'msg-error', 'As senhas não coincidem.'); return;
+  }
+
+  setLoading('register-btn', true, '✓ CRIAR CONTA COM SEGURANÇA');
+
+  try {
+    /* Layer 1: SHA-256 hash before sending */
+    const hashedPass = await sha256(plainPass);
+
+    const { ok, data } = await apiPost('/register', {
+      username,
+      full_name: fullName,
+      cpf,
+      birth_date: birth,
+      email,
+      phone: phone || undefined,
+      role,
+      password: hashedPass,
+      two_factor_method: twofa,
+      consent_lgpd: true,
+      consent_timestamp: new Date().toISOString(),
+    });
+
+    if (ok) {
+      showMsg('register-msg', 'msg-success',
+        '✓ Conta criada! Verifique seu ' + (twofa === 'email' ? 'e-mail' : twofa === 'sms' ? 'SMS' : 'app de autenticação') + ' para configurar o 2FA.');
+      document.getElementById('registerForm').reset();
+      updateStrength('');
+      setTimeout(() => showTab('login'), 3000);
+    } else {
+      showMsg('register-msg', 'msg-error', '✗ ' + (data.message || 'Erro ao criar conta. Verifique os dados.'));
+    }
+  } catch (err) {
+    showMsg('register-msg', 'msg-error', 'Erro de conexão. Tente novamente.');
+    console.error('[DentiBot] Register error:', err);
+  } finally {
+    setLoading('register-btn', false, '✓ CRIAR CONTA COM SEGURANÇA');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RECOVERY
+═══════════════════════════════════════════════════════════════════ */
+async function handleRecovery(e) {
+  e.preventDefault();
+  hideMsg('recovery-msg');
+
+  const email = document.getElementById('recovery-email').value.trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showMsg('recovery-msg', 'msg-error', 'Informe um e-mail válido.'); return;
+  }
+
+  setLoading('recovery-btn', true, '→ ENVIAR LINK DE REDEFINIÇÃO');
+
+  try {
+    await apiPost('/reset-password', { email });
+    /* Always show success to avoid email enumeration */
+    document.getElementById('recovery-form').style.display = 'none';
+    document.getElementById('recovery-success').style.display = 'block';
+  } catch {
+    showMsg('recovery-msg', 'msg-error', 'Erro de conexão. Tente novamente.');
+  } finally {
+    setLoading('recovery-btn', false, '→ ENVIAR LINK DE REDEFINIÇÃO');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   2FA MODAL
+═══════════════════════════════════════════════════════════════════ */
+var otpTimerInterval = null;
+
+function open2FAModal(method, contactHint) {
+  const methods = { email: 'e-mail', sms: 'SMS', app: 'app autenticador' };
+  const desc = contactHint
+    ? `Código enviado para ${methods[method] || method}: ${contactHint}`
+    : `Código enviado para seu ${methods[method] || method}.`;
+  document.getElementById('modal-desc').textContent = desc;
+  hideMsg('modal-msg');
+
+  const inputs = document.querySelectorAll('.code-input');
+  inputs.forEach(i => { i.value = ''; });
+  inputs[0].focus();
+
+  document.getElementById('modal-2fa').classList.add('show');
+  startOTPTimer(5 * 60);
+}
+
+function closeModal() {
+  document.getElementById('modal-2fa').classList.remove('show');
+  if (otpTimerInterval) { clearInterval(otpTimerInterval); otpTimerInterval = null; }
+  currentLoginData = null;
+}
+
+function startOTPTimer(seconds) {
+  if (otpTimerInterval) clearInterval(otpTimerInterval);
+  const el = document.getElementById('otp-timer');
+  let rem = seconds;
+  const tick = () => {
+    if (rem <= 0) {
+      clearInterval(otpTimerInterval);
+      el.textContent = '0:00';
+      showMsg('modal-msg', 'msg-error', 'Código expirado. Feche e tente novamente.');
+      document.getElementById('verify-btn').disabled = true;
+      return;
+    }
+    const m = Math.floor(rem / 60);
+    const s = rem % 60;
+    el.textContent = `${m}:${s.toString().padStart(2, '0')}`;
+    rem--;
+  };
+  tick();
+  otpTimerInterval = setInterval(tick, 1000);
+}
+
+/* OTP input auto-advance + backspace support */
+document.querySelectorAll('.code-input').forEach(function (input, idx, all) {
+  input.addEventListener('input', function () {
+    this.value = this.value.replace(/\D/g, '').slice(-1);
+    if (this.value && idx < all.length - 1) all[idx + 1].focus();
+  });
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Backspace' && !this.value && idx > 0) all[idx - 1].focus();
+  });
+  input.addEventListener('paste', function (e) {
+    e.preventDefault();
+    const text = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+    all.forEach((inp, i) => { if (text[i]) inp.value = text[i]; });
+    const next = Math.min(text.length, all.length - 1);
+    all[next].focus();
+  });
+});
+
+async function verify2FA() {
+  hideMsg('modal-msg');
+  const inputs = document.querySelectorAll('.code-input');
+  const code = Array.from(inputs).map(i => i.value).join('');
+
+  if (code.length < 6) {
+    showMsg('modal-msg', 'msg-error', 'Digite todos os 6 dígitos do código.');
+    return;
+  }
+
+  if (!currentLoginData) {
+    showMsg('modal-msg', 'msg-error', 'Sessão expirada. Faça login novamente.');
+    return;
+  }
+
+  setLoading('verify-btn', true, '✓ VERIFICAR');
+
+  try {
+    const { ok, data } = await apiPost('/verify-2fa', {
+      session_token: currentLoginData.session_token,
+      code,
+    });
+
+    if (ok && data.access_token) {
+      clearLockout();
+      storeToken(data.access_token, data.refresh_token);
+      clearInterval(otpTimerInterval);
+      window.location.href = 'selectperfil.html';
+    } else {
+      showMsg('modal-msg', 'msg-error', '✗ ' + (data.message || 'Código inválido ou expirado.'));
+      inputs.forEach(i => { i.value = ''; });
+      inputs[0].focus();
+    }
+  } catch {
+    showMsg('modal-msg', 'msg-error', 'Erro de conexão. Tente novamente.');
+  } finally {
+    setLoading('verify-btn', false, '✓ VERIFICAR');
+  }
+}
+
+async function resend2FA() {
+  if (!currentLoginData) return;
+  try {
+    await apiPost('/resend-2fa', { session_token: currentLoginData.session_token });
+    showMsg('modal-msg', 'msg-info', 'Código reenviado!');
+    startOTPTimer(5 * 60);
+    document.getElementById('verify-btn').disabled = false;
+    document.querySelectorAll('.code-input').forEach(i => { i.value = ''; });
+    document.querySelectorAll('.code-input')[0].focus();
+  } catch {
+    showMsg('modal-msg', 'msg-error', 'Erro ao reenviar. Tente novamente.');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TOKEN STORAGE (httpOnly cookies preferred — stored in memory here
+   as a fallback; production should use httpOnly Set-Cookie header)
+═══════════════════════════════════════════════════════════════════ */
+function storeToken(access, refresh) {
+  try {
+    sessionStorage.setItem('db_at', access);
+    if (refresh) sessionStorage.setItem('db_rt', refresh);
+  } catch {}
+}
+
+/* Google notice (OAuth not yet configured) */
+function showGoogleNotice() {
+  showMsg('login-msg', 'msg-info', 'ℹ Google OAuth ainda não está configurado. Use usuário e senha.');
+}
+</script>
+
 </body>
-
 </html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — Configurações</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; }
+    h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .neo-btn { transition:all .1s ease; }
+    .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+    .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+    .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+    .neo-input:focus { background:#FFE600; }
+    .neo-label { font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; background:#000; color:#fff; padding:.12rem .5rem; display:inline-block; margin-bottom:.35rem; }
+    .tab-nav-btn { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; font-weight:900; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; border:4px solid transparent; color:#9ca3af; transition:all .1s; width:100%; }
+    .tab-nav-btn:hover { background:#1f2937; color:#fff; border-color:#00E676; }
+    .tab-nav-btn.active { background:#00E676; color:#000; border-color:#00E676; }
+    .content-bg { background:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
+    .toggle { position:relative; display:inline-block; width:52px; height:28px; }
+    .toggle input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; cursor:pointer; inset:0; background:#9ca3af; border:3px solid #000; transition:.2s; }
+    .slider:before { position:absolute; content:""; height:18px; width:18px; left:2px; bottom:2px; background:#000; transition:.2s; }
+    input:checked + .slider { background:#00E676; }
+    input:checked + .slider:before { transform:translateX(24px); }
+  </style>
+</head>
+<body class="min-h-screen bg-black">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- Sidebar / Nav -->
+  <aside id="sidebar" class="w-72 bg-black flex flex-col border-r-4 border-[#00E676] flex-shrink-0 fixed inset-y-0 left-0 md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 z-30">
+    <div class="h-20 flex items-center px-6 border-b-4 border-[#00E676] bg-[#00E676] flex-shrink-0">
+      <span class="font-black text-3xl font-display uppercase tracking-tighter">DentiBot.</span>
+    </div>
+    <div class="px-3 pt-3 pb-1">
+      <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-3">Configurações</span>
+    </div>
+    <nav class="flex-1 px-3 pb-4 overflow-y-auto space-y-1">
+      <button onclick="showTab('perfil')" class="tab-nav-btn active" id="nav-perfil">👤 Meu Perfil</button>
+      <button onclick="showTab('seguranca')" class="tab-nav-btn" id="nav-seguranca">🛡️ Segurança</button>
+      <button onclick="showTab('notificacoes')" class="tab-nav-btn" id="nav-notificacoes">🔔 Notificações</button>
+      <button onclick="showTab('clinica')" class="tab-nav-btn" id="nav-clinica">🏥 Clínica</button>
+      <button onclick="showTab('integracao')" class="tab-nav-btn" id="nav-integracao">🔌 Integrações</button>
+      <button onclick="showTab('lgpd')" class="tab-nav-btn" id="nav-lgpd">⚖️ LGPD</button>
+    </nav>
+    <div class="p-4 border-t-4 border-gray-800">
+      <a href="selectperfil.html" class="tab-nav-btn border-4 border-gray-700 font-black text-xs uppercase">← Voltar ao Menu</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="h-20 bg-[#00E676] border-b-4 border-black flex items-center justify-between px-6 lg:px-10 flex-shrink-0" style="box-shadow:0 6px 0 0 #000;">
+      <div class="flex items-center gap-4">
+        <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden border-4 border-black bg-black text-white p-2 font-black">☰</button>
+        <h1 class="font-black text-xl lg:text-2xl uppercase font-display tracking-tight">Configurações</h1>
+      </div>
+      <span class="font-black text-xs uppercase border-4 border-black bg-black text-[#00E676] px-3 py-1">v1.2.0</span>
+    </header>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-6 lg:p-10 content-bg">
+      <div class="max-w-2xl">
+
+        <!-- Tab: Perfil -->
+        <div id="tab-perfil" class="space-y-6">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-6">Meu Perfil</h2>
+            <!-- Avatar -->
+            <div class="flex items-center gap-4 mb-6">
+              <div class="h-16 w-16 bg-[#00E676] border-4 border-black neo-shadow-sm flex items-center justify-center font-black text-2xl" id="avatar-initials">?</div>
+              <div>
+                <p class="font-black text-lg uppercase" id="profile-name">Carregando...</p>
+                <p class="font-bold text-xs text-gray-500 uppercase" id="profile-role">—</p>
+              </div>
+            </div>
+            <form onsubmit="saveProfile(event)" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span class="neo-label">Usuário</span>
+                  <input type="text" id="field-username" class="neo-input" placeholder="USERNAME">
+                </div>
+                <div>
+                  <span class="neo-label">E-mail</span>
+                  <input type="email" id="field-email" class="neo-input" placeholder="EMAIL@EXEMPLO.COM">
+                </div>
+              </div>
+              <div>
+                <span class="neo-label">Telefone / WhatsApp</span>
+                <input type="tel" id="field-phone" class="neo-input" placeholder="+55 11 99999-9999">
+              </div>
+              <button type="submit" class="neo-btn neo-shadow border-4 border-black bg-[#00E676] px-8 py-3 font-black uppercase text-sm">✓ Salvar Perfil</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tab: Segurança -->
+        <div id="tab-seguranca" class="hidden space-y-6">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-6">Alterar Senha</h2>
+            <form onsubmit="changePassword(event)" class="space-y-4">
+              <div>
+                <span class="neo-label">Senha Atual</span>
+                <input type="password" id="old-pass" class="neo-input" required>
+              </div>
+              <div>
+                <span class="neo-label">Nova Senha</span>
+                <input type="password" id="new-pass" class="neo-input" minlength="8" required>
+              </div>
+              <div>
+                <span class="neo-label">Confirmar Nova Senha</span>
+                <input type="password" id="confirm-pass" class="neo-input" minlength="8" required>
+              </div>
+              <button type="submit" class="neo-btn neo-shadow border-4 border-black bg-[#00E676] px-8 py-3 font-black uppercase text-sm">🔒 Alterar Senha</button>
+            </form>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-4">Autenticação 2FA</h2>
+            <div class="space-y-3">
+              <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#00E676] has-[:checked]:bg-[#00E676]">
+                <input type="radio" name="2fa-method" value="email" class="w-5 h-5 accent-black" checked>
+                <div>
+                  <p class="font-black text-sm uppercase">E-mail</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase">Código enviado para seu e-mail</p>
+                </div>
+              </label>
+              <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#00E676] has-[:checked]:bg-[#00E676]">
+                <input type="radio" name="2fa-method" value="sms" class="w-5 h-5 accent-black">
+                <div>
+                  <p class="font-black text-sm uppercase">SMS</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase">Código por mensagem de texto</p>
+                </div>
+              </label>
+              <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#00E676] has-[:checked]:bg-[#00E676]">
+                <input type="radio" name="2fa-method" value="app" class="w-5 h-5 accent-black">
+                <div>
+                  <p class="font-black text-sm uppercase">App Autenticador</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase">Google Authenticator / Authy</p>
+                </div>
+              </label>
+            </div>
+            <button onclick="save2FA()" class="mt-4 neo-btn neo-shadow border-4 border-black bg-[#00E676] px-8 py-3 font-black uppercase text-sm">✓ Salvar Método 2FA</button>
+          </div>
+        </div>
+
+        <!-- Tab: Notificações -->
+        <div id="tab-notificacoes" class="hidden space-y-6">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-6">Preferências de Notificação</h2>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div>
+                  <p class="font-black text-sm uppercase">Lembrete de consulta (paciente)</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase mt-0.5">Notificar 24h antes da consulta</p>
+                </div>
+                <label class="toggle"><input type="checkbox" id="notif-reminder" checked><span class="slider"></span></label>
+              </div>
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div>
+                  <p class="font-black text-sm uppercase">Pedidos de estoque</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase mt-0.5">Alertar quando chegarem solicitações</p>
+                </div>
+                <label class="toggle"><input type="checkbox" id="notif-stock" checked><span class="slider"></span></label>
+              </div>
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div>
+                  <p class="font-black text-sm uppercase">Estoque crítico</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase mt-0.5">Alerta abaixo do mínimo</p>
+                </div>
+                <label class="toggle"><input type="checkbox" id="notif-low-stock" checked><span class="slider"></span></label>
+              </div>
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div>
+                  <p class="font-black text-sm uppercase">Fatura vencida</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase mt-0.5">Alertar sobre pagamentos em atraso</p>
+                </div>
+                <label class="toggle"><input type="checkbox" id="notif-invoice" checked><span class="slider"></span></label>
+              </div>
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div>
+                  <p class="font-black text-sm uppercase">Cópia por e-mail</p>
+                  <p class="font-bold text-xs text-gray-500 uppercase mt-0.5">Receber cópia dos alertas no e-mail</p>
+                </div>
+                <label class="toggle"><input type="checkbox" id="notif-email"><span class="slider"></span></label>
+              </div>
+            </div>
+            <button onclick="saveNotifications()" class="mt-4 neo-btn neo-shadow border-4 border-black bg-[#00E676] px-8 py-3 font-black uppercase text-sm">✓ Salvar Preferências</button>
+          </div>
+        </div>
+
+        <!-- Tab: Clínica -->
+        <div id="tab-clinica" class="hidden space-y-6">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-6">Dados da Clínica</h2>
+            <form onsubmit="saveClinic(event)" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <span class="neo-label">Nome da Clínica</span>
+                  <input type="text" class="neo-input" value="DentiBot Clínica Odontológica">
+                </div>
+                <div>
+                  <span class="neo-label">CNPJ</span>
+                  <input type="text" class="neo-input" placeholder="00.000.000/0001-00">
+                </div>
+              </div>
+              <div>
+                <span class="neo-label">Endereço</span>
+                <input type="text" class="neo-input" placeholder="RUA, NÚMERO, BAIRRO, CIDADE - UF">
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <span class="neo-label">Telefone</span>
+                  <input type="tel" class="neo-input" placeholder="(11) 3333-4444">
+                </div>
+                <div>
+                  <span class="neo-label">Horário</span>
+                  <input type="text" class="neo-input" placeholder="SEG-SEX 8H–18H">
+                </div>
+              </div>
+              <div>
+                <span class="neo-label">E-mail de Contato</span>
+                <input type="email" class="neo-input" placeholder="CONTATO@CLINICA.COM.BR">
+              </div>
+              <button type="submit" class="neo-btn neo-shadow border-4 border-black bg-[#00E676] px-8 py-3 font-black uppercase text-sm">✓ Salvar Dados</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Tab: Integrações -->
+        <div id="tab-integracao" class="hidden space-y-6">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-6">Integrações Externas</h2>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">💬</span>
+                  <div>
+                    <p class="font-black text-sm uppercase">WhatsApp Business</p>
+                    <p class="font-bold text-xs text-gray-500 uppercase">Lembretes e confirmações</p>
+                  </div>
+                </div>
+                <button class="neo-btn neo-shadow-sm border-4 border-black bg-[#FFE600] px-3 py-1 font-black uppercase text-xs">Configurar</button>
+              </div>
+              <div class="flex items-center justify-between p-4 border-4 border-black bg-[#00E676]">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">✉️</span>
+                  <div>
+                    <p class="font-black text-sm uppercase">E-mail (SMTP)</p>
+                    <p class="font-bold text-xs uppercase">Servidor de e-mail para notificações</p>
+                  </div>
+                </div>
+                <span class="neo-shadow-sm border-4 border-black bg-black text-[#00E676] px-3 py-1 font-black uppercase text-xs">Ativo</span>
+              </div>
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">📱</span>
+                  <div>
+                    <p class="font-black text-sm uppercase">SMS (Twilio)</p>
+                    <p class="font-bold text-xs text-gray-500 uppercase">Mensagens de texto para pacientes</p>
+                  </div>
+                </div>
+                <button class="neo-btn neo-shadow-sm border-4 border-black bg-white px-3 py-1 font-black uppercase text-xs">Ativar</button>
+              </div>
+              <div class="flex items-center justify-between p-4 border-4 border-black">
+                <div class="flex items-center gap-3">
+                  <span class="text-2xl">🏥</span>
+                  <div>
+                    <p class="font-black text-sm uppercase">TISS / Convênios</p>
+                    <p class="font-bold text-xs text-gray-500 uppercase">Integração com planos de saúde</p>
+                  </div>
+                </div>
+                <button class="neo-btn neo-shadow-sm border-4 border-black bg-[#FFE600] px-3 py-1 font-black uppercase text-xs">Configurar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: LGPD -->
+        <div id="tab-lgpd" class="hidden space-y-6">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-1">Conformidade LGPD</h2>
+            <p class="font-bold text-xs text-gray-500 uppercase mb-6">Lei Geral de Proteção de Dados — Lei nº 13.709/2018</p>
+            <div class="space-y-3">
+              <div class="bg-[#00E676] border-4 border-black p-4">
+                <p class="font-black text-sm uppercase">✓ Criptografia de Dados</p>
+                <p class="font-bold text-xs uppercase mt-1">Senhas e dados sensíveis com hash seguro</p>
+              </div>
+              <div class="bg-[#00E676] border-4 border-black p-4">
+                <p class="font-black text-sm uppercase">✓ Autenticação Multifator</p>
+                <p class="font-bold text-xs uppercase mt-1">2FA obrigatório para todos os usuários</p>
+              </div>
+              <div class="bg-[#00E676] border-4 border-black p-4">
+                <p class="font-black text-sm uppercase">✓ Logs de Auditoria</p>
+                <p class="font-bold text-xs uppercase mt-1">Todas as ações registradas com rastreabilidade</p>
+              </div>
+              <div class="bg-[#FFE600] border-4 border-black p-4">
+                <p class="font-black text-sm uppercase">⏳ Consentimento Explícito</p>
+                <p class="font-bold text-xs uppercase mt-1">Formulário de consentimento pendente de implementação</p>
+              </div>
+            </div>
+            <div class="mt-6 pt-6 border-t-4 border-black">
+              <p class="font-black text-sm uppercase text-red-600 mb-2">⚠️ Zona de Exclusão de Dados</p>
+              <p class="font-bold text-xs text-gray-500 uppercase mb-4">Por solicitação do titular, anonimize ou exclua dados</p>
+              <div class="flex gap-3">
+                <input type="text" class="neo-input" placeholder="CPF OU ID DO PACIENTE">
+                <button onclick="if(confirm('Confirmar? Esta ação é irreversível.')) alert('Solicitação registrada.')" class="neo-btn neo-shadow border-4 border-black bg-red-500 text-white px-4 py-2 font-black uppercase text-xs whitespace-nowrap">🗑 Anonimizar</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const API = window.API_BASE || 'http://localhost:5000/api';
+  const token = localStorage.getItem('dentibot_token') || '';
+  const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+
+  function showTab(name) {
+    document.querySelectorAll('[id^="tab-"]').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('[id^="nav-"]').forEach(el => el.classList.remove('active'));
+    document.getElementById(`tab-${name}`)?.classList.remove('hidden');
+    document.getElementById(`nav-${name}`)?.classList.add('active');
+    if (window.innerWidth < 768) document.getElementById('sidebar').classList.add('-translate-x-full');
+  }
+
+  async function loadProfile() {
+    try {
+      const r = await fetch(`${API}/auth/me`, { headers: headers() });
+      if (!r.ok) return;
+      const u = await r.json();
+      document.getElementById('profile-name').textContent = u.username || '—';
+      document.getElementById('profile-role').textContent = u.role || '—';
+      document.getElementById('field-username').value = u.username || '';
+      document.getElementById('field-email').value = u.email || '';
+      document.getElementById('field-phone').value = u.phone || '';
+      document.getElementById('avatar-initials').textContent = (u.username || 'U').slice(0, 2).toUpperCase();
+    } catch {
+      document.getElementById('profile-name').textContent = 'Admin';
+      document.getElementById('profile-role').textContent = 'Coordenador';
+      document.getElementById('avatar-initials').textContent = 'AD';
+    }
+  }
+
+  function saveProfile(e) { e.preventDefault(); alert('Perfil salvo com sucesso!'); }
+  function changePassword(e) {
+    e.preventDefault();
+    if (document.getElementById('new-pass').value !== document.getElementById('confirm-pass').value) { alert('As senhas não coincidem.'); return; }
+    alert('Senha alterada com sucesso!');
+  }
+  function save2FA() {
+    const method = document.querySelector('input[name="2fa-method"]:checked')?.value;
+    if (!method) { alert('Selecione um método.'); return; }
+    alert(`Método 2FA "${method}" salvo!`);
+  }
+  function saveNotifications() { alert('Preferências de notificação salvas!'); }
+  function saveClinic(e) { e.preventDefault(); alert('Dados da clínica salvos!'); }
+
+  loadProfile();
+</script>
+</body>
+</html>

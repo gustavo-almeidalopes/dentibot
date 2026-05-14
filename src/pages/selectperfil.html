@@ -3,47 +3,113 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Escolher Perfil - DentiBot</title>
+  <title>DentiBot — Selecionar Perfil</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { 
-      font-family: Arial, sans-serif; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      height: 100vh; 
-      background: #f5f5f5; 
-    }
-    .container { 
-      text-align: center; 
-      background: #fff; 
-      padding: 30px; 
-      border-radius: 8px; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1); 
-      width: 350px; 
-    }
-    h1 { margin-bottom: 20px; }
-    button { 
-      width: 100%; 
-      padding: 12px; 
-      margin: 8px 0; 
-      border: none; 
-      border-radius: 4px; 
-      background: #4A9DAE; 
-      color: #fff; 
-      cursor: pointer; 
-      font-size: 16px; 
-    }
-    button:hover { background: #3a7f8a; }
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; background-color:#f4f4f0; background-image:radial-gradient(#00000018 1px,transparent 1px); background-size:20px 20px; }
+    h1,h2,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .profile-card { border:4px solid #000; background:#fff; transition:all .1s ease; cursor:pointer; display:block; text-decoration:none; }
+    .profile-card:hover { transform:translate(-3px,-3px); box-shadow:9px 9px 0 0 #000; }
+    .profile-card:active { transform:translate(4px,4px); box-shadow:2px 2px 0 0 #000; }
   </style>
 </head>
-<body>
-  <div class="container">
-    <h1>Escolha seu Perfil</h1>
-    <button onclick="window.location.href='dentista.html'">Dentista</button>
-    <button onclick="window.location.href='cliente.html'">Cliente</button>
-    <button onclick="window.location.href='recpecionista.html'">Recepcionista</button>
-    <button onclick="window.location.href='almoxarifado.html'">Almoxarifado</button>
-    <button onclick="window.location.href='coordenador.html'">Coordenador</button>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+
+  <!-- Header -->
+  <div class="text-center mb-10">
+    <div class="inline-flex items-center gap-3 mb-4">
+      <div class="h-14 w-14 bg-[#00E676] border-4 border-black neo-shadow-sm flex items-center justify-center">
+        <span class="font-black text-3xl font-display">D</span>
+      </div>
+      <span class="font-black text-4xl font-display uppercase tracking-tighter">DentiBot.</span>
+    </div>
+    <h1 class="font-black text-3xl font-display uppercase tracking-tight">Qual é o seu perfil?</h1>
+    <p class="font-bold text-gray-500 uppercase text-sm mt-2 bg-[#FFE600] border-2 border-black inline-block px-3 py-1">Selecione para acessar seu painel</p>
   </div>
+
+  <!-- Grid de perfis -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-4xl">
+
+    <a href="dentista.html" class="profile-card neo-shadow p-6 flex flex-col gap-4">
+      <div class="h-16 w-16 bg-[#00E676] border-4 border-black neo-shadow-sm flex items-center justify-center text-3xl">🦷</div>
+      <div>
+        <p class="font-black text-xl font-display uppercase">Dentista</p>
+        <p class="text-sm text-gray-500 font-medium mt-1">Agenda, prontuários, prescrições e histórico clínico.</p>
+      </div>
+      <div class="mt-auto">
+        <span class="bg-black text-[#00E676] px-3 py-1 font-black text-xs uppercase border-2 border-black">→ Acessar</span>
+      </div>
+    </a>
+
+    <a href="recpecionista.html" class="profile-card neo-shadow p-6 flex flex-col gap-4">
+      <div class="h-16 w-16 bg-[#FFE600] border-4 border-black neo-shadow-sm flex items-center justify-center text-3xl">📅</div>
+      <div>
+        <p class="font-black text-xl font-display uppercase">Recepcionista</p>
+        <p class="text-sm text-gray-500 font-medium mt-1">Agendamentos, confirmações e atendimento ao paciente.</p>
+      </div>
+      <div class="mt-auto">
+        <span class="bg-black text-[#FFE600] px-3 py-1 font-black text-xs uppercase border-2 border-black">→ Acessar</span>
+      </div>
+    </a>
+
+    <a href="cliente.html" class="profile-card neo-shadow p-6 flex flex-col gap-4">
+      <div class="h-16 w-16 bg-white border-4 border-black neo-shadow-sm flex items-center justify-center text-3xl">👤</div>
+      <div>
+        <p class="font-black text-xl font-display uppercase">Paciente</p>
+        <p class="text-sm text-gray-500 font-medium mt-1">Consultas, documentos, histórico e comunicação.</p>
+      </div>
+      <div class="mt-auto">
+        <span class="bg-black text-white px-3 py-1 font-black text-xs uppercase border-2 border-black">→ Acessar</span>
+      </div>
+    </a>
+
+    <a href="almoxarifado.html" class="profile-card neo-shadow p-6 flex flex-col gap-4">
+      <div class="h-16 w-16 bg-[#FF3D00] border-4 border-black neo-shadow-sm flex items-center justify-center text-3xl">📦</div>
+      <div>
+        <p class="font-black text-xl font-display uppercase">Almoxarifado</p>
+        <p class="text-sm text-gray-500 font-medium mt-1">Estoque, kits odontológicos e previsão de demanda.</p>
+      </div>
+      <div class="mt-auto">
+        <span class="bg-black text-[#FF3D00] px-3 py-1 font-black text-xs uppercase border-2 border-black">→ Acessar</span>
+      </div>
+    </a>
+
+    <a href="coordenador.html" class="profile-card neo-shadow p-6 flex flex-col gap-4">
+      <div class="h-16 w-16 bg-black border-4 border-black neo-shadow-sm flex items-center justify-center text-3xl">⚙️</div>
+      <div>
+        <p class="font-black text-xl font-display uppercase">Coordenador</p>
+        <p class="text-sm text-gray-500 font-medium mt-1">Dashboard geral, usuários, auditoria e LGPD.</p>
+      </div>
+      <div class="mt-auto">
+        <span class="bg-[#00E676] text-black px-3 py-1 font-black text-xs uppercase border-2 border-black">→ Acessar</span>
+      </div>
+    </a>
+
+    <a href="financeiro.html" class="profile-card neo-shadow p-6 flex flex-col gap-4">
+      <div class="h-16 w-16 bg-[#FFE600] border-4 border-black neo-shadow-sm flex items-center justify-center text-3xl">💰</div>
+      <div>
+        <p class="font-black text-xl font-display uppercase">Financeiro</p>
+        <p class="text-sm text-gray-500 font-medium mt-1">Faturas, pagamentos, convênios e receita.</p>
+      </div>
+      <div class="mt-auto">
+        <span class="bg-black text-[#FFE600] px-3 py-1 font-black text-xs uppercase border-2 border-black">→ Acessar</span>
+      </div>
+    </a>
+
+  </div>
+
+  <!-- Footer -->
+  <div class="mt-10 flex items-center gap-4">
+    <a href="configuracoes.html" class="font-bold text-xs uppercase underline text-gray-500 hover:text-black">Configurações</a>
+    <span class="text-gray-300 font-black">|</span>
+    <a href="notificacoes.html" class="font-bold text-xs uppercase underline text-gray-500 hover:text-black">Notificações</a>
+    <span class="text-gray-300 font-black">|</span>
+    <a href="login.html" class="font-bold text-xs uppercase underline text-gray-500 hover:text-black">Sair</a>
+  </div>
+  <p class="text-xs text-gray-400 font-bold uppercase mt-3">DentiBot v1.2.0 • Microsserviços</p>
+
 </body>
 </html>

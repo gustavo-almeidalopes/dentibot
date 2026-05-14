@@ -1,197 +1,383 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DentiBot - Painel do Coordenador</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --background: #f8fafc;
-            --foreground: #475569;
-            --card: #ffffff;
-            --card-foreground: #475569;
-            --primary: #059669;
-            --primary-foreground: #ffffff;
-            --secondary: #f1f5f9;
-            --secondary-foreground: #475569;
-            --muted: #f0fdf4;
-            --muted-foreground: #374151;
-            --accent: #10b981;
-            --border: #e2e8f0;
-            --input: #e2e8f0;
-            --ring: #059669;
-        }
-
-        body { background-color: var(--background); color: var(--foreground); font-family: sans-serif; }
-        html { scroll-behavior: smooth; }
-        
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; border: 1px solid transparent; }
-        .btn-primary { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
-        .btn-primary:hover { background-color: #047857; border-color: #047857; }
-        .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); }
-        .btn-secondary:hover { background-color: #e2e8f0; }
-        .btn-danger { background-color: #dc2626; color: white; border-color: #dc2626; }
-        .btn-danger:hover { background-color: #b91c1c; }
-        .form-input, .form-textarea, .form-select { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background-color: var(--background); transition: all 0.2s; }
-        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
-        .sidebar-link.active { background-color: var(--muted); color: var(--primary); font-weight: 600; }
-        .sidebar-link.active i { color: var(--primary); }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — Coordenador</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; }
+    h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .neo-btn { transition:all .1s ease; }
+    .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+    .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+    .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+    .neo-input:focus { background:#FFE600; }
+    .neo-label { font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; background:#000; color:#fff; padding:.12rem .5rem; display:inline-block; margin-bottom:.35rem; }
+    .sidebar-link { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; font-weight:900; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; border:4px solid transparent; color:#9ca3af; transition:all .1s; }
+    .sidebar-link:hover { background:#1f2937; color:#fff; border-color:#00E676; }
+    .sidebar-link.active { background:#00E676; color:#000; border-color:#00E676; }
+    .content-bg { background:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
+  </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-black">
 
-    <div class="flex h-screen">
-        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-4 border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
-            <div class="flex items-center space-x-2 pb-4 border-b">
-                <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-primary"><span class="text-lg font-bold text-primary-foreground">D</span></div>
-                <span class="text-xl font-bold">DentiBot</span>
-            </div>
-            <nav class="mt-6">
-                <a href="#dashboard" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
-                <a href="#usuarios" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="users"></i><span>Gestão de Usuários</span></a>
-                <a href="#rotinas" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="check-check"></i><span>Homologação de Rotinas</span></a>
-                <a href="#auditoria" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="history"></i><span>Auditoria & Logs</span></a>
-                <a href="#manutencao" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="database-backup"></i><span>Manutenção & Backups</span></a>
-                <a href="#seguranca" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="shield"></i><span>Segurança & LGPD</span></a>
-            </nav>
-        </aside>
+<div class="flex h-screen overflow-hidden">
 
-        <div class="flex-1 flex flex-col overflow-y-auto">
-            <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-20">
-                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 items-center justify-between">
-                        <button id="menu-open-btn" class="md:hidden text-gray-600"><i data-lucide="menu" class="h-6 w-6"></i></button>
-                        <h1 class="text-lg font-semibold text-gray-800">Painel do Administrador</h1>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm hidden sm:block">Admin</span>
-                            <i data-lucide="user-cog" class="h-8 w-8 text-gray-500"></i>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
-                
-                <section id="dashboard">
-                    <h2 class="text-2xl font-bold mb-4">Dashboard de Governança</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Usuários Ativos</p><p class="text-3xl font-bold">14</p></div>
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Logs de Auditoria (24h)</p><p class="text-3xl font-bold">3,128</p></div>
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Rotinas Pendentes</p><p class="text-3xl font-bold">2</p></div>
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Status do Sistema</p><p class="text-3xl font-bold text-green-600">Operacional</p></div>
-                    </div>
-                    <div class="mt-8 bg-card rounded-xl shadow-md p-6">
-                        <h3 class="text-xl font-bold mb-4">KPIs de Produtividade Clínica e Administrativa</h3>
-                        <div class="h-64 bg-gray-100 rounded-lg flex items-center justify-center"><p class="text-gray-500">Gráfico de Atividade do Sistema</p></div>
-                    </div>
-                </section>
-
-                <section id="usuarios" class="bg-card rounded-xl shadow-md p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 class="text-2xl font-bold">Gestão de Perfis e Permissões</h2>
-                            <p class="text-muted-foreground">Crie, edite e gerencie os acessos ao sistema.</p>
-                        </div>
-                        <button class="btn btn-primary"><i data-lucide="user-plus" class="mr-2 h-4 w-4"></i>Adicionar Usuário</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50"><tr><th class="p-3">Nome</th><th class="p-3">Função</th><th class="p-3">Status</th><th class="p-3">Ações</th></tr></thead>
-                            <tbody>
-                                <tr class="border-t"><td>Dr. João Silva</td><td>Dentista</td><td><span class="text-green-600">Ativo</span></td><td class="p-3 space-x-2"><button class="btn btn-secondary text-xs">Editar</button><button class="btn btn-danger text-xs">Excluir</button></td></tr>
-                                <tr class="border-t"><td>Ana Paula</td><td>Recepção</td><td><span class="text-green-600">Ativo</span></td><td class="p-3 space-x-2"><button class="btn btn-secondary text-xs">Editar</button><button class="btn btn-danger text-xs">Excluir</button></td></tr>
-                                <tr class="border-t"><td>Carlos (Estoque)</td><td>Estoque</td><td><span class="text-red-600">Inativo</span></td><td class="p-3 space-x-2"><button class="btn btn-secondary text-xs">Editar</button><button class="btn btn-danger text-xs">Excluir</button></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section id="rotinas" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Homologação de Macros e Rotinas</h2>
-                    <p class="text-muted-foreground mb-6">Aprove ou reprove novos protocolos de atendimento criados pela equipe.</p>
-                     <div class="space-y-4">
-                        <div class="border rounded-lg p-4 flex justify-between items-center">
-                            <div><p class="font-semibold">Protocolo de Limpeza Padrão</p><p class="text-sm text-muted-foreground">Enviado por: Dr. João Silva</p></div>
-                            <div class="space-x-2"><button class="btn btn-primary text-xs">Aprovar</button><button class="btn btn-secondary text-xs">Reprovar</button></div>
-                        </div>
-                        <div class="border rounded-lg p-4 flex justify-between items-center">
-                            <div><p class="font-semibold">Macro de Agendamento de Retorno</p><p class="text-sm text-muted-foreground">Enviado por: Ana Paula (Recepção)</p></div>
-                             <div class="space-x-2"><button class="btn btn-primary text-xs">Aprovar</button><button class="btn btn-secondary text-xs">Reprovar</button></div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="auditoria" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Auditoria de Logs</h2>
-                    <p class="text-muted-foreground mb-6">Monitore quem acessou, alterou ou excluiu dados no sistema.</p>
-                     <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50"><tr><th class="p-3">Data/Hora</th><th class="p-3">Usuário</th><th class="p-3">Ação</th><th class="p-3">Detalhes</th></tr></thead>
-                            <tbody>
-                                <tr class="border-t"><td>04/09/2025 16:30</td><td>Ana Paula</td><td>Agendamento Criado</td><td>Paciente: Carlos Santos</td></tr>
-                                <tr class="border-t"><td>04/09/2025 16:28</td><td>Dr. João Silva</td><td>Prontuário Salvo</td><td>Paciente: Mariana Costa</td></tr>
-                                <tr class="border-t"><td>04/09/2025 16:15</td><td>Admin</td><td>Login bem-sucedido</td><td>IP: 192.168.1.1</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                
-                <section id="manutencao" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Manutenção e Integridade de Dados</h2>
-                    <p class="text-muted-foreground mb-6">Gerencie rotinas de backup e manutenções preventivas.</p>
-                    <div class="space-y-4">
-                        <div class="border rounded-lg p-4">
-                            <p class="font-semibold">Último backup realizado: <span class="text-green-600">Hoje, 04/09/2025 às 02:00</span></p>
-                        </div>
-                        <button class="btn btn-secondary"><i data-lucide="download-cloud" class="mr-2 h-4 w-4"></i>Executar Backup Manual</button>
-                    </div>
-                </section>
-                
-                <section id="seguranca" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Segurança da Informação e Conformidade LGPD</h2>
-                    <p class="text-muted-foreground mb-6">Garanta a criptografia e adequação do sistema às normas de privacidade.</p>
-                    <div class="space-y-4">
-                        <div class="border rounded-lg p-4 flex justify-between items-center">
-                            <p class="font-semibold">Criptografia de Dados Clínicos Ativa</p>
-                            <div class="w-12 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow transform translate-x-6"></div></div>
-                        </div>
-                        <div class="border rounded-lg p-4 flex justify-between items-center">
-                             <p class="font-semibold">Consentimento Digital Obrigatório para Novos Pacientes</p>
-                             <div class="w-12 h-6 bg-green-500 rounded-full p-1 flex items-center"><div class="w-4 h-4 bg-white rounded-full shadow transform translate-x-6"></div></div>
-                        </div>
-                    </div>
-                </section>
-
-            </main>
-
-            <footer class="text-center p-4 text-sm text-gray-500 border-t">
-                <p>&copy; 2025 DentiBot - Projeto de Engenharia de Software da UNICID.</p>
-            </footer>
-        </div>
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-72 bg-black flex flex-col border-r-4 border-[#00E676] flex-shrink-0 fixed inset-y-0 left-0 md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 z-30">
+    <div class="h-20 flex items-center px-6 border-b-4 border-[#00E676] bg-[#00E676] flex-shrink-0">
+      <span class="font-black text-3xl font-display uppercase tracking-tighter">DentiBot.</span>
     </div>
-    
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+    <div class="px-3 pt-3 pb-1">
+      <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-3">Coordenador</span>
+    </div>
+    <nav class="flex-1 px-3 pb-4 overflow-y-auto space-y-1">
+      <a href="#dashboard" class="sidebar-link active">⚙️ Dashboard</a>
+      <a href="#usuarios" class="sidebar-link">👥 Gestão de Usuários</a>
+      <a href="#rotinas" class="sidebar-link">✅ Homologação</a>
+      <a href="#auditoria" class="sidebar-link">🔍 Auditoria & Logs</a>
+      <a href="#manutencao" class="sidebar-link">💾 Manutenção & Backup</a>
+      <a href="#seguranca" class="sidebar-link">🛡️ Segurança & LGPD</a>
+      <a href="financeiro.html" class="sidebar-link">💰 Financeiro</a>
+      <a href="relatorios.html" class="sidebar-link">📊 Relatórios</a>
+    </nav>
+    <div class="p-4 border-t-4 border-gray-800 flex items-center gap-3">
+      <div class="w-11 h-11 bg-[#00E676] border-4 border-black neo-shadow-sm flex items-center justify-center font-black text-black text-sm flex-shrink-0">AD</div>
+      <div>
+        <p class="text-white font-black text-sm uppercase truncate">Admin</p>
+        <p class="text-gray-500 text-xs font-bold uppercase">Coordenador</p>
+      </div>
+    </div>
+  </aside>
 
-    <script>
-        lucide.createIcons();
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebar = document.getElementById('sidebar'), menuOpenBtn = document.getElementById('menu-open-btn'), sidebarOverlay = document.getElementById('sidebar-overlay');
-            const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.remove('hidden'); };
-            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.add('hidden'); };
-            menuOpenBtn.addEventListener('click', openSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-            document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth < 768) closeSidebar(); }); });
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="h-20 bg-[#00E676] border-b-4 border-black flex items-center justify-between px-6 lg:px-10 flex-shrink-0" style="box-shadow:0 6px 0 0 #000;">
+      <div class="flex items-center gap-4">
+        <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden border-4 border-black bg-black text-white p-2 font-black">☰</button>
+        <h1 class="font-black text-xl lg:text-2xl uppercase font-display tracking-tight">Painel do Coordenador</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="notificacoes.html" class="neo-btn neo-shadow-sm border-4 border-black bg-white px-3 py-2 font-black uppercase text-xs hidden sm:flex items-center gap-2">🔔 Avisos <span class="bg-red-500 text-white px-1.5 border-2 border-black font-black text-xs">3</span></a>
+        <a href="selectperfil.html" class="neo-btn neo-shadow-sm border-4 border-black bg-black text-[#00E676] px-4 py-2 font-black uppercase text-xs">← Sair</a>
+      </div>
+    </header>
 
-            const sections = document.querySelectorAll('main section'), navLinks = document.querySelectorAll('.sidebar-link');
-            const sectionObserver = new IntersectionObserver(entries => {
-                let activeId = '';
-                entries.forEach(entry => { if (entry.isIntersecting && entry.intersectionRatio > 0) activeId = entry.target.getAttribute('id'); });
-                navLinks.forEach(link => { link.classList.remove('active'); if (link.getAttribute('href') === `#${activeId}`) link.classList.add('active'); });
-            }, { root: null, rootMargin: '0px', threshold: 0.3 });
-            sections.forEach(section => { sectionObserver.observe(section); });
-        });
-    </script>
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-6 lg:p-10 content-bg space-y-8">
+
+      <!-- Dashboard -->
+      <section id="dashboard">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Dashboard de Governança</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Visão geral do sistema</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Usuários Ativos</p>
+            <p class="font-black text-4xl font-display mt-2">14</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Logs (24h)</p>
+            <p class="font-black text-4xl font-display mt-2 text-blue-600">3.128</p>
+          </div>
+          <div class="bg-[#FFE600] border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-700">Rotinas Pendentes</p>
+            <p class="font-black text-4xl font-display mt-2">2</p>
+          </div>
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-700">Status do Sistema</p>
+            <p class="font-black text-xl font-display mt-2 uppercase">🟢 Operacional</p>
+          </div>
+        </div>
+        <!-- KPI Chart placeholder -->
+        <div class="bg-white border-4 border-black neo-shadow p-6">
+          <p class="font-black text-sm uppercase tracking-widest mb-4">KPIs de Produtividade</p>
+          <div class="h-48 bg-black/5 border-4 border-dashed border-black flex items-center justify-center">
+            <p class="font-black text-gray-400 uppercase text-sm">📊 Gráfico de Atividade do Sistema</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Gestão de Usuários -->
+      <section id="usuarios">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-4 border-b-4 border-black pb-3 gap-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Gestão de Usuários</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Perfis e permissões de acesso</p>
+          </div>
+          <button onclick="document.getElementById('modal-usuario').classList.remove('hidden')" class="neo-btn neo-shadow border-4 border-black bg-[#00E676] px-5 py-2 font-black uppercase text-sm flex items-center gap-2">
+            ＋ Adicionar Usuário
+          </button>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">Nome</th>
+                <th class="p-4 font-black text-xs uppercase">Função</th>
+                <th class="p-4 font-black text-xs uppercase">Último Acesso</th>
+                <th class="p-4 font-black text-xs uppercase">Status</th>
+                <th class="p-4 font-black text-xs uppercase">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">Dr. João Silva</td>
+                <td class="p-4 font-bold text-sm">Dentista</td>
+                <td class="p-4 font-bold text-xs text-gray-500">Hoje, 14:20</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Ativo</span></td>
+                <td class="p-4 flex gap-2">
+                  <button class="neo-btn border-4 border-black bg-white px-3 py-1 font-black uppercase text-xs">Editar</button>
+                  <button class="neo-btn border-4 border-black bg-red-500 text-white px-3 py-1 font-black uppercase text-xs">Excluir</button>
+                </td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">Ana Paula</td>
+                <td class="p-4 font-bold text-sm">Recepção</td>
+                <td class="p-4 font-bold text-xs text-gray-500">Hoje, 09:05</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Ativo</span></td>
+                <td class="p-4 flex gap-2">
+                  <button class="neo-btn border-4 border-black bg-white px-3 py-1 font-black uppercase text-xs">Editar</button>
+                  <button class="neo-btn border-4 border-black bg-red-500 text-white px-3 py-1 font-black uppercase text-xs">Excluir</button>
+                </td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">Carlos (Estoque)</td>
+                <td class="p-4 font-bold text-sm">Almoxarife</td>
+                <td class="p-4 font-bold text-xs text-gray-500">13/05/2026</td>
+                <td class="p-4"><span class="bg-gray-200 border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Inativo</span></td>
+                <td class="p-4 flex gap-2">
+                  <button class="neo-btn border-4 border-black bg-white px-3 py-1 font-black uppercase text-xs">Editar</button>
+                  <button class="neo-btn border-4 border-black bg-red-500 text-white px-3 py-1 font-black uppercase text-xs">Excluir</button>
+                </td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">Financeiro Sp.</td>
+                <td class="p-4 font-bold text-sm">Financeiro</td>
+                <td class="p-4 font-bold text-xs text-gray-500">Hoje, 11:30</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Ativo</span></td>
+                <td class="p-4 flex gap-2">
+                  <button class="neo-btn border-4 border-black bg-white px-3 py-1 font-black uppercase text-xs">Editar</button>
+                  <button class="neo-btn border-4 border-black bg-red-500 text-white px-3 py-1 font-black uppercase text-xs">Excluir</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Homologação de Rotinas -->
+      <section id="rotinas">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Homologação de Rotinas</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Aprove ou reprove protocolos da equipe</p>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-[#FFE600] border-4 border-black neo-shadow p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p class="font-black text-sm uppercase">Protocolo de Limpeza Padrão</p>
+              <p class="font-bold text-xs text-gray-600 uppercase mt-1">Enviado por: Dr. João Silva · 13/05/2026</p>
+            </div>
+            <div class="flex gap-3">
+              <button class="neo-btn neo-shadow-sm border-4 border-black bg-[#00E676] px-4 py-2 font-black uppercase text-xs">✓ Aprovar</button>
+              <button class="neo-btn neo-shadow-sm border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs">✕ Reprovar</button>
+            </div>
+          </div>
+          <div class="bg-[#FFE600] border-4 border-black neo-shadow p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <p class="font-black text-sm uppercase">Macro de Agendamento de Retorno</p>
+              <p class="font-bold text-xs text-gray-600 uppercase mt-1">Enviado por: Ana Paula (Recepção) · 12/05/2026</p>
+            </div>
+            <div class="flex gap-3">
+              <button class="neo-btn neo-shadow-sm border-4 border-black bg-[#00E676] px-4 py-2 font-black uppercase text-xs">✓ Aprovar</button>
+              <button class="neo-btn neo-shadow-sm border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs">✕ Reprovar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Auditoria de Logs -->
+      <section id="auditoria">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-4 border-b-4 border-black pb-3 gap-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Auditoria de Logs</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Acesso, alterações e exclusões</p>
+          </div>
+          <button class="neo-btn neo-shadow-sm border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">⬇ Exportar CSV</button>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">Data/Hora</th>
+                <th class="p-4 font-black text-xs uppercase">Usuário</th>
+                <th class="p-4 font-black text-xs uppercase">Ação</th>
+                <th class="p-4 font-black text-xs uppercase">Detalhes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-xs">14/05/2026 16:30</td>
+                <td class="p-4 font-black text-sm">Ana Paula</td>
+                <td class="p-4"><span class="bg-blue-100 border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Agendamento Criado</span></td>
+                <td class="p-4 font-bold text-xs text-gray-500">Paciente: Carlos Santos</td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-xs">14/05/2026 16:28</td>
+                <td class="p-4 font-black text-sm">Dr. João Silva</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Prontuário Salvo</span></td>
+                <td class="p-4 font-bold text-xs text-gray-500">Paciente: Mariana Costa</td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-xs">14/05/2026 16:15</td>
+                <td class="p-4 font-black text-sm">Admin</td>
+                <td class="p-4"><span class="bg-white border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Login</span></td>
+                <td class="p-4 font-bold text-xs text-gray-500">IP: 192.168.1.1</td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="p-4 font-bold text-xs">14/05/2026 15:50</td>
+                <td class="p-4 font-black text-sm">Financeiro Sp.</td>
+                <td class="p-4"><span class="bg-[#FFE600] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Fatura Criada</span></td>
+                <td class="p-4 font-bold text-xs text-gray-500">Fatura #042</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Manutenção & Backups -->
+      <section id="manutencao">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Manutenção & Backups</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Integridade e recuperação de dados</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-6">
+            <p class="font-black text-xs uppercase tracking-widest mb-2">Último Backup</p>
+            <p class="font-black text-lg uppercase">Hoje, 14/05/2026 às 02:00</p>
+            <p class="font-bold text-xs uppercase mt-1 text-green-900">✓ Sucesso — 47 MB</p>
+            <button class="mt-4 neo-btn border-4 border-black bg-black text-[#00E676] px-4 py-2 font-black uppercase text-xs">⬇ Backup Manual</button>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <p class="font-black text-xs uppercase tracking-widest mb-2">Próxima Manutenção Preventiva</p>
+            <p class="font-black text-lg uppercase">20/05/2026 · 00:00–02:00</p>
+            <p class="font-bold text-xs text-gray-500 uppercase mt-1">Sistema ficará em modo leitura</p>
+            <button class="mt-4 neo-btn border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">📅 Editar Janela</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Segurança & LGPD -->
+      <section id="seguranca">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Segurança & LGPD</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Conformidade com a Lei 13.709/18</p>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-5 flex justify-between items-center">
+            <div>
+              <p class="font-black text-sm uppercase">Criptografia de Dados Clínicos</p>
+              <p class="font-bold text-xs uppercase mt-1">AES-256 · Ativo</p>
+            </div>
+            <span class="bg-black text-[#00E676] border-4 border-black px-3 py-1 font-black text-xs uppercase">Ativo</span>
+          </div>
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-5 flex justify-between items-center">
+            <div>
+              <p class="font-black text-sm uppercase">Consentimento Digital (Novos Pacientes)</p>
+              <p class="font-bold text-xs uppercase mt-1">Obrigatório na admissão</p>
+            </div>
+            <span class="bg-black text-[#00E676] border-4 border-black px-3 py-1 font-black text-xs uppercase">Ativo</span>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5 flex justify-between items-center">
+            <div>
+              <p class="font-black text-sm uppercase">Anonimização de Dados de Teste</p>
+              <p class="font-bold text-xs text-gray-500 uppercase mt-1">Executar rotina de anonimização</p>
+            </div>
+            <button class="neo-btn border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">Executar</button>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5 flex justify-between items-center">
+            <div>
+              <p class="font-black text-sm uppercase">Relatório DPO (LGPD)</p>
+              <p class="font-bold text-xs text-gray-500 uppercase mt-1">Gerar relatório para o encarregado de dados</p>
+            </div>
+            <button class="neo-btn border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">⬇ Gerar</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Modal Adicionar Usuário -->
+<div id="modal-usuario" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+  <div class="bg-white border-4 border-black neo-shadow w-full max-w-md p-8">
+    <div class="flex justify-between items-center mb-6">
+      <p class="font-black text-2xl font-display uppercase">Novo Usuário</p>
+      <button onclick="document.getElementById('modal-usuario').classList.add('hidden')" class="font-black text-xl border-4 border-black w-10 h-10 flex items-center justify-center hover:bg-black hover:text-white">✕</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <span class="neo-label">Nome Completo</span>
+        <input type="text" class="neo-input" placeholder="NOME DO USUÁRIO">
+      </div>
+      <div>
+        <span class="neo-label">E-mail</span>
+        <input type="email" class="neo-input" placeholder="EMAIL@CLINICA.COM">
+      </div>
+      <div>
+        <span class="neo-label">Perfil / Função</span>
+        <select class="neo-input bg-white">
+          <option>DENTISTA</option>
+          <option>RECEPCIONISTA</option>
+          <option>ALMOXARIFE</option>
+          <option>FINANCEIRO</option>
+          <option>COORDENADOR</option>
+        </select>
+      </div>
+      <div>
+        <span class="neo-label">Senha Provisória</span>
+        <input type="password" class="neo-input" placeholder="MÍNIMO 8 CARACTERES">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="document.getElementById('modal-usuario').classList.add('hidden')" class="flex-1 neo-btn border-4 border-black bg-white py-3 font-black uppercase text-sm">Cancelar</button>
+        <button class="flex-1 neo-btn neo-shadow border-4 border-black bg-[#00E676] py-3 font-black uppercase text-sm">✓ Criar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  document.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', () => { if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full'); });
+  });
+
+  const navLinks = document.querySelectorAll('.sidebar-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(l => l.classList.remove('active'));
+        document.querySelector(`.sidebar-link[href="#${id}"]`)?.classList.add('active');
+      }
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+</script>
 </body>
 </html>

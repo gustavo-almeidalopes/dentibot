@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — Relatórios</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; }
+    h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .neo-btn { transition:all .1s ease; }
+    .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+    .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+    .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+    .neo-input:focus { background:#FFE600; }
+    .sidebar-link { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; font-weight:900; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; border:4px solid transparent; color:#9ca3af; transition:all .1s; }
+    .sidebar-link:hover { background:#1f2937; color:#fff; border-color:#00E676; }
+    .sidebar-link.active { background:#00E676; color:#000; border-color:#00E676; }
+    .content-bg { background:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
+    .bar { background:#00E676; border:2px solid #000; transition:height .4s ease; }
+  </style>
+</head>
+<body class="min-h-screen bg-black">
+
+<div class="flex h-screen overflow-hidden">
+
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-72 bg-black flex flex-col border-r-4 border-[#00E676] flex-shrink-0 fixed inset-y-0 left-0 md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 z-30">
+    <div class="h-20 flex items-center px-6 border-b-4 border-[#00E676] bg-[#00E676] flex-shrink-0">
+      <span class="font-black text-3xl font-display uppercase tracking-tighter">DentiBot.</span>
+    </div>
+    <div class="px-3 pt-3 pb-1">
+      <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-3">Relatórios</span>
+    </div>
+    <nav class="flex-1 px-3 pb-4 overflow-y-auto space-y-1">
+      <a href="#geral" class="sidebar-link active">📊 Resumo Geral</a>
+      <a href="#consultas" class="sidebar-link">📅 Consultas</a>
+      <a href="#financeiro" class="sidebar-link">💰 Financeiro</a>
+      <a href="#pacientes" class="sidebar-link">👥 Pacientes</a>
+      <a href="#estoque" class="sidebar-link">📦 Estoque</a>
+    </nav>
+    <div class="p-4 border-t-4 border-gray-800">
+      <a href="coordenador.html" class="sidebar-link border-4 border-gray-700 font-black text-xs uppercase">← Voltar ao Painel</a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="h-20 bg-[#00E676] border-b-4 border-black flex items-center justify-between px-6 lg:px-10 flex-shrink-0" style="box-shadow:0 6px 0 0 #000;">
+      <div class="flex items-center gap-4">
+        <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden border-4 border-black bg-black text-white p-2 font-black">☰</button>
+        <h1 class="font-black text-xl lg:text-2xl uppercase font-display tracking-tight">Relatórios & Análises</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <select id="period-select" class="neo-input" style="width:auto;padding:.5rem .75rem;" onchange="refreshAll()">
+          <option value="7">Últimos 7 dias</option>
+          <option value="30" selected>Últimos 30 dias</option>
+          <option value="90">Últimos 90 dias</option>
+          <option value="365">Este ano</option>
+        </select>
+        <button onclick="window.print()" class="neo-btn neo-shadow-sm border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs hidden sm:flex items-center gap-2">🖨 Imprimir</button>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-6 lg:p-10 content-bg space-y-8">
+
+      <!-- Resumo Geral -->
+      <section id="geral">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Resumo Geral</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Visão consolidada do período</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-5 text-center">
+            <p class="text-5xl mb-2">📅</p>
+            <p class="font-black text-3xl font-display" id="stat-consultations">233</p>
+            <p class="font-black text-xs uppercase mt-1 text-green-900">Consultas</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5 text-center">
+            <p class="text-5xl mb-2">👤</p>
+            <p class="font-black text-3xl font-display" id="stat-new-patients">28</p>
+            <p class="font-black text-xs uppercase mt-1 text-gray-500">Novos Pacientes</p>
+          </div>
+          <div class="bg-[#FFE600] border-4 border-black neo-shadow p-5 text-center">
+            <p class="text-5xl mb-2">💰</p>
+            <p class="font-black text-2xl font-display" id="stat-revenue">R$ 63.155</p>
+            <p class="font-black text-xs uppercase mt-1 text-yellow-900">Receita Total</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5 text-center">
+            <p class="text-5xl mb-2">❌</p>
+            <p class="font-black text-3xl font-display text-red-600" id="stat-cancellations">14</p>
+            <p class="font-black text-xs uppercase mt-1 text-gray-500">Cancelamentos</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Consultas -->
+      <section id="consultas">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Consultas</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Volume por dia da semana</p>
+          </div>
+        </div>
+        <!-- Gráfico de barras neobrutalist -->
+        <div class="bg-white border-4 border-black neo-shadow p-6 mb-4">
+          <div class="flex items-end gap-3 h-40">
+            <div class="flex flex-col items-center flex-1 gap-1 h-full justify-end">
+              <div class="bar w-full rounded-none" style="height:45%"></div>
+              <span class="font-black text-xs uppercase">Seg</span>
+            </div>
+            <div class="flex flex-col items-center flex-1 gap-1 h-full justify-end">
+              <div class="bar w-full rounded-none" style="height:75%"></div>
+              <span class="font-black text-xs uppercase">Ter</span>
+            </div>
+            <div class="flex flex-col items-center flex-1 gap-1 h-full justify-end">
+              <div class="bar w-full rounded-none" style="height:90%"></div>
+              <span class="font-black text-xs uppercase">Qua</span>
+            </div>
+            <div class="flex flex-col items-center flex-1 gap-1 h-full justify-end">
+              <div class="bar w-full rounded-none" style="height:60%"></div>
+              <span class="font-black text-xs uppercase">Qui</span>
+            </div>
+            <div class="flex flex-col items-center flex-1 gap-1 h-full justify-end">
+              <div class="bar w-full rounded-none" style="height:80%"></div>
+              <span class="font-black text-xs uppercase">Sex</span>
+            </div>
+            <div class="flex flex-col items-center flex-1 gap-1 h-full justify-end">
+              <div class="bar w-full rounded-none bg-gray-300" style="height:30%"></div>
+              <span class="font-black text-xs uppercase">Sáb</span>
+            </div>
+          </div>
+          <p class="font-bold text-xs text-gray-400 uppercase text-center mt-3">Volume relativo de consultas por dia</p>
+        </div>
+        <!-- Tabela procedimentos -->
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">Procedimento</th>
+                <th class="p-4 font-black text-xs uppercase">Qtd.</th>
+                <th class="p-4 font-black text-xs uppercase">% do Total</th>
+                <th class="p-4 font-black text-xs uppercase w-1/3">Barra</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Limpeza / Profilaxia</td>
+                <td class="p-4 font-black text-sm">48</td>
+                <td class="p-4 font-bold text-sm">32%</td>
+                <td class="p-4"><div class="h-4 bg-[#00E676] border-2 border-black" style="width:32%"></div></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Restauração</td>
+                <td class="p-4 font-black text-sm">35</td>
+                <td class="p-4 font-bold text-sm">23%</td>
+                <td class="p-4"><div class="h-4 bg-[#00E676] border-2 border-black" style="width:23%"></div></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Extração</td>
+                <td class="p-4 font-black text-sm">22</td>
+                <td class="p-4 font-bold text-sm">15%</td>
+                <td class="p-4"><div class="h-4 bg-[#FFE600] border-2 border-black" style="width:15%"></div></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Clareamento</td>
+                <td class="p-4 font-black text-sm">18</td>
+                <td class="p-4 font-bold text-sm">12%</td>
+                <td class="p-4"><div class="h-4 bg-[#FFE600] border-2 border-black" style="width:12%"></div></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Outros</td>
+                <td class="p-4 font-black text-sm">27</td>
+                <td class="p-4 font-bold text-sm">18%</td>
+                <td class="p-4"><div class="h-4 bg-gray-300 border-2 border-black" style="width:18%"></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Financeiro -->
+      <section id="financeiro">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Desempenho Financeiro</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Receita, ticket e inadimplência</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-green-900">Ticket Médio</p>
+            <p class="font-black text-3xl font-display mt-2">R$ 285</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Taxa de Inadimplência</p>
+            <p class="font-black text-3xl font-display mt-2 text-red-600">4,2%</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Reembolso Convênios</p>
+            <p class="font-black text-3xl font-display mt-2 text-blue-600">R$ 5.520</p>
+          </div>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">Mês</th>
+                <th class="p-4 font-black text-xs uppercase">Consultas</th>
+                <th class="p-4 font-black text-xs uppercase">Receita Bruta</th>
+                <th class="p-4 font-black text-xs uppercase">Descontos</th>
+                <th class="p-4 font-black text-xs uppercase">Receita Líquida</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b-2 border-black hover:bg-gray-50"><td class="p-4 font-bold text-sm">Janeiro</td><td class="p-4 font-black text-sm">42</td><td class="p-4 font-bold text-sm">R$ 11.970,00</td><td class="p-4 font-bold text-sm text-red-500">−R$ 540,00</td><td class="p-4 font-black text-sm text-[#00E676]">R$ 11.430,00</td></tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50"><td class="p-4 font-bold text-sm">Fevereiro</td><td class="p-4 font-black text-sm">38</td><td class="p-4 font-bold text-sm">R$ 10.830,00</td><td class="p-4 font-bold text-sm text-red-500">−R$ 210,00</td><td class="p-4 font-black text-sm text-[#00E676]">R$ 10.620,00</td></tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50"><td class="p-4 font-bold text-sm">Março</td><td class="p-4 font-black text-sm">55</td><td class="p-4 font-bold text-sm">R$ 15.675,00</td><td class="p-4 font-bold text-sm text-red-500">−R$ 750,00</td><td class="p-4 font-black text-sm text-[#00E676]">R$ 14.925,00</td></tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50"><td class="p-4 font-bold text-sm">Abril</td><td class="p-4 font-black text-sm">51</td><td class="p-4 font-bold text-sm">R$ 14.535,00</td><td class="p-4 font-bold text-sm text-red-500">−R$ 420,00</td><td class="p-4 font-black text-sm text-[#00E676]">R$ 14.115,00</td></tr>
+              <tr class="hover:bg-gray-50"><td class="p-4 font-bold text-sm">Maio</td><td class="p-4 font-black text-sm">47</td><td class="p-4 font-bold text-sm">R$ 13.395,00</td><td class="p-4 font-bold text-sm text-red-500">−R$ 330,00</td><td class="p-4 font-black text-sm text-[#00E676]">R$ 13.065,00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Pacientes -->
+      <section id="pacientes">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Análise de Pacientes</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Faixa etária e retenção</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <p class="font-black text-sm uppercase tracking-widest mb-4 bg-black text-white px-3 py-1 inline-block">Faixa Etária</p>
+            <div class="space-y-3">
+              <div><div class="flex justify-between mb-1"><span class="font-bold text-sm">0–12 anos</span><span class="font-black text-sm">15%</span></div><div class="h-4 border-2 border-black bg-gray-100"><div class="h-full bg-[#00E676]" style="width:15%"></div></div></div>
+              <div><div class="flex justify-between mb-1"><span class="font-bold text-sm">13–25 anos</span><span class="font-black text-sm">22%</span></div><div class="h-4 border-2 border-black bg-gray-100"><div class="h-full bg-[#00E676]" style="width:22%"></div></div></div>
+              <div><div class="flex justify-between mb-1"><span class="font-bold text-sm">26–40 anos</span><span class="font-black text-sm">35%</span></div><div class="h-4 border-2 border-black bg-gray-100"><div class="h-full bg-[#00E676]" style="width:35%"></div></div></div>
+              <div><div class="flex justify-between mb-1"><span class="font-bold text-sm">41–60 anos</span><span class="font-black text-sm">20%</span></div><div class="h-4 border-2 border-black bg-gray-100"><div class="h-full bg-[#FFE600]" style="width:20%"></div></div></div>
+              <div><div class="flex justify-between mb-1"><span class="font-bold text-sm">60+ anos</span><span class="font-black text-sm">8%</span></div><div class="h-4 border-2 border-black bg-gray-100"><div class="h-full bg-[#FFE600]" style="width:8%"></div></div></div>
+            </div>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-6">
+            <p class="font-black text-sm uppercase tracking-widest mb-4 bg-black text-white px-3 py-1 inline-block">Retenção</p>
+            <div class="space-y-3">
+              <div class="flex justify-between items-center border-b-2 border-black pb-2">
+                <span class="font-bold text-sm uppercase">Taxa de retorno</span>
+                <span class="font-black text-sm text-[#00E676]">68%</span>
+              </div>
+              <div class="flex justify-between items-center border-b-2 border-black pb-2">
+                <span class="font-bold text-sm uppercase">Consultas/paciente/ano</span>
+                <span class="font-black text-sm">3,2</span>
+              </div>
+              <div class="flex justify-between items-center border-b-2 border-black pb-2">
+                <span class="font-bold text-sm uppercase">Novos este mês</span>
+                <span class="font-black text-sm" id="ret-new">28</span>
+              </div>
+              <div class="flex justify-between items-center border-b-2 border-black pb-2">
+                <span class="font-bold text-sm uppercase">Total ativos</span>
+                <span class="font-black text-sm" id="ret-total">—</span>
+              </div>
+              <div class="flex justify-between items-center">
+                <span class="font-bold text-sm uppercase">NPS médio</span>
+                <span class="font-black text-sm text-[#00E676]">8,7 / 10</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Estoque -->
+      <section id="estoque">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Relatório de Estoque</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Consumo e previsão de esgotamento</p>
+          </div>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">Item</th>
+                <th class="p-4 font-black text-xs uppercase">Consumo Mensal</th>
+                <th class="p-4 font-black text-xs uppercase">Estoque Atual</th>
+                <th class="p-4 font-black text-xs uppercase">Previsão Esgotamento</th>
+                <th class="p-4 font-black text-xs uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Luvas de Látex (caixa)</td>
+                <td class="p-4 font-bold text-sm">8 cx</td>
+                <td class="p-4 font-bold text-sm">12 cx</td>
+                <td class="p-4 font-bold text-sm">~45 dias</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Normal</span></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Máscaras Descartáveis</td>
+                <td class="p-4 font-bold text-sm">150 un</td>
+                <td class="p-4 font-bold text-sm">80 un</td>
+                <td class="p-4 font-bold text-sm">~16 dias</td>
+                <td class="p-4"><span class="bg-[#FFE600] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Atenção</span></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Anestésico Lidocaína</td>
+                <td class="p-4 font-bold text-sm">30 amp</td>
+                <td class="p-4 font-bold text-sm">15 amp</td>
+                <td class="p-4 font-bold text-sm">~15 dias</td>
+                <td class="p-4"><span class="bg-[#FF3D00] border-2 border-black px-2 py-0.5 font-black text-xs uppercase text-white">Crítico</span></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Fio de Sutura</td>
+                <td class="p-4 font-bold text-sm">5 pct</td>
+                <td class="p-4 font-bold text-sm">18 pct</td>
+                <td class="p-4 font-bold text-sm">~108 dias</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Normal</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+  const API = window.API_BASE || 'http://localhost:5000/api';
+  const token = localStorage.getItem('dentibot_token') || '';
+  const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+
+  const DEMO = { consultations: 233, newPatients: 28, revenue: 'R$ 63.155', cancellations: 14 };
+
+  function refreshAll() {
+    document.getElementById('stat-consultations').textContent = DEMO.consultations;
+    document.getElementById('stat-new-patients').textContent = DEMO.newPatients;
+    document.getElementById('stat-revenue').textContent = DEMO.revenue;
+    document.getElementById('stat-cancellations').textContent = DEMO.cancellations;
+    document.getElementById('ret-new').textContent = DEMO.newPatients;
+    fetch(`${API}/patients`, { headers: headers() })
+      .then(r => r.json())
+      .then(d => document.getElementById('ret-total').textContent = d.length || '—')
+      .catch(() => document.getElementById('ret-total').textContent = '—');
+  }
+
+  const sidebar = document.getElementById('sidebar');
+  document.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', () => { if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full'); });
+  });
+
+  const navLinks = document.querySelectorAll('.sidebar-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(l => l.classList.remove('active'));
+        document.querySelector(`.sidebar-link[href="#${id}"]`)?.classList.add('active');
+      }
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+
+  refreshAll();
+</script>
+</body>
+</html>

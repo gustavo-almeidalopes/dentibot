@@ -3,338 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DentiBot - Painel da Recepcionista</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>DentiBot — Painel da Recepção</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --background: #f8fafc;
-            --foreground: #475569;
-            --card: #ffffff;
-            --card-foreground: #475569;
-            --primary: #059669;
-            --primary-foreground: #ffffff;
-            --secondary: #f1f5f9;
-            --secondary-foreground: #475569;
-            --muted: #f0fdf4;
-            --muted-foreground: #374151;
-            --accent: #10b981;
-            --border: #e2e8f0;
-            --input: #e2e8f0;
-            --ring: #059669;
-        }
-
-        body {
-            background-color: var(--background);
-            color: var(--foreground);
-            font-family: sans-serif;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-        
-        .btn {
-            display: inline-flex; align-items: center; justify-content: center;
-            padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;
-            transition: all 0.2s; border: 1px solid transparent;
-        }
-        .btn-primary {
-            background-color: var(--primary); color: var(--primary-foreground);
-            border-color: var(--primary);
-        }
-        .btn-primary:hover { background-color: #047857; border-color: #047857; }
-        .btn-secondary {
-            background-color: var(--secondary); color: var(--secondary-foreground);
-            border-color: var(--border);
-        }
-        .btn-secondary:hover { background-color: #e2e8f0; }
-        
-        .form-input, .form-textarea, .form-select {
-            width: 100%; padding: 0.75rem; border-radius: 0.5rem;
-            border: 1px solid var(--border); background-color: var(--background);
-            transition: all 0.2s;
-        }
-        .form-input:focus, .form-textarea:focus, .form-select:focus {
-            outline: none; border-color: var(--ring);
-            box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2);
-        }
-
-        .sidebar-link.active {
-            background-color: var(--muted); color: var(--primary); font-weight: 600;
-        }
-        .sidebar-link.active i { color: var(--primary); }
-
-        .info-box {
-            background-color: var(--muted); border-left: 4px solid var(--accent);
-            padding: 0.75rem 1rem; margin-top: 1rem; border-radius: 0.25rem;
-            color: var(--muted-foreground);
-        }
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+        body { font-family:'Inter',sans-serif; }
+        h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+        .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+        .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+        .neo-btn { transition:all .1s ease; }
+        .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+        .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+        .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+        .neo-input:focus { background:#FFE600; }
+        .neo-label { font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; background:#000; color:#fff; padding:.12rem .5rem; display:inline-block; margin-bottom:.35rem; }
+        .sidebar-link { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; font-weight:900; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; border:4px solid transparent; color:#9ca3af; transition:all .1s; }
+        .sidebar-link:hover { background:#1f2937; color:#fff; border-color:#FFE600; }
+        .sidebar-link.active { background:#FFE600; color:#000; border-color:#FFE600; }
+        .content-bg { background:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-black">
 
-    <div class="flex h-screen">
-        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-4 border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
-            <div class="flex items-center space-x-2 pb-4 border-b">
-                <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-primary">
-                    <span class="text-lg font-bold text-primary-foreground">D</span>
-                </div>
-                <span class="text-xl font-bold">DentiBot</span>
+<div class="flex h-screen overflow-hidden">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="w-72 bg-black flex flex-col border-r-4 border-[#FFE600] flex-shrink-0 fixed inset-y-0 left-0 md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 z-30">
+        <div class="h-20 flex items-center px-6 border-b-4 border-[#FFE600] bg-[#FFE600] flex-shrink-0">
+            <span class="font-black text-3xl font-display uppercase tracking-tighter">DentiBot.</span>
+        </div>
+        <div class="px-3 pt-3 pb-1">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-3">Recepção</span>
+        </div>
+        <nav class="flex-1 px-3 pb-4 overflow-y-auto space-y-1">
+            <a href="#dashboard" class="sidebar-link active">📊 Dashboard</a>
+            <a href="#agendamento" class="sidebar-link">📅 Agendamento</a>
+            <a href="#confirmacao" class="sidebar-link">✉️ Confirmações</a>
+            <a href="#reagendamento" class="sidebar-link">🔄 Reagendamento</a>
+            <a href="#observacoes" class="sidebar-link">📝 Observações</a>
+            <a href="#convenios" class="sidebar-link">🛡️ Convênios</a>
+        </nav>
+        <div class="p-4 border-t-4 border-gray-800 flex items-center gap-3">
+            <div class="w-11 h-11 bg-[#FFE600] border-4 border-black neo-shadow-sm flex items-center justify-center font-black text-black text-sm flex-shrink-0">AP</div>
+            <div>
+                <p class="text-white font-black text-sm uppercase truncate">Ana Paula</p>
+                <p class="text-gray-500 text-xs font-bold uppercase">Recepcionista</p>
             </div>
-            <nav class="mt-6">
-                <a href="#dashboard" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                    <i data-lucide="layout-dashboard"></i><span>Dashboard</span>
-                </a>
-                <a href="#agendamento" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                    <i data-lucide="calendar-plus"></i><span>Agendamento</span>
-                </a>
-                <a href="#confirmacao" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                    <i data-lucide="mail-check"></i><span>Confirmações</span>
-                </a>
-                <a href="#reagendamento" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                    <i data-lucide="calendar-clock"></i><span>Reagendamento</span>
-                </a>
-                <a href="#observacoes" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                    <i data-lucide="notebook-pen"></i><span>Observações</span>
-                </a>
-                <a href="#convenios" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                    <i data-lucide="shield-plus"></i><span>Convênios</span>
-                </a>
-            </nav>
-        </aside>
+        </div>
+    </aside>
 
-        <div class="flex-1 flex flex-col overflow-y-auto">
-            <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-20">
-                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 items-center justify-between">
-                        <button id="menu-open-btn" class="md:hidden text-gray-600"><i data-lucide="menu" class="h-6 w-6"></i></button>
-                        <h1 class="text-lg font-semibold text-gray-800">Painel da Recepção</h1>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm hidden sm:block">Ana Paula</span>
-                            <i data-lucide="user-circle-2" class="h-8 w-8 text-gray-500"></i>
-                        </div>
+    <!-- Main -->
+    <main class="flex-1 flex flex-col overflow-hidden">
+        <header class="h-20 bg-black border-b-4 border-[#FFE600] flex items-center justify-between px-6 lg:px-10 flex-shrink-0" style="box-shadow:0 6px 0 0 #FFE600;">
+            <div class="flex items-center gap-4">
+                <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden border-4 border-[#FFE600] bg-[#FFE600] text-black p-2 font-black">☰</button>
+                <h1 class="font-black text-xl lg:text-2xl uppercase font-display tracking-tight text-[#FFE600]">Painel da Recepção</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="notificacoes.html" class="neo-btn neo-shadow-sm border-4 border-[#FFE600] text-[#FFE600] px-3 py-2 font-black uppercase text-xs hidden sm:flex items-center gap-2">🔔 <span class="bg-red-500 text-white px-1.5 border-2 border-black font-black text-xs">3</span></a>
+                <a href="selectperfil.html" class="neo-btn border-4 border-[#FFE600] bg-[#FFE600] text-black px-4 py-2 font-black uppercase text-xs neo-shadow-sm">← Sair</a>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 content-bg space-y-8">
+
+            <!-- Dashboard KPIs -->
+            <section id="dashboard">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-6">Visão Geral de Hoje</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div class="bg-white border-4 border-black neo-shadow p-5 relative">
+                        <div class="absolute -top-3 -left-3 bg-[#FFE600] border-4 border-black w-10 h-10 flex items-center justify-center font-black text-xl">📅</div>
+                        <p class="text-xs font-black uppercase text-gray-400 mb-2 mt-2">Consultas Hoje</p>
+                        <p class="font-black text-5xl tracking-tighter">12</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase mt-1">Agendadas</p>
+                    </div>
+                    <div class="bg-white border-4 border-black neo-shadow p-5 relative">
+                        <div class="absolute -top-3 -left-3 bg-[#FF3D00] border-4 border-black w-10 h-10 flex items-center justify-center font-black text-xl">⚠</div>
+                        <p class="text-xs font-black uppercase text-gray-400 mb-2 mt-2">Confirmações</p>
+                        <p class="font-black text-5xl tracking-tighter text-[#FF3D00]">3</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase mt-1">Pendentes</p>
+                    </div>
+                    <div class="bg-white border-4 border-black neo-shadow p-5 relative">
+                        <div class="absolute -top-3 -left-3 bg-[#00E676] border-4 border-black w-10 h-10 flex items-center justify-center font-black text-xl">👤</div>
+                        <p class="text-xs font-black uppercase text-gray-400 mb-2 mt-2">Novos Pacientes</p>
+                        <p class="font-black text-5xl tracking-tighter text-[#00E676]">2</p>
+                        <p class="text-xs font-bold text-gray-400 uppercase mt-1">Hoje</p>
                     </div>
                 </div>
-            </header>
+            </section>
 
-            <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
-                
-                <section id="dashboard">
-                    <h2 class="text-2xl font-bold mb-4">Visão Geral de Hoje</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <div class="bg-card p-5 rounded-xl shadow flex items-center space-x-4">
-                            <div class="bg-blue-100 p-3 rounded-full"><i data-lucide="calendar-days" class="h-6 w-6 text-blue-600"></i></div>
+            <!-- Agendamento -->
+            <section id="agendamento">
+                <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+                    <h2 class="font-black text-3xl font-display uppercase tracking-tight">Agendamento Inteligente</h2>
+                    <p class="font-bold text-gray-500 uppercase text-xs bg-[#FFE600] border-2 border-black px-2 py-1">Novo agendamento</p>
+                </div>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Consulta agendada!');return false;">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                                <p class="text-3xl font-bold">12</p>
-                                <p class="text-muted-foreground">Consultas para Hoje</p>
-                            </div>
-                        </div>
-                        <div class="bg-card p-5 rounded-xl shadow flex items-center space-x-4">
-                            <div class="bg-orange-100 p-3 rounded-full"><i data-lucide="mail-warning" class="h-6 w-6 text-orange-600"></i></div>
-                            <div>
-                                <p class="text-3xl font-bold">3</p>
-                                <p class="text-muted-foreground">Confirmações Pendentes</p>
-                            </div>
-                        </div>
-                        <div class="bg-card p-5 rounded-xl shadow flex items-center space-x-4">
-                             <div class="bg-green-100 p-3 rounded-full"><i data-lucide="user-plus" class="h-6 w-6 text-green-600"></i></div>
-                            <div>
-                                <p class="text-3xl font-bold">2</p>
-                                <p class="text-muted-foreground">Novos Pacientes</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <section id="agendamento" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Agendamento Inteligente</h2>
-                    <p class="text-muted-foreground mb-6">Insira novas consultas no calendário digital de forma rápida e eficiente.</p>
-                    <form>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
-                                <label for="pacienteNome" class="font-medium">Nome do Paciente:</label>
-                                <input type="text" id="pacienteNome" name="pacienteNome" class="form-input mt-2" placeholder="Nome Completo" required>
+                                <span class="neo-label">Paciente *</span>
+                                <input type="text" class="neo-input" placeholder="NOME COMPLETO" required>
                             </div>
                             <div>
-                                <label for="dentistaResponsavel" class="font-medium">Dentista Responsável:</label>
-                                <select id="dentistaResponsavel" name="dentistaResponsavel" class="form-select mt-2" required>
-                                    <option value="">-- Selecione o Dentista --</option>
-                                    <option value="drSilva">Dr. João Silva</option>
-                                    <option value="draSouza">Dra. Maria Souza</option>
+                                <span class="neo-label">Dentista *</span>
+                                <select class="neo-input bg-white cursor-pointer" required>
+                                    <option value="">— SELECIONAR —</option>
+                                    <option>DR. JOÃO SILVA</option>
+                                    <option>DRA. MARIA SOUZA</option>
+                                    <option>DR. PEDRO ALVES</option>
                                 </select>
                             </div>
                             <div>
-                                <label for="dataConsulta" class="font-medium">Data da Consulta:</label>
-                                <input type="date" id="dataConsulta" name="dataConsulta" class="form-input mt-2" required>
+                                <span class="neo-label">Data *</span>
+                                <input type="date" class="neo-input" required>
                             </div>
                             <div>
-                                <label for="horaConsulta" class="font-medium">Hora da Consulta:</label>
-                                <input type="time" id="horaConsulta" name="horaConsulta" class="form-input mt-2" required>
-                            </div>
-                        </div>
-                        <div class="mt-6">
-                            <label for="tipoProcedimento" class="font-medium">Tipo de Procedimento:</label>
-                            <select id="tipoProcedimento" name="tipoProcedimento" class="form-select mt-2" required>
-                                <option value="">-- Selecione o Procedimento --</option>
-                                <option value="avaliacao">Avaliação</option>
-                                <option value="limpeza">Profilaxia/Limpeza</option>
-                                <option value="emergencia">Emergência</option>
-                            </select>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-6">
-                            <i data-lucide="calendar-plus" class="mr-2 h-4 w-4"></i>Agendar Consulta
-                        </button>
-                        <div class="info-box"><p>O sistema ajustará a agenda do dentista e iniciará o fluxo de confirmação automaticamente.</p></div>
-                    </form>
-                </section>
-
-                <section id="confirmacao" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Confirmação e Gerenciamento de Presença</h2>
-                    <p class="text-muted-foreground mb-6">Monitore o status das confirmações e atualize manualmente se necessário.</p>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50">
-                                <tr>
-                                    <th class="p-3 font-semibold text-sm">Paciente</th>
-                                    <th class="p-3 font-semibold text-sm">Data/Hora</th>
-                                    <th class="p-3 font-semibold text-sm">Status</th>
-                                    <th class="p-3 font-semibold text-sm">Ação</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="border-t"><td class="p-3">Carlos Santos</td><td class="p-3">25/11/2025 10:00</td><td class="p-3"><span class="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">Aguardando</span></td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Detalhes</button></td></tr>
-                                <tr class="border-t"><td class="p-3">Fernanda Lima</td><td class="p-3">26/11/2025 14:30</td><td class="p-3"><span class="bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded-full">Confirmado</span></td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Detalhes</button></td></tr>
-                                <tr class="border-t"><td class="p-3">Roberto Costa</td><td class="p-3">27/11/2025 09:00</td><td class="p-3"><span class="bg-orange-100 text-orange-700 text-xs font-medium px-2 py-1 rounded-full">Aguardando</span></td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Detalhes</button></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                
-                <section id="reagendamento" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Reagendamento Simplificado</h2>
-                    <p class="text-muted-foreground mb-6">Ajuste consultas no calendário e notifique os envolvidos com um clique.</p>
-                    <form>
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div class="lg:col-span-3">
-                                <label for="consultaReagendar" class="font-medium">Consulta a Reagendar:</label>
-                                <select id="consultaReagendar" name="consultaReagendar" class="form-select mt-2" required>
-                                    <option value="">-- Selecione uma consulta --</option>
-                                    <option value="carlos">Carlos Santos - 25/11/2025 10:00</option>
-                                    <option value="ana">Ana Paula Silva - 28/11/2025 11:30</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="novaDataReagendamento" class="font-medium">Nova Data:</label>
-                                <input type="date" id="novaDataReagendamento" name="novaDataReagendamento" class="form-input mt-2" required>
-                            </div>
-                            <div>
-                                <label for="novaHoraReagendamento" class="font-medium">Nova Hora:</label>
-                                <input type="time" id="novaHoraReagendamento" name="novaHoraReagendamento" class="form-input mt-2" required>
-                            </div>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-6">
-                             <i data-lucide="send" class="mr-2 h-4 w-4"></i>Reagendar e Notificar
-                        </button>
-                        <div class="info-box"><p>Notificações automáticas serão enviadas ao paciente e ao dentista.</p></div>
-                    </form>
-                </section>
-                
-                <section id="observacoes" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Registro de Observações</h2>
-                     <p class="text-muted-foreground mb-6">Adicione informações importantes para um atendimento personalizado.</p>
-                    <form>
-                        <div>
-                             <label for="pacienteObservacao" class="font-medium">Selecione o Paciente:</label>
-                            <select id="pacienteObservacao" name="pacienteObservacao" class="form-select mt-2" required>
-                                <option value="">-- Selecione um paciente --</option>
-                                <option value="ana">Ana Paula Silva</option>
-                                <option value="carlos">Carlos Eduardo Santos</option>
-                            </select>
-                        </div>
-                        <div class="mt-6">
-                            <label for="observacoesEspeciais" class="font-medium">Observações Especiais:</label>
-                            <textarea id="observacoesEspeciais" name="observacoesEspeciais" rows="4" class="form-textarea mt-2" placeholder="Ex: Paciente cadeirante, necessita de rampa. Alergia a Penicilina."></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-primary mt-6">Salvar Observação</button>
-                    </form>
-                </section>
-                
-                <section id="convenios" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Integração com Convênios (TISS/TUSS)</h2>
-                     <p class="text-muted-foreground mb-6">Solicite e verifique autorizações de procedimentos de forma integrada.</p>
-                    <form>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                             <div>
-                                <label for="pacienteConvenio" class="font-medium">Selecione o Paciente:</label>
-                                <select id="pacienteConvenio" name="pacienteConvenio" class="form-select mt-2" required>
-                                    <option value="">-- Selecione um paciente --</option>
-                                    <option value="ana">Ana Paula Silva</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label for="numeroConvenio" class="font-medium">Nº da Carteirinha:</label>
-                                <input type="text" id="numeroConvenio" name="numeroConvenio" class="form-input mt-2" placeholder="Ex: 1234567890">
+                                <span class="neo-label">Hora *</span>
+                                <input type="time" class="neo-input" required>
                             </div>
                             <div class="md:col-span-2">
-                                <label for="procedimentoConvenio" class="font-medium">Procedimento para Autorização:</label>
-                                <input type="text" id="procedimentoConvenio" name="procedimentoConvenio" class="form-input mt-2" placeholder="Ex: Restauração Amálgama Dente 36">
+                                <span class="neo-label">Procedimento</span>
+                                <select class="neo-input bg-white cursor-pointer">
+                                    <option>— SELECIONAR —</option>
+                                    <option>AVALIAÇÃO</option>
+                                    <option>PROFILAXIA / LIMPEZA</option>
+                                    <option>RESTAURAÇÃO</option>
+                                    <option>EXTRAÇÃO</option>
+                                    <option>EMERGÊNCIA</option>
+                                    <option>CLAREAMENTO</option>
+                                </select>
                             </div>
                         </div>
-                        <div class="mt-6 space-y-2 sm:space-y-0 sm:space-x-4">
-                            <button type="submit" class="btn btn-primary w-full sm:w-auto">Solicitar Autorização</button>
-                            <button type="button" class="btn btn-secondary w-full sm:w-auto">Checar Status</button>
+                        <div class="mt-5 p-4 bg-[#f4f4f0] border-4 border-black">
+                            <p class="font-black text-xs uppercase text-gray-600">ℹ O sistema ajustará a agenda e iniciará o fluxo de confirmação automaticamente.</p>
                         </div>
-                         <div class="info-box"><p>O sistema pode retornar a autorização ou glosa e enviar códigos TUSS para auditoria.</p></div>
+                        <button type="submit" class="neo-btn neo-shadow bg-[#FFE600] text-black border-4 border-black px-8 py-3 font-black uppercase mt-5">✓ AGENDAR CONSULTA</button>
                     </form>
-                </section>
+                </div>
+            </section>
 
-            </main>
+            <!-- Confirmações -->
+            <section id="confirmacao">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Confirmação de Presença</h2>
+                <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+                    <div class="bg-black text-[#FFE600] px-6 py-3 font-black uppercase text-sm tracking-wider flex items-center justify-between">
+                        <span>Consultas Pendentes de Confirmação</span>
+                        <button onclick="toast('Lembretes enviados!')" class="neo-btn border-2 border-[#FFE600] text-[#FFE600] px-3 py-1 font-black uppercase text-xs hover:bg-[#FFE600] hover:text-black transition-colors">→ ENVIAR LEMBRETES</button>
+                    </div>
+                    <table class="w-full min-w-max">
+                        <thead><tr class="bg-gray-100 border-b-4 border-black text-xs uppercase font-black">
+                            <th class="p-4 text-left border-r-2 border-gray-200">Paciente</th>
+                            <th class="p-4 text-left border-r-2 border-gray-200">Data / Hora</th>
+                            <th class="p-4 text-left border-r-2 border-gray-200">Dentista</th>
+                            <th class="p-4 text-left border-r-2 border-gray-200">Status</th>
+                            <th class="p-4 text-left">Ações</th>
+                        </tr></thead>
+                        <tbody class="font-bold text-sm">
+                            <tr class="border-b-2 border-gray-200 hover:bg-[#FFE600] transition-colors cursor-pointer">
+                                <td class="p-4 border-r-2 border-gray-200">CARLOS SANTOS</td>
+                                <td class="p-4 border-r-2 border-gray-200">25/05 · 10:00</td>
+                                <td class="p-4 border-r-2 border-gray-200">DR. JOÃO SILVA</td>
+                                <td class="p-4 border-r-2 border-gray-200"><span class="bg-[#FFE600] border-2 border-black px-2 py-0.5 text-xs font-black">AGUARDANDO</span></td>
+                                <td class="p-4 flex gap-2">
+                                    <button onclick="toast('Confirmado!')" class="neo-btn neo-shadow-sm bg-[#00E676] text-black border-2 border-black px-2 py-1 text-xs font-black uppercase">✓</button>
+                                    <button onclick="toast('Cancelado!','error')" class="neo-btn neo-shadow-sm bg-[#FF3D00] text-white border-2 border-black px-2 py-1 text-xs font-black uppercase">✕</button>
+                                </td>
+                            </tr>
+                            <tr class="border-b-2 border-gray-200 hover:bg-[#FFE600] transition-colors cursor-pointer bg-gray-50">
+                                <td class="p-4 border-r-2 border-gray-200">FERNANDA LIMA</td>
+                                <td class="p-4 border-r-2 border-gray-200">26/05 · 14:30</td>
+                                <td class="p-4 border-r-2 border-gray-200">DRA. MARIA SOUZA</td>
+                                <td class="p-4 border-r-2 border-gray-200"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 text-xs font-black">CONFIRMADO</span></td>
+                                <td class="p-4"><span class="text-xs font-black text-gray-400">— CONFIRMADA —</span></td>
+                            </tr>
+                            <tr class="hover:bg-[#FFE600] transition-colors cursor-pointer">
+                                <td class="p-4 border-r-2 border-gray-200">ROBERTO COSTA</td>
+                                <td class="p-4 border-r-2 border-gray-200">27/05 · 09:00</td>
+                                <td class="p-4 border-r-2 border-gray-200">DR. PEDRO ALVES</td>
+                                <td class="p-4 border-r-2 border-gray-200"><span class="bg-[#FFE600] border-2 border-black px-2 py-0.5 text-xs font-black">AGUARDANDO</span></td>
+                                <td class="p-4 flex gap-2">
+                                    <button onclick="toast('Confirmado!')" class="neo-btn neo-shadow-sm bg-[#00E676] text-black border-2 border-black px-2 py-1 text-xs font-black uppercase">✓</button>
+                                    <button onclick="toast('Cancelado!','error')" class="neo-btn neo-shadow-sm bg-[#FF3D00] text-white border-2 border-black px-2 py-1 text-xs font-black uppercase">✕</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
 
-            <footer class="text-center p-4 text-sm text-gray-500 border-t">
-                <p>&copy; 2025 DentiBot - Projeto de Engenharia de Software da UNICID.</p>
-            </footer>
+            <!-- Reagendamento -->
+            <section id="reagendamento">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Reagendamento</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Consulta reagendada e paciente notificado!');return false;" class="space-y-4">
+                        <div>
+                            <span class="neo-label">Consulta a Reagendar *</span>
+                            <select class="neo-input bg-white cursor-pointer" required>
+                                <option>— SELECIONAR CONSULTA —</option>
+                                <option>CARLOS SANTOS — 25/05 10:00</option>
+                                <option>ANA PAULA SILVA — 28/05 11:30</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <span class="neo-label">Nova Data *</span>
+                                <input type="date" class="neo-input" required>
+                            </div>
+                            <div>
+                                <span class="neo-label">Nova Hora *</span>
+                                <input type="time" class="neo-input" required>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="neo-label">Motivo do Reagendamento</span>
+                            <input type="text" class="neo-input" placeholder="EX: SOLICITAÇÃO DO PACIENTE, EMERGÊNCIA...">
+                        </div>
+                        <div class="p-4 bg-[#f4f4f0] border-4 border-black">
+                            <p class="font-black text-xs uppercase text-gray-600">ℹ Notificações automáticas serão enviadas ao paciente e ao dentista.</p>
+                        </div>
+                        <button type="submit" class="neo-btn neo-shadow bg-[#FFE600] text-black border-4 border-black px-8 py-3 font-black uppercase">→ REAGENDAR E NOTIFICAR</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Observações -->
+            <section id="observacoes">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Registro de Observações</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Observação salva!');return false;" class="space-y-4">
+                        <div>
+                            <span class="neo-label">Paciente *</span>
+                            <select class="neo-input bg-white cursor-pointer" required>
+                                <option>— SELECIONAR —</option>
+                                <option>ANA PAULA SILVA</option>
+                                <option>CARLOS EDUARDO SANTOS</option>
+                                <option>FERNANDA LIMA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <span class="neo-label">Observações Especiais</span>
+                            <textarea rows="4" class="neo-input resize-none" placeholder="EX: PACIENTE CADEIRANTE — NECESSITA RAMPA. ALERGIA A PENICILINA. ATENDIMENTO PRIORITÁRIO."></textarea>
+                        </div>
+                        <button type="submit" class="neo-btn neo-shadow bg-[#FFE600] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm">✓ SALVAR OBSERVAÇÃO</button>
+                    </form>
+                </div>
+            </section>
+
+            <!-- Convênios -->
+            <section id="convenios">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Convênios — TISS/TUSS</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Autorização solicitada!');return false;" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <span class="neo-label">Paciente *</span>
+                                <select class="neo-input bg-white cursor-pointer" required>
+                                    <option>— SELECIONAR —</option>
+                                    <option>ANA PAULA SILVA</option>
+                                    <option>CARLOS SANTOS</option>
+                                </select>
+                            </div>
+                            <div>
+                                <span class="neo-label">Nº da Carteirinha</span>
+                                <input type="text" class="neo-input" placeholder="1234567890">
+                            </div>
+                            <div>
+                                <span class="neo-label">Convênio</span>
+                                <select class="neo-input bg-white cursor-pointer">
+                                    <option>UNIMED</option><option>AMIL</option><option>BRADESCO SAÚDE</option><option>SULAMÉRICA</option>
+                                </select>
+                            </div>
+                            <div>
+                                <span class="neo-label">Código TUSS</span>
+                                <input type="text" class="neo-input" placeholder="EX: 81000112">
+                            </div>
+                            <div class="md:col-span-2">
+                                <span class="neo-label">Procedimento para Autorização *</span>
+                                <input type="text" class="neo-input" placeholder="EX: RESTAURAÇÃO AMÁLGAMA DENTE 36" required>
+                            </div>
+                        </div>
+                        <div class="p-4 bg-[#f4f4f0] border-4 border-black">
+                            <p class="font-black text-xs uppercase text-gray-600">ℹ O sistema pode retornar autorização ou glosa e enviar códigos TUSS para auditoria.</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="submit" class="neo-btn neo-shadow bg-[#FFE600] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm">→ SOLICITAR AUTORIZAÇÃO</button>
+                            <button type="button" onclick="toast('Consultando status...')" class="neo-btn neo-shadow-sm bg-white text-black border-4 border-black px-6 py-3 font-black uppercase text-sm">⟳ CHECAR STATUS</button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
         </div>
-    </div>
-    
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+    </main>
+</div>
 
-    <script>
-        lucide.createIcons();
-
-        document.addEventListener('DOMContentLoaded', () => {
-            // Lógica da Sidebar
-            const sidebar = document.getElementById('sidebar');
-            const menuOpenBtn = document.getElementById('menu-open-btn');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.remove('hidden'); };
-            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.add('hidden'); };
-            menuOpenBtn.addEventListener('click', openSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-            document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth < 768) { closeSidebar(); } }); });
-
-            // Lógica da Sidebar Ativa com Scroll
-            const sections = document.querySelectorAll('main section');
-            const navLinks = document.querySelectorAll('.sidebar-link');
-            const observerOptions = { root: null, rootMargin: '0px', threshold: 0.3 };
-            const sectionObserver = new IntersectionObserver((entries) => {
-                let activeId = '';
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        if (entry.intersectionRatio > 0) {
-                           activeId = entry.target.getAttribute('id');
-                        }
-                    }
-                });
-                 navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === `#${activeId}`) {
-                        link.classList.add('active');
-                    }
-                });
-            }, observerOptions);
-            sections.forEach(section => { sectionObserver.observe(section); });
-        });
-    </script>
+<div id="toasts" class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none"></div>
+<script>
+function toast(msg, type='success') {
+    const el = document.createElement('div');
+    el.className = `pointer-events-auto border-4 border-black px-5 py-3 font-black uppercase text-sm flex items-center gap-3 ${type==='success'?'bg-[#00E676] text-black':'bg-[#FF3D00] text-white'}`;
+    el.style.boxShadow = '4px 4px 0 0 #000';
+    el.innerHTML = `<span>${type==='success'?'✓':'✕'}</span><span>${msg}</span>`;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(()=>el.remove(), 3500);
+}
+</script>
 </body>
 </html>

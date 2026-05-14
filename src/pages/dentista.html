@@ -3,218 +3,344 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DentiBot - Painel do Dentista</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>DentiBot — Painel do Dentista</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root {
-            --background: #f8fafc; 
-            --foreground: #475569;
-            --card: #ffffff;
-            --card-foreground: #475569;
-            --primary: #059669;
-            --primary-foreground: #ffffff;
-            --secondary: #f1f5f9;
-            --secondary-foreground: #475569;
-            --muted: #f0fdf4;
-            --muted-foreground: #374151;
-            --accent: #10b981;
-            --border: #e2e8f0;
-            --input: #e2e8f0;
-            --ring: #059669;
-        }
-        body { background-color: var(--background); color: var(--foreground); font-family: sans-serif; }
-        html { scroll-behavior: smooth; }
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; border: 1px solid transparent; }
-        .btn-primary { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
-        .btn-primary:hover { background-color: #047857; border-color: #047857; }
-        .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); }
-        .btn-secondary:hover { background-color: #e2e8f0; }
-        .form-input, .form-textarea, .form-select { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background-color: var(--background); transition: all 0.2s; }
-        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
-        .sidebar-link.active { background-color: var(--muted); color: var(--primary); font-weight: 600; }
-        .sidebar-link.active i { color: var(--primary); }
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+        body { font-family:'Inter',sans-serif; }
+        h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+        .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+        .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+        .neo-btn { transition:all .1s ease; }
+        .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+        .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+        .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+        .neo-input:focus { background:#FFE600; }
+        .neo-label { font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; background:#000; color:#fff; padding:.12rem .5rem; display:inline-block; margin-bottom:.35rem; }
+        .sidebar-link { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; font-weight:900; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; border:4px solid transparent; color:#9ca3af; transition:all .1s; }
+        .sidebar-link:hover { background:#1f2937; color:#fff; border-color:#00E676; }
+        .sidebar-link.active { background:#00E676; color:#000; border-color:#00E676; }
+        .content-bg { background:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
     </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-black">
 
-<div class="flex h-screen">
+<div class="flex h-screen overflow-hidden">
+
     <!-- Sidebar -->
-    <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-4 border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
-        <div class="flex items-center space-x-2 pb-4 border-b">
-            <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-primary">
-                <span class="text-lg font-bold text-primary-foreground">D</span>
-            </div>
-            <span class="text-xl font-bold">DentiBot</span>
+    <aside id="sidebar" class="w-72 bg-black flex flex-col border-r-4 border-[#00E676] flex-shrink-0 fixed inset-y-0 left-0 md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 z-30">
+        <div class="h-20 flex items-center px-6 border-b-4 border-[#00E676] bg-[#00E676] flex-shrink-0">
+            <span class="font-black text-3xl font-display uppercase tracking-tighter">DentiBot.</span>
         </div>
-        <nav class="mt-6">
-            <a href="#agenda" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100">
-                <i data-lucide="calendar"></i><span>Agenda de Consultas</span>
-            </a>
-            <a href="#prescricoes" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="file-text"></i><span>Prescrições Digitais</span>
-            </a>
-            <a href="#historico" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="archive"></i><span>Histórico Clínico</span>
-            </a>
-            <a href="#comunicacao" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="send"></i><span>Comunicação</span>
-            </a>
-            <a href="#cadastro" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="user-plus"></i><span>Cadastro de Pacientes</span>
-            </a>
-            <a href="#prontuario" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="file-text"></i><span>Prontuário</span>
-            </a>
-            <a href="#biosseguranca" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="shield-check"></i><span>Biossegurança</span>
-            </a>
-            <a href="#documentos" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="upload"></i><span>Upload de Documentos</span>
-            </a>
-            <a href="#registro-rapido" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2">
-                <i data-lucide="pen-square"></i><span>Registro Clínico Rápido</span>
-            </a>
+        <div class="px-3 pt-3 pb-1">
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-3">Dentista</span>
+        </div>
+        <nav class="flex-1 px-3 pb-4 overflow-y-auto space-y-1">
+            <a href="#agenda" class="sidebar-link active">📅 Agenda</a>
+            <a href="#prescricoes" class="sidebar-link">📄 Prescrições</a>
+            <a href="#historico" class="sidebar-link">🗂️ Histórico Clínico</a>
+            <a href="#comunicacao" class="sidebar-link">💬 Comunicação</a>
+            <a href="#cadastro" class="sidebar-link">👤 Pacientes</a>
+            <a href="#prontuario" class="sidebar-link">📋 Prontuário</a>
+            <a href="#biosseguranca" class="sidebar-link">🛡️ Biossegurança</a>
+            <a href="#documentos" class="sidebar-link">📁 Documentos</a>
+            <a href="#registro-rapido" class="sidebar-link">✍️ Registro Rápido</a>
         </nav>
+        <div class="p-4 border-t-4 border-gray-800 flex items-center gap-3">
+            <div class="w-11 h-11 bg-[#00E676] border-4 border-black neo-shadow-sm flex items-center justify-center font-black text-black text-sm flex-shrink-0">DC</div>
+            <div>
+                <p class="text-white font-black text-sm uppercase truncate">Dra. Carolina</p>
+                <p class="text-gray-500 text-xs font-bold uppercase">Dentista</p>
+            </div>
+        </div>
     </aside>
 
-    <!-- Conteúdo Principal -->
-    <div class="flex-1 flex flex-col overflow-y-auto">
+    <!-- Main -->
+    <main class="flex-1 flex flex-col overflow-hidden">
         <!-- Header -->
-        <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-20">
-            <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex h-16 items-center justify-between">
-                     <button id="menu-open-btn" class="md:hidden text-gray-600">
-                        <i data-lucide="menu" class="h-6 w-6"></i>
-                    </button>
-                    <h1 class="text-lg font-semibold text-gray-800">Painel do Dentista</h1>
-                    <div class="flex items-center space-x-2">
-                        <span class="text-sm hidden sm:block">Dra. Carolina</span>
-                        <i data-lucide="user-circle-2" class="h-8 w-8 text-gray-500"></i>
-                    </div>
-                </div>
+        <header class="h-20 bg-[#FFE600] border-b-4 border-black flex items-center justify-between px-6 lg:px-10 flex-shrink-0" style="box-shadow:0 6px 0 0 #000;">
+            <div class="flex items-center gap-4">
+                <button id="menu-btn" onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden border-4 border-black bg-black text-white p-2 font-black">☰</button>
+                <h1 class="font-black text-xl lg:text-2xl uppercase font-display tracking-tight">Painel do Dentista</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <a href="notificacoes.html" class="neo-btn neo-shadow-sm border-4 border-black bg-white px-3 py-2 font-black uppercase text-xs hidden sm:flex items-center gap-2">🔔 Avisos <span class="bg-red-500 text-white px-1.5 border-2 border-black font-black text-xs">2</span></a>
+                <a href="selectperfil.html" class="neo-btn neo-shadow-sm border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">← Sair</a>
             </div>
         </header>
 
-        <!-- Main -->
-        <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
+        <!-- Content -->
+        <div class="flex-1 overflow-y-auto p-6 lg:p-10 content-bg space-y-8">
 
-            <!-- Agenda de Consultas -->
-            <section id="agenda" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Agenda de Consultas</h2>
-                <p class="text-muted-foreground mb-4">Visualize e marque consultas dos pacientes.</p>
-                <form class="space-y-4">
-                    <label for="pacienteConsulta" class="font-medium">Paciente:</label>
-                    <input type="text" id="pacienteConsulta" class="form-input" placeholder="Nome do paciente">
-                    <label for="dataConsulta" class="font-medium">Data e Hora:</label>
-                    <input type="datetime-local" id="dataConsulta" class="form-input">
-                    <button type="submit" class="btn btn-primary">Agendar Consulta</button>
-                </form>
+            <!-- Agenda -->
+            <section id="agenda">
+                <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+                    <div>
+                        <h2 class="font-black text-3xl font-display uppercase tracking-tight">Agenda de Consultas</h2>
+                        <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Visualize e marque consultas</p>
+                    </div>
+                </div>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Consulta agendada!');return false;" class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <span class="neo-label">Paciente *</span>
+                            <input type="text" class="neo-input" placeholder="NOME DO PACIENTE" required>
+                        </div>
+                        <div>
+                            <span class="neo-label">Data e Hora *</span>
+                            <input type="datetime-local" class="neo-input" required>
+                        </div>
+                        <div>
+                            <span class="neo-label">Procedimento</span>
+                            <select class="neo-input bg-white cursor-pointer">
+                                <option>LIMPEZA / PROFILAXIA</option>
+                                <option>RESTAURAÇÃO</option>
+                                <option>EXTRAÇÃO</option>
+                                <option>CLAREAMENTO</option>
+                                <option>AVALIAÇÃO</option>
+                                <option>EMERGÊNCIA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <span class="neo-label">Sala</span>
+                            <select class="neo-input bg-white cursor-pointer">
+                                <option>SALA 1</option><option>SALA 2</option><option>SALA 3</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-8 py-3 font-black uppercase">✓ AGENDAR CONSULTA</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Lista de hoje -->
+                <div class="bg-white border-4 border-black neo-shadow mt-4 overflow-x-auto">
+                    <div class="bg-black text-[#FFE600] px-6 py-3 font-black uppercase text-sm tracking-wider">Agenda de Hoje</div>
+                    <table class="w-full min-w-max">
+                        <thead><tr class="bg-gray-100 border-b-4 border-black text-xs uppercase tracking-wider font-black">
+                            <th class="p-4 text-left border-r-2 border-gray-300">Horário</th>
+                            <th class="p-4 text-left border-r-2 border-gray-300">Paciente</th>
+                            <th class="p-4 text-left border-r-2 border-gray-300">Procedimento</th>
+                            <th class="p-4 text-left">Status</th>
+                        </tr></thead>
+                        <tbody class="font-bold text-sm">
+                            <tr class="border-b-2 border-gray-200 hover:bg-[#FFE600] transition-colors cursor-pointer"><td class="p-4 border-r-2 border-gray-200">09:00</td><td class="p-4 border-r-2 border-gray-200">ANA PAULA SILVA</td><td class="p-4 border-r-2 border-gray-200">LIMPEZA</td><td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 text-xs font-black">CONFIRMADO</span></td></tr>
+                            <tr class="border-b-2 border-gray-200 hover:bg-[#FFE600] transition-colors cursor-pointer bg-gray-50"><td class="p-4 border-r-2 border-gray-200">11:00</td><td class="p-4 border-r-2 border-gray-200">CARLOS MENDES</td><td class="p-4 border-r-2 border-gray-200">RESTAURAÇÃO</td><td class="p-4"><span class="bg-[#FFE600] border-2 border-black px-2 py-0.5 text-xs font-black">AGUARDANDO</span></td></tr>
+                            <tr class="hover:bg-[#FFE600] transition-colors cursor-pointer"><td class="p-4 border-r-2 border-gray-200">14:30</td><td class="p-4 border-r-2 border-gray-200">MARIA COSTA</td><td class="p-4 border-r-2 border-gray-200">AVALIAÇÃO</td><td class="p-4"><span class="bg-[#FFE600] border-2 border-black px-2 py-0.5 text-xs font-black">AGUARDANDO</span></td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </section>
 
-            <!-- Prescrições Digitais -->
-            <section id="prescricoes" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Prescrições Digitais</h2>
-                <p class="text-muted-foreground mb-4">Gerar receitas ou instruções de tratamento.</p>
-                <form class="space-y-4">
-                    <label for="pacientePrescricao" class="font-medium">Paciente:</label>
-                    <input type="text" id="pacientePrescricao" class="form-input" placeholder="Nome do paciente">
-                    <label for="descricaoPrescricao" class="font-medium">Descrição:</label>
-                    <textarea id="descricaoPrescricao" rows="4" class="form-textarea" placeholder="Ex: Amoxicilina 500mg, 1 cápsula a cada 8h"></textarea>
-                    <button type="submit" class="btn btn-primary">Gerar Prescrição</button>
-                </form>
+            <!-- Prescrições -->
+            <section id="prescricoes">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Prescrições Digitais</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Prescrição gerada!');return false;" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <span class="neo-label">Paciente *</span>
+                                <input type="text" class="neo-input" placeholder="NOME DO PACIENTE" required>
+                            </div>
+                            <div>
+                                <span class="neo-label">Data</span>
+                                <input type="date" class="neo-input">
+                            </div>
+                        </div>
+                        <div>
+                            <span class="neo-label">Medicamentos / Instruções *</span>
+                            <textarea rows="5" class="neo-input resize-none" placeholder="EX: AMOXICILINA 500MG — 1 CÁPSULA A CADA 8H POR 7 DIAS&#10;IBUPROFENO 600MG — 1 COMPRIMIDO A CADA 6H SE DOR" required></textarea>
+                        </div>
+                        <div class="flex gap-3">
+                            <button type="submit" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm">✓ GERAR PRESCRIÇÃO</button>
+                            <button type="button" onclick="toast('PDF gerado!')" class="neo-btn neo-shadow-sm bg-black text-white border-4 border-black px-6 py-3 font-black uppercase text-sm">⬇ BAIXAR PDF</button>
+                        </div>
+                    </form>
+                </div>
             </section>
 
-            <!-- Histórico Clínico Detalhado -->
-            <section id="historico" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Histórico Clínico Detalhado</h2>
-                <p class="text-muted-foreground mb-4">Consultar e editar histórico do paciente.</p>
-                <textarea rows="6" class="form-textarea" placeholder="Histórico médico completo do paciente..."></textarea>
+            <!-- Histórico Clínico -->
+            <section id="historico">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Histórico Clínico</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <div class="mb-4 flex gap-3">
+                        <input type="text" class="neo-input flex-1" placeholder="BUSCAR PACIENTE...">
+                        <button class="neo-btn neo-shadow-sm bg-black text-white border-4 border-black px-5 py-3 font-black uppercase text-sm">BUSCAR</button>
+                    </div>
+                    <textarea rows="8" class="neo-input resize-none" placeholder="HISTÓRICO MÉDICO COMPLETO DO PACIENTE — SELECIONE UM PACIENTE ACIMA PARA CARREGAR..."></textarea>
+                    <button class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm mt-4">✓ SALVAR ALTERAÇÕES</button>
+                </div>
             </section>
 
-            <!-- Comunicação com Pacientes -->
-            <section id="comunicacao" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Comunicação com Pacientes</h2>
-                <p class="text-muted-foreground mb-4">Enviar mensagens ou lembretes por e-mail ou WhatsApp.</p>
-                <form class="space-y-4">
-                    <label for="destinatario" class="font-medium">Paciente:</label>
-                    <input type="text" id="destinatario" class="form-input" placeholder="Nome do paciente">
-                    <label for="mensagem" class="font-medium">Mensagem:</label>
-                    <textarea id="mensagem" rows="3" class="form-textarea" placeholder="Ex: Lembrete da consulta de amanhã às 10h"></textarea>
-                    <button type="submit" class="btn btn-primary">Enviar Mensagem</button>
-                </form>
+            <!-- Comunicação -->
+            <section id="comunicacao">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Comunicação com Pacientes</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Mensagem enviada!');return false;" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <span class="neo-label">Paciente *</span>
+                                <input type="text" class="neo-input" placeholder="NOME DO DESTINATÁRIO" required>
+                            </div>
+                            <div>
+                                <span class="neo-label">Canal</span>
+                                <select class="neo-input bg-white cursor-pointer">
+                                    <option>E-MAIL</option><option>SMS</option><option>WHATSAPP</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="neo-label">Mensagem *</span>
+                            <textarea rows="4" class="neo-input resize-none" placeholder="EX: LEMBRETE DA CONSULTA DE AMANHÃ ÀS 10H..." required></textarea>
+                        </div>
+                        <button type="submit" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm">→ ENVIAR MENSAGEM</button>
+                    </form>
+                </div>
             </section>
 
             <!-- Cadastro de Pacientes -->
-            <section id="cadastro" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Cadastro e Gerenciamento de Pacientes</h2>
-                <p class="text-muted-foreground mb-4">Criar, editar informações e contatos de pacientes.</p>
-                <form class="space-y-4">
-                    <input type="text" class="form-input" placeholder="Nome do paciente">
-                    <input type="email" class="form-input" placeholder="E-mail">
-                    <input type="tel" class="form-input" placeholder="Telefone">
-                    <button type="submit" class="btn btn-primary">Salvar Paciente</button>
-                </form>
+            <section id="cadastro">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Cadastro de Pacientes</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <form onsubmit="toast('Paciente salvo!');return false;" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <span class="neo-label">Nome Completo *</span>
+                            <input type="text" class="neo-input" placeholder="NOME DO PACIENTE" required>
+                        </div>
+                        <div>
+                            <span class="neo-label">CPF *</span>
+                            <input type="text" class="neo-input" placeholder="000.000.000-00" required>
+                        </div>
+                        <div>
+                            <span class="neo-label">E-mail</span>
+                            <input type="email" class="neo-input" placeholder="PACIENTE@EMAIL.COM">
+                        </div>
+                        <div>
+                            <span class="neo-label">Telefone</span>
+                            <input type="tel" class="neo-input" placeholder="(11) 99999-9999">
+                        </div>
+                        <div>
+                            <span class="neo-label">Data de Nascimento</span>
+                            <input type="date" class="neo-input">
+                        </div>
+                        <div>
+                            <span class="neo-label">Convênio</span>
+                            <input type="text" class="neo-input" placeholder="NOME DO CONVÊNIO">
+                        </div>
+                        <div class="md:col-span-2">
+                            <span class="neo-label">Alergias</span>
+                            <input type="text" class="neo-input" placeholder="EX: PENICILINA, AAS...">
+                        </div>
+                        <div class="md:col-span-2">
+                            <button type="submit" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-8 py-3 font-black uppercase">✓ SALVAR PACIENTE</button>
+                        </div>
+                    </form>
+                </div>
             </section>
 
             <!-- Prontuário -->
-            <section id="prontuario" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Prontuário Eletrônico</h2>
-                <textarea rows="6" class="form-textarea" placeholder="Registrar procedimentos, evolução clínica e observações..."></textarea>
+            <section id="prontuario">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Prontuário Eletrônico</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <span class="neo-label">Paciente</span>
+                            <input type="text" class="neo-input" placeholder="BUSCAR PACIENTE...">
+                        </div>
+                        <div>
+                            <span class="neo-label">Tipo de Registro</span>
+                            <select class="neo-input bg-white cursor-pointer">
+                                <option>CONSULTA</option><option>RETORNO</option><option>EMERGÊNCIA</option><option>CIRURGIA</option>
+                            </select>
+                        </div>
+                        <div>
+                            <span class="neo-label">Data</span>
+                            <input type="date" class="neo-input">
+                        </div>
+                    </div>
+                    <div>
+                        <span class="neo-label">Queixa Principal</span>
+                        <input type="text" class="neo-input" placeholder="DESCRIÇÃO DA QUEIXA...">
+                    </div>
+                    <div>
+                        <span class="neo-label">Diagnóstico</span>
+                        <textarea rows="3" class="neo-input resize-none" placeholder="DIAGNÓSTICO CLÍNICO..."></textarea>
+                    </div>
+                    <div>
+                        <span class="neo-label">Procedimentos Realizados</span>
+                        <textarea rows="3" class="neo-input resize-none" placeholder="PROCEDIMENTOS, MATERIAIS UTILIZADOS..."></textarea>
+                    </div>
+                    <button onclick="toast('Prontuário salvo!')" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm">✓ SALVAR PRONTUÁRIO</button>
+                </div>
             </section>
 
-            <!-- Checklist de Biossegurança -->
-            <section id="biosseguranca" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Checklist de Biossegurança</h2>
-                <label class="flex items-center cursor-pointer"><input type="checkbox" class="h-5 w-5 rounded text-primary focus:ring-primary"><span class="ml-3">Instrumentos esterilizados</span></label>
-                <label class="flex items-center cursor-pointer"><input type="checkbox" class="h-5 w-5 rounded text-primary focus:ring-primary"><span class="ml-3">Uso completo de EPI</span></label>
-                <label class="flex items-center cursor-pointer"><input type="checkbox" class="h-5 w-5 rounded text-primary focus:ring-primary"><span class="ml-3">Preparação do consultório</span></label>
+            <!-- Biossegurança -->
+            <section id="biosseguranca">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Checklist de Biossegurança</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <div class="space-y-3" id="checklist">
+                        <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#FFE600] transition-colors font-black uppercase text-sm"><input type="checkbox" class="w-6 h-6 accent-[#00E676] border-4 border-black cursor-pointer"> Instrumentos esterilizados</label>
+                        <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#FFE600] transition-colors font-black uppercase text-sm"><input type="checkbox" class="w-6 h-6 accent-[#00E676] cursor-pointer"> Uso completo de EPI (luva, máscara, óculos)</label>
+                        <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#FFE600] transition-colors font-black uppercase text-sm"><input type="checkbox" class="w-6 h-6 accent-[#00E676] cursor-pointer"> Consultório preparado e desinfetado</label>
+                        <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#FFE600] transition-colors font-black uppercase text-sm"><input type="checkbox" class="w-6 h-6 accent-[#00E676] cursor-pointer"> Resíduos descartados corretamente</label>
+                        <label class="flex items-center gap-4 p-4 border-4 border-black cursor-pointer hover:bg-[#FFE600] transition-colors font-black uppercase text-sm"><input type="checkbox" class="w-6 h-6 accent-[#00E676] cursor-pointer"> Equipamentos em bom funcionamento</label>
+                    </div>
+                    <button onclick="toast('Checklist registrado!')" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm mt-4">✓ CONFIRMAR CHECKLIST</button>
+                </div>
             </section>
 
             <!-- Upload de Documentos -->
-            <section id="documentos" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Upload de Documentos</h2>
-                <input type="file" multiple class="form-input file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-primary hover:file:bg-violet-100">
+            <section id="documentos">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Upload de Documentos</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <div class="border-4 border-dashed border-black p-10 text-center cursor-pointer hover:bg-[#FFE600] transition-colors" onclick="document.getElementById('file-input').click()">
+                        <p class="font-black text-4xl mb-2">📁</p>
+                        <p class="font-black uppercase text-lg">ARRASTE ARQUIVOS AQUI</p>
+                        <p class="font-bold text-gray-500 text-sm uppercase mt-1">ou clique para selecionar</p>
+                        <p class="font-bold text-gray-400 text-xs mt-2">PDF, JPG, PNG, DICOM — Máx. 10MB</p>
+                    </div>
+                    <input type="file" id="file-input" multiple class="hidden" accept=".pdf,.jpg,.png,.dcm">
+                    <button onclick="toast('Documentos enviados!')" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm mt-4">⬆ ENVIAR DOCUMENTOS</button>
+                </div>
             </section>
 
-            <!-- Registro Clínico Rápido -->
-            <section id="registro-rapido" class="bg-card rounded-xl shadow-md p-6">
-                <h2 class="text-2xl font-bold mb-2">Registro Clínico Rápido</h2>
-                <textarea rows="3" class="form-textarea" placeholder="Observações rápidas sobre o paciente..."></textarea>
+            <!-- Registro Rápido -->
+            <section id="registro-rapido">
+                <h2 class="font-black text-3xl font-display uppercase tracking-tight border-b-4 border-black pb-3 mb-4">Registro Clínico Rápido</h2>
+                <div class="bg-white border-4 border-black neo-shadow p-6">
+                    <textarea rows="5" class="neo-input resize-none" placeholder="OBSERVAÇÕES RÁPIDAS SOBRE O PACIENTE...&#10;EX: RETORNOU SEM DOR, APROVADO PARA CLAREAMENTO..."></textarea>
+                    <button onclick="toast('Registro salvo!')" class="neo-btn neo-shadow bg-[#00E676] text-black border-4 border-black px-6 py-3 font-black uppercase text-sm mt-4">✓ SALVAR NOTA RÁPIDA</button>
+                </div>
             </section>
 
-        </main>
-
-        <!-- Footer -->
-        <footer class="text-center p-4 text-sm text-gray-500 border-t">
-            <p>&copy; 2025 DentiBot - Projeto de Engenharia de Software da UNICID</p>
-        </footer>
-    </div>
+        </div>
+    </main>
 </div>
 
-<script>
-    lucide.createIcons();
-    document.addEventListener('DOMContentLoaded', () => {
-        const sidebar = document.getElementById('sidebar');
-        const menuOpenBtn = document.getElementById('menu-open-btn');
-        menuOpenBtn.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
+<!-- Toast -->
+<div id="toasts" class="fixed top-6 right-6 z-50 space-y-3 pointer-events-none"></div>
 
-        const sections = document.querySelectorAll('main section');
-        const navLinks = document.querySelectorAll('.sidebar-link');
-        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.4 };
-        const sectionObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const id = entry.target.getAttribute('id');
-                    navLinks.forEach(link => {
-                        link.classList.remove('active');
-                        if (link.getAttribute('href') === `#${id}`) link.classList.add('active');
-                    });
-                }
-            });
-        }, observerOptions);
-        sections.forEach(section => sectionObserver.observe(section));
+<script>
+function toast(msg, type='success') {
+    const el = document.createElement('div');
+    el.className = `pointer-events-auto border-4 border-black px-5 py-3 font-black uppercase text-sm flex items-center gap-3 ${type==='success'?'bg-[#00E676] text-black':'bg-[#FF3D00] text-white'}`;
+    el.style.boxShadow = '4px 4px 0 0 #000';
+    el.innerHTML = `<span>${type==='success'?'✓':'✕'}</span><span>${msg}</span>`;
+    document.getElementById('toasts').appendChild(el);
+    setTimeout(()=>el.remove(), 3500);
+}
+
+// Sidebar active on scroll
+const links = document.querySelectorAll('.sidebar-link');
+const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+        if (e.isIntersecting) {
+            links.forEach(l => l.classList.remove('active'));
+            document.querySelector(`.sidebar-link[href="#${e.target.id}"]`)?.classList.add('active');
+        }
     });
+}, { threshold: 0.4 });
+document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
 </script>
 </body>
 </html>

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — Notificações</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; background-color:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
+    h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .neo-btn { transition:all .1s ease; }
+    .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+    .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+    .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+    .neo-input:focus { background:#FFE600; }
+    .neo-label { font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; background:#000; color:#fff; padding:.12rem .5rem; display:inline-block; margin-bottom:.35rem; }
+    .notif-unread { border-left:8px solid #000; }
+    .filter-btn.active { background:#000 !important; color:#FFE600 !important; }
+  </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8">
+
+<div class="max-w-3xl mx-auto">
+
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-4">
+      <a href="selectperfil.html" class="neo-btn neo-shadow-sm border-4 border-black bg-white px-3 py-2 font-black uppercase text-xs">← Voltar</a>
+      <div>
+        <h1 class="font-black text-3xl font-display uppercase tracking-tight">Notificações</h1>
+        <p class="font-bold text-xs text-gray-500 uppercase mt-0.5" id="unread-count">Carregando...</p>
+      </div>
+    </div>
+    <button onclick="markAllRead()" class="neo-btn neo-shadow-sm border-4 border-black bg-[#00E676] px-4 py-2 font-black uppercase text-xs hidden sm:flex items-center gap-2">✓✓ Marcar Todas Lidas</button>
+  </div>
+
+  <!-- Filtros -->
+  <div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+    <button onclick="filterNotifs('all')" class="filter-btn active neo-btn border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs whitespace-nowrap" data-filter="all">Todas</button>
+    <button onclick="filterNotifs('consulta')" class="filter-btn neo-btn border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs whitespace-nowrap" data-filter="consulta">📅 Consultas</button>
+    <button onclick="filterNotifs('estoque')" class="filter-btn neo-btn border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs whitespace-nowrap" data-filter="estoque">📦 Estoque</button>
+    <button onclick="filterNotifs('financeiro')" class="filter-btn neo-btn border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs whitespace-nowrap" data-filter="financeiro">💰 Financeiro</button>
+    <button onclick="filterNotifs('sistema')" class="filter-btn neo-btn border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs whitespace-nowrap" data-filter="sistema">⚙️ Sistema</button>
+  </div>
+
+  <!-- Mobile: marcar todas -->
+  <button onclick="markAllRead()" class="sm:hidden w-full neo-btn neo-shadow border-4 border-black bg-[#00E676] py-3 font-black uppercase text-sm mb-4">✓✓ Marcar Todas como Lidas</button>
+
+  <!-- Lista de notificações -->
+  <div id="notif-list" class="space-y-3"></div>
+
+  <!-- Empty state -->
+  <div id="empty-state" class="hidden text-center py-16">
+    <div class="h-24 w-24 border-4 border-black bg-white neo-shadow mx-auto flex items-center justify-center text-5xl mb-4">🔕</div>
+    <p class="font-black text-xl uppercase">Nenhuma notificação</p>
+    <p class="font-bold text-sm text-gray-500 uppercase mt-2">Você está em dia!</p>
+  </div>
+
+  <!-- Enviar Comunicado -->
+  <div class="mt-10 bg-white border-4 border-black neo-shadow p-6">
+    <h2 class="font-black text-2xl font-display uppercase tracking-tight mb-6">Enviar Comunicado</h2>
+    <form onsubmit="sendMessage(event)" class="space-y-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <span class="neo-label">Canal</span>
+          <select id="msg-channel" class="neo-input bg-white">
+            <option value="email">E-MAIL</option>
+            <option value="sms">SMS</option>
+            <option value="whatsapp">WHATSAPP</option>
+          </select>
+        </div>
+        <div>
+          <span class="neo-label">Destinatário</span>
+          <input type="text" id="msg-to" class="neo-input" placeholder="EMAIL OU TELEFONE" required>
+        </div>
+      </div>
+      <div>
+        <span class="neo-label">Assunto (e-mail)</span>
+        <input type="text" id="msg-subject" class="neo-input" placeholder="ASSUNTO DO E-MAIL">
+      </div>
+      <div>
+        <span class="neo-label">Mensagem *</span>
+        <textarea id="msg-body" rows="3" class="neo-input resize-none" required placeholder="DIGITE A MENSAGEM..."></textarea>
+      </div>
+      <button type="submit" class="neo-btn neo-shadow border-4 border-black bg-black text-white px-8 py-3 font-black uppercase text-sm">✉ Enviar</button>
+    </form>
+  </div>
+
+</div>
+
+<script>
+  const API = window.API_BASE || 'http://localhost:5000/api';
+  const token = localStorage.getItem('dentibot_token') || '';
+  const headers = () => ({ 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` });
+
+  const TYPE_CONFIG = {
+    consulta:   { icon: '📅', bg: 'bg-blue-100',   accent: 'bg-blue-500' },
+    estoque:    { icon: '📦', bg: 'bg-orange-100', accent: 'bg-orange-500' },
+    financeiro: { icon: '💰', bg: 'bg-[#00E676]',  accent: 'bg-green-600' },
+    sistema:    { icon: '⚙️', bg: 'bg-gray-100',    accent: 'bg-gray-500' },
+    alerta:     { icon: '⚠️', bg: 'bg-red-100',     accent: 'bg-red-500' },
+  };
+
+  const BADGE_COLORS = {
+    Nova: 'bg-blue-400 border-2 border-black text-white',
+    Urgente: 'bg-[#FF3D00] border-2 border-black text-white',
+    Novo: 'bg-[#00E676] border-2 border-black text-black',
+    Atraso: 'bg-red-500 border-2 border-black text-white',
+    Alerta: 'bg-[#FFE600] border-2 border-black text-black',
+  };
+
+  const DEMO_NOTIFICATIONS = [
+    { id:1,  type:'consulta',   unread:true,  title:'Consulta confirmada',              body:'Ana Costa confirmou a consulta de amanhã às 10h.',                  time:'Há 5 min',      badge:'Nova' },
+    { id:2,  type:'estoque',    unread:true,  title:'Estoque crítico: Lidocaína',        body:'Anestésico Lidocaína está abaixo do mínimo (15 amp).',              time:'Há 23 min',     badge:'Urgente' },
+    { id:3,  type:'financeiro', unread:true,  title:'Fatura paga — #042',               body:'Pagamento de R$ 380,00 registrado para Marcos Pereira.',            time:'Há 1h',         badge:null },
+    { id:4,  type:'consulta',   unread:false, title:'3 consultas agendadas para hoje',   body:'Agenda de hoje: 9h, 11h e 14h30.',                                  time:'Há 2h',         badge:null },
+    { id:5,  type:'estoque',    unread:true,  title:'Pedido de material aprovado',       body:'50 máscaras descartáveis — aprovado pelo coordenador.',             time:'Há 3h',         badge:'Novo' },
+    { id:6,  type:'financeiro', unread:false, title:'Fatura vencida — #038',            body:'Fatura de R$ 220,00 de Julia Alves está em atraso há 3 dias.',      time:'Ontem',         badge:'Atraso' },
+    { id:7,  type:'sistema',    unread:false, title:'Backup realizado com sucesso',      body:'Backup automático concluído às 03:00 — 47 MB.',                     time:'Ontem',         badge:null },
+    { id:8,  type:'consulta',   unread:false, title:'Consulta cancelada',               body:'Roberto Lima cancelou a consulta do dia 20/05 às 15h.',             time:'2 dias atrás',  badge:null },
+    { id:9,  type:'alerta',     unread:false, title:'Tentativa de login suspeita',       body:'Login bloqueado após 3 tentativas incorretas — usuário "dr.silva".', time:'3 dias atrás', badge:'Alerta' },
+    { id:10, type:'sistema',    unread:false, title:'Nova versão disponível: v1.2.0',    body:'DentiBot v1.2.0 — melhorias na arquitetura de microsserviços.',      time:'1 semana atrás', badge:null },
+  ];
+
+  let notifications = [...DEMO_NOTIFICATIONS];
+  let activeFilter = 'all';
+
+  function renderNotifications(list) {
+    const container = document.getElementById('notif-list');
+    const empty = document.getElementById('empty-state');
+    if (!list.length) { container.innerHTML = ''; empty.classList.remove('hidden'); return; }
+    empty.classList.add('hidden');
+    container.innerHTML = list.map(n => {
+      const t = TYPE_CONFIG[n.type] || TYPE_CONFIG.sistema;
+      const badge = n.badge ? `<span class="px-2 py-0.5 font-black text-xs uppercase ${BADGE_COLORS[n.badge] || 'bg-gray-200 border-2 border-black'}">${n.badge}</span>` : '';
+      const unreadClass = n.unread ? 'notif-unread' : '';
+      const unreadDot = n.unread ? `<span class="flex-shrink-0 w-3 h-3 bg-black border-2 border-black inline-block"></span>` : '';
+      return `
+        <div class="bg-white border-4 border-black neo-shadow-sm p-4 flex gap-4 cursor-pointer hover:bg-gray-50 transition-colors ${unreadClass}" onclick="markRead(${n.id})">
+          <div class="flex-shrink-0">
+            <div class="h-12 w-12 border-4 border-black ${n.unread ? 'bg-[#FFE600]' : 'bg-gray-100'} flex items-center justify-center text-2xl">${t.icon}</div>
+          </div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start justify-between gap-2 flex-wrap">
+              <div class="flex items-center gap-2 flex-wrap">
+                <p class="font-black text-sm uppercase ${n.unread ? '' : 'text-gray-500'}">${n.title}</p>
+                ${badge}
+              </div>
+              <div class="flex items-center gap-2 flex-shrink-0">
+                ${unreadDot}
+                <span class="font-bold text-xs text-gray-400 uppercase whitespace-nowrap">${n.time}</span>
+              </div>
+            </div>
+            <p class="font-bold text-xs text-gray-500 uppercase mt-1 truncate">${n.body}</p>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function updateUnreadCount() {
+    const unread = notifications.filter(n => n.unread).length;
+    document.getElementById('unread-count').textContent = unread > 0
+      ? `${unread} não lida${unread > 1 ? 's' : ''}`
+      : 'Todas lidas ✓';
+  }
+
+  function filterNotifs(filter) {
+    activeFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => {
+      b.classList.toggle('active', b.dataset.filter === filter);
+    });
+    const filtered = filter === 'all' ? notifications : notifications.filter(n => n.type === filter);
+    renderNotifications(filtered);
+  }
+
+  function markRead(id) {
+    const n = notifications.find(n => n.id === id);
+    if (n) n.unread = false;
+    filterNotifs(activeFilter);
+    updateUnreadCount();
+  }
+
+  function markAllRead() {
+    notifications.forEach(n => n.unread = false);
+    filterNotifs(activeFilter);
+    updateUnreadCount();
+  }
+
+  async function sendMessage(e) {
+    e.preventDefault();
+    const channel = document.getElementById('msg-channel').value;
+    const to = document.getElementById('msg-to').value;
+    const subject = document.getElementById('msg-subject').value;
+    const body = document.getElementById('msg-body').value;
+    const payload = channel === 'email'
+      ? { to, subject: subject || 'Comunicado DentiBot', body }
+      : { to, message: body };
+    try {
+      const r = await fetch(`${API}/communications/${channel}`, { method:'POST', headers:headers(), body:JSON.stringify(payload) });
+      const d = await r.json();
+      if (r.ok) {
+        alert(`✓ Mensagem enviada via ${channel.toUpperCase()}!`);
+        document.getElementById('msg-body').value = '';
+        document.getElementById('msg-to').value = '';
+        notifications.unshift({ id:Date.now(), type:'sistema', unread:false, title:`Comunicado via ${channel}`, body:`Para: ${to}`, time:'Agora', badge:null });
+        filterNotifs(activeFilter);
+        updateUnreadCount();
+      } else { alert(`Erro: ${d.erro || d.mensagem}`); }
+    } catch {
+      alert(`✓ Mensagem simulada via ${channel.toUpperCase()}! (API indisponível)`);
+      document.getElementById('msg-body').value = '';
+      document.getElementById('msg-to').value = '';
+    }
+  }
+
+  renderNotifications(notifications);
+  updateUnreadCount();
+</script>
+</body>
+</html>
