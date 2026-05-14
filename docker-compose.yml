@@ -1,0 +1,198 @@
+version: '3.8'
+
+services:
+  # ─── Banco de Dados ───────────────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: dentibot-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: dentibot
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - dentibot-network
+
+  # ─── API Gateway ──────────────────────────────────────────────────────────────
+  gateway:
+    build: ./gateway
+    container_name: dentibot-gateway
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:5001
+      PATIENT_SERVICE_URL: http://patient-service:5002
+      APPOINTMENT_SERVICE_URL: http://appointment-service:5003
+      INVENTORY_SERVICE_URL: http://inventory-service:5004
+      COMMUNICATION_SERVICE_URL: http://communication-service:5005
+      FINANCIAL_SERVICE_URL: http://financial-service:5006
+      AUDIT_SERVICE_URL: http://audit-service:5007
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      - auth-service
+      - patient-service
+      - appointment-service
+      - inventory-service
+      - communication-service
+      - financial-service
+      - audit-service
+    networks:
+      - dentibot-network
+
+  # ─── Auth Service ─────────────────────────────────────────────────────────────
+  auth-service:
+    build: ./services/auth-service
+    container_name: dentibot-auth
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql/dentibot_auth
+      JWT_SECRET: ${JWT_SECRET}
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USE_TLS: ${MAIL_USE_TLS}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      PORT: 5001
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dentibot-network
+
+  # ─── Patient Service ──────────────────────────────────────────────────────────
+  patient-service:
+    build: ./services/patient-service
+    container_name: dentibot-patient
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql/dentibot_patients
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 5002
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dentibot-network
+
+  # ─── Appointment Service ──────────────────────────────────────────────────────
+  appointment-service:
+    build: ./services/appointment-service
+    container_name: dentibot-appointment
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql/dentibot_appointments
+      JWT_SECRET: ${JWT_SECRET}
+      PATIENT_SERVICE_URL: http://patient-service:5002
+      PORT: 5003
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dentibot-network
+
+  # ─── Inventory Service ────────────────────────────────────────────────────────
+  inventory-service:
+    build: ./services/inventory-service
+    container_name: dentibot-inventory
+    restart: unless-stopped
+    ports:
+      - "5004:5004"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql/dentibot_inventory
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 5004
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dentibot-network
+
+  # ─── Communication Service ────────────────────────────────────────────────────
+  communication-service:
+    build: ./services/communication-service
+    container_name: dentibot-communication
+    restart: unless-stopped
+    ports:
+      - "5005:5005"
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      MAIL_SERVER: ${MAIL_SERVER}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USE_TLS: ${MAIL_USE_TLS}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      TWILIO_SID: ${TWILIO_SID}
+      TWILIO_TOKEN: ${TWILIO_TOKEN}
+      TWILIO_PHONE: ${TWILIO_PHONE}
+      WHATSAPP_TOKEN: ${WHATSAPP_TOKEN}
+      PORT: 5005
+    networks:
+      - dentibot-network
+
+  # ─── Financial Service ────────────────────────────────────────────────────────
+  financial-service:
+    build: ./services/financial-service
+    container_name: dentibot-financial
+    restart: unless-stopped
+    ports:
+      - "5006:5006"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql/dentibot_financial
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 5006
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dentibot-network
+
+  # ─── Audit Service ────────────────────────────────────────────────────────────
+  audit-service:
+    build: ./services/audit-service
+    container_name: dentibot-audit
+    restart: unless-stopped
+    ports:
+      - "5007:5007"
+    environment:
+      DATABASE_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql/dentibot_audit
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 5007
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - dentibot-network
+
+  # ─── Frontend ─────────────────────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    container_name: dentibot-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - gateway
+    networks:
+      - dentibot-network
+
+networks:
+  dentibot-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

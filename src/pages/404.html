@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — 404</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; background-color:#f4f4f0; background-image:radial-gradient(#00000018 1px,transparent 1px); background-size:20px 20px; }
+    h1,h2,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .neo-btn { transition:all .1s ease; border:4px solid #000; font-weight:900; text-transform:uppercase; letter-spacing:.05em; }
+    .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+    .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+    @keyframes float { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-16px) rotate(3deg)} }
+    .float { animation:float 3s ease-in-out infinite; }
+    @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
+    .shake { animation:shake .4s ease; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-6">
+
+<div class="text-center max-w-lg mx-auto">
+
+  <!-- Animated tooth icon -->
+  <div class="h-32 w-32 bg-[#00E676] border-4 border-black neo-shadow mx-auto mb-8 flex items-center justify-center float" id="tooth-icon">
+    <span style="font-size:4rem;">🦷</span>
+  </div>
+
+  <!-- 404 number -->
+  <div class="relative mb-4">
+    <p class="font-black text-[120px] leading-none font-display select-none text-black opacity-10">404</p>
+    <div class="absolute inset-0 flex items-center justify-center">
+      <div class="bg-[#FFE600] border-4 border-black neo-shadow px-6 py-3">
+        <p class="font-black text-5xl font-display">404</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Title & message -->
+  <h1 class="font-black text-2xl font-display uppercase tracking-tight mt-8 mb-2">Página Não Encontrada</h1>
+  <p class="font-bold text-gray-500 uppercase text-sm bg-white border-2 border-black px-3 py-1 inline-block mb-6">
+    Parece que este dente foi extraído!
+  </p>
+  <p class="font-bold text-gray-500 text-sm max-w-sm mx-auto mb-8">
+    A página que você está procurando não existe ou foi movida para outro endereço.
+  </p>
+
+  <!-- Actions -->
+  <div class="flex flex-col sm:flex-row gap-3 justify-center mb-10">
+    <a href="javascript:history.back()" class="neo-btn neo-shadow bg-white px-6 py-3 text-sm flex items-center justify-center gap-2">
+      ← Voltar
+    </a>
+    <a href="selectperfil.html" class="neo-btn neo-shadow bg-[#00E676] px-6 py-3 text-sm flex items-center justify-center gap-2">
+      🏠 Ir ao Painel
+    </a>
+  </div>
+
+  <!-- Quick links -->
+  <div class="border-t-4 border-black pt-6">
+    <p class="font-black text-xs uppercase tracking-widest text-gray-400 mb-4">Ou acesse diretamente:</p>
+    <div class="flex flex-wrap gap-2 justify-center">
+      <a href="login.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-[#00E676]">Login</a>
+      <a href="dentista.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-[#00E676]">🦷 Dentista</a>
+      <a href="recpecionista.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-[#FFE600]">📅 Recepção</a>
+      <a href="cliente.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-white">👤 Paciente</a>
+      <a href="almoxarifado.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-[#FF3D00] hover:text-white">📦 Estoque</a>
+      <a href="coordenador.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-black hover:text-white">⚙️ Coord.</a>
+      <a href="financeiro.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-[#FFE600]">💰 Financeiro</a>
+      <a href="relatorios.html" class="border-4 border-black bg-white px-3 py-1.5 font-black text-xs uppercase neo-btn hover:bg-[#00E676]">📊 Relatórios</a>
+    </div>
+  </div>
+
+  <p class="font-bold text-xs uppercase text-gray-400 mt-10">DentiBot v1.2.0 · Arquitetura de Microsserviços</p>
+</div>
+
+<script>
+  // Shake on click
+  document.getElementById('tooth-icon').addEventListener('click', function() {
+    this.classList.remove('shake');
+    void this.offsetWidth;
+    this.classList.add('shake');
+    setTimeout(() => this.classList.remove('shake'), 400);
+  });
+</script>
+</body>
+</html>

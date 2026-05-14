@@ -1,189 +1,360 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DentiBot - Painel de Almoxarifado</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        :root {
-            --background: #f8fafc;
-            --foreground: #475569;
-            --card: #ffffff;
-            --card-foreground: #475569;
-            --primary: #059669;
-            --primary-foreground: #ffffff;
-            --secondary: #f1f5f9;
-            --secondary-foreground: #475569;
-            --muted: #f0fdf4;
-            --muted-foreground: #374151;
-            --accent: #10b981;
-            --border: #e2e8f0;
-            --input: #e2e8f0;
-            --ring: #059669;
-        }
-
-        body { background-color: var(--background); color: var(--foreground); font-family: sans-serif; }
-        html { scroll-behavior: smooth; }
-        
-        .btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600; transition: all 0.2s; border: 1px solid transparent; }
-        .btn-primary { background-color: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
-        .btn-primary:hover { background-color: #047857; border-color: #047857; }
-        .btn-secondary { background-color: var(--secondary); color: var(--secondary-foreground); border-color: var(--border); }
-        .btn-secondary:hover { background-color: #e2e8f0; }
-        .form-input, .form-select { width: 100%; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--border); background-color: var(--background); transition: all 0.2s; }
-        .form-input:focus, .form-select:focus { outline: none; border-color: var(--ring); box-shadow: 0 0 0 2px rgba(5, 150, 105, 0.2); }
-        .sidebar-link.active { background-color: var(--muted); color: var(--primary); font-weight: 600; }
-        .sidebar-link.active i { color: var(--primary); }
-
-        .status-badge { padding: 0.125rem 0.625rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 500; display: inline-block; }
-        .status-green { background-color: var(--muted); color: var(--primary); }
-        .status-blue { background-color: #eff6ff; color: #2563eb; }
-        .status-red { background-color: #fee2e2; color: #dc2626; }
-        .status-yellow { background-color: #fefce8; color: #ca8a04; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DentiBot — Almoxarifado</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;600;700&display=swap');
+    body { font-family:'Inter',sans-serif; }
+    h1,h2,h3,.font-display { font-family:'Space Grotesk',sans-serif; }
+    .neo-shadow { box-shadow:6px 6px 0 0 #000; }
+    .neo-shadow-sm { box-shadow:4px 4px 0 0 #000; }
+    .neo-btn { transition:all .1s ease; }
+    .neo-btn:hover { transform:translate(2px,2px); box-shadow:4px 4px 0 0 #000; }
+    .neo-btn:active { transform:translate(6px,6px); box-shadow:none; }
+    .neo-input { border:4px solid #000; padding:.7rem 1rem; font-weight:700; outline:none; width:100%; background:#fff; transition:background .15s; }
+    .neo-input:focus { background:#FFE600; }
+    .neo-label { font-size:.68rem; font-weight:900; text-transform:uppercase; letter-spacing:.1em; background:#000; color:#fff; padding:.12rem .5rem; display:inline-block; margin-bottom:.35rem; }
+    .sidebar-link { display:flex; align-items:center; gap:.75rem; padding:.75rem 1rem; font-weight:900; font-size:.7rem; text-transform:uppercase; letter-spacing:.08em; border:4px solid transparent; color:#9ca3af; transition:all .1s; }
+    .sidebar-link:hover { background:#1f2937; color:#fff; border-color:#FF3D00; }
+    .sidebar-link.active { background:#FF3D00; color:#fff; border-color:#FF3D00; }
+    .content-bg { background:#f4f4f0; background-image:radial-gradient(#00000012 1px,transparent 1px); background-size:20px 20px; }
+  </style>
 </head>
-<body class="min-h-screen">
+<body class="min-h-screen bg-black">
 
-    <div class="flex h-screen">
-        <aside id="sidebar" class="fixed inset-y-0 left-0 bg-white w-64 p-4 border-r border-gray-200 transform -translate-x-full md:relative md:translate-x-0 transition-transform duration-200 ease-in-out z-30">
-            <div class="flex items-center space-x-2 pb-4 border-b">
-                <div class="h-8 w-8 rounded-lg flex items-center justify-center bg-primary"><span class="text-lg font-bold text-primary-foreground">D</span></div>
-                <span class="text-xl font-bold">DentiBot</span>
-            </div>
-            <nav class="mt-6">
-                <a href="#dashboard" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100"><i data-lucide="layout-dashboard"></i><span>Dashboard</span></a>
-                <a href="#kits" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="scan-line"></i><span>Rastreamento de Kits</span></a>
-                <a href="#inventario" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="clipboard-list"></i><span>Inventário</span></a>
-                <a href="#demanda" class="sidebar-link flex items-center space-x-3 p-2 rounded-lg text-gray-600 hover:bg-gray-100 mt-2"><i data-lucide="calendar-check-2"></i><span>Previsão de Demanda</span></a>
-            </nav>
-        </aside>
+<div class="flex h-screen overflow-hidden">
 
-        <div class="flex-1 flex flex-col overflow-y-auto">
-            <header class="sticky top-0 bg-white/80 backdrop-blur-lg shadow-sm z-20">
-                <div class="container mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex h-16 items-center justify-between">
-                        <button id="menu-open-btn" class="md:hidden text-gray-600"><i data-lucide="menu" class="h-6 w-6"></i></button>
-                        <h1 class="text-lg font-semibold text-gray-800">Painel de Almoxarifado</h1>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-sm hidden sm:block">Carlos</span>
-                            <i data-lucide="user-circle-2" class="h-8 w-8 text-gray-500"></i>
-                        </div>
-                    </div>
-                </div>
-            </header>
-
-            <main class="flex-1 p-4 sm:p-6 lg:p-8 space-y-8">
-                
-                <section id="dashboard">
-                    <h2 class="text-2xl font-bold mb-4">Visão Geral do Estoque</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Kits Disponíveis</p><p class="text-3xl font-bold text-green-600">42</p></div>
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Kits em Esterilização</p><p class="text-3xl font-bold text-blue-600">8</p></div>
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Itens com Estoque Baixo</p><p class="text-3xl font-bold text-yellow-600">3</p></div>
-                        <div class="bg-card p-5 rounded-xl shadow"><p class="text-sm text-muted-foreground">Ciclos de Autoclave (Hoje)</p><p class="text-3xl font-bold">2</p></div>
-                    </div>
-                </section>
-
-                <section id="kits" class="bg-card rounded-xl shadow-md p-6">
-                    <div class="sm:flex justify-between items-center mb-6">
-                        <div>
-                            <h2 class="text-2xl font-bold">Rastreamento de Kits Cirúrgicos</h2>
-                            <p class="text-muted-foreground">Controle o ciclo de vida de cada kit, do uso à esterilização.</p>
-                        </div>
-                        <button class="btn btn-primary mt-4 sm:mt-0 w-full sm:w-auto"><i data-lucide="plus-circle" class="mr-2 h-4 w-4"></i>Registrar Novo Kit</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50"><tr><th class="p-3">ID do Kit</th><th class="p-3">Status</th><th class="p-3">Ciclo Autoclave</th><th class="p-3">Validade</th><th class="p-3">Ações</th></tr></thead>
-                            <tbody>
-                                <tr class="border-t"><td>KIT-CIR-001</td><td><span class="status-badge status-green">Disponível</span></td><td>A-345</td><td>11/09/2025</td><td class="p-3"><button class="btn btn-secondary text-xs">Registrar Uso</button></td></tr>
-                                <tr class="border-t"><td>KIT-ENDO-003</td><td><span class="status-badge status-blue">Em Esterilização</span></td><td>A-346</td><td>--</td><td class="p-3"><button class="btn btn-secondary text-xs">Finalizar Ciclo</button></td></tr>
-                                <tr class="border-t"><td>KIT-CIR-002</td><td><span class="status-badge status-red">Bloqueado</span></td><td>A-342 (Falhou)</td><td>--</td><td class="p-3"><button class="btn btn-secondary text-xs">Ver Motivo</button></td></tr>
-                                <tr class="border-t"><td>KIT-PROT-007</td><td><span class="status-badge status-green">Disponível</span></td><td>A-344</td><td>10/09/2025</td><td class="p-3"><button class="btn btn-secondary text-xs">Registrar Uso</button></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-
-                <section id="inventario" class="bg-card rounded-xl shadow-md p-6">
-                    <div class="sm:flex justify-between items-center mb-6">
-                        <div>
-                            <h2 class="text-2xl font-bold">Inventário de Consumíveis</h2>
-                            <p class="text-muted-foreground">Gerencie o estoque de materiais descartáveis e de uso diário.</p>
-                        </div>
-                        <div class="flex gap-4 mt-4 sm:mt-0">
-                            <button class="btn btn-secondary w-full sm:w-auto">Registrar Entrada</button>
-                            <button class="btn btn-secondary w-full sm:w-auto">Registrar Saída</button>
-                        </div>
-                    </div>
-                     <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="bg-gray-50"><tr><th class="p-3">Item</th><th class="p-3">Qtd. em Estoque</th><th class="p-3">Estoque Mínimo</th><th class="p-3">Status</th></tr></thead>
-                            <tbody>
-                                <tr class="border-t"><td>Luvas de Procedimento (Caixa)</td><td>52</td><td>20</td><td><span class="text-green-600 font-semibold">OK</span></td></tr>
-                                <tr class="border-t"><td>Máscaras Descartáveis (Caixa)</td><td>15</td><td>15</td><td><span class="text-yellow-600 font-semibold">Baixo</span></td></tr>
-                                <tr class="border-t"><td>Resina Composta A2 (Un.)</td><td>8</td><td>10</td><td><span class="text-yellow-600 font-semibold">Baixo</span></td></tr>
-                                <tr class="border-t"><td>Agulhas de Anestesia (Caixa)</td><td>35</td><td>25</td><td><span class="text-green-600 font-semibold">OK</span></td></tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </section>
-                
-                <section id="demanda" class="bg-card rounded-xl shadow-md p-6">
-                    <h2 class="text-2xl font-bold mb-2">Previsão de Demanda (Próximas 48h)</h2>
-                    <p class="text-muted-foreground mb-6">Baseado na agenda da clínica para antecipar o consumo de materiais.</p>
-                     <div class="space-y-4">
-                        <div class="border rounded-lg p-4 bg-blue-50">
-                            <p class="font-semibold text-blue-800">Amanhã - 05/09/2025</p>
-                            <ul class="list-disc list-inside text-sm text-blue-700 mt-2">
-                                <li><strong>3x Procedimentos Cirúrgicos:</strong> Preparar 3 Kits Cirúrgicos (KIT-CIR).</li>
-                                <li><strong>5x Restaurações:</strong> Verificar estoque de Resina Composta.</li>
-                            </ul>
-                        </div>
-                        <div class="border rounded-lg p-4">
-                            <p class="font-semibold">Sábado - 06/09/2025</p>
-                             <ul class="list-disc list-inside text-sm text-gray-600 mt-2">
-                                <li><strong>8x Profilaxia/Limpeza:</strong> Sem demanda crítica de kits.</li>
-                            </ul>
-                        </div>
-                    </div>
-                </section>
-
-            </main>
-
-            <footer class="text-center p-4 text-sm text-gray-500 border-t">
-                <p>&copy; 2025 DentiBot - Projeto de Engenharia de Software da UNICID.</p>
-            </footer>
-        </div>
+  <!-- Sidebar -->
+  <aside id="sidebar" class="w-72 bg-black flex flex-col border-r-4 border-[#FF3D00] flex-shrink-0 fixed inset-y-0 left-0 md:relative transform -translate-x-full md:translate-x-0 transition-transform duration-200 z-30">
+    <div class="h-20 flex items-center px-6 border-b-4 border-[#FF3D00] bg-[#FF3D00] flex-shrink-0">
+      <span class="font-black text-3xl font-display uppercase tracking-tighter text-white">DentiBot.</span>
     </div>
-    
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-20 hidden md:hidden"></div>
+    <div class="px-3 pt-3 pb-1">
+      <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-3">Almoxarifado</span>
+    </div>
+    <nav class="flex-1 px-3 pb-4 overflow-y-auto space-y-1">
+      <a href="#dashboard" class="sidebar-link active">📦 Dashboard</a>
+      <a href="#kits" class="sidebar-link">🔬 Kits Cirúrgicos</a>
+      <a href="#inventario" class="sidebar-link">📋 Inventário</a>
+      <a href="#demanda" class="sidebar-link">📅 Previsão de Demanda</a>
+      <a href="#autoclave" class="sidebar-link">♻️ Autoclave</a>
+      <a href="#fornecedores" class="sidebar-link">🏭 Fornecedores</a>
+    </nav>
+    <div class="p-4 border-t-4 border-gray-800 flex items-center gap-3">
+      <div class="w-11 h-11 bg-[#FF3D00] border-4 border-black neo-shadow-sm flex items-center justify-center font-black text-white text-sm flex-shrink-0">CA</div>
+      <div>
+        <p class="text-white font-black text-sm uppercase truncate">Carlos Almox.</p>
+        <p class="text-gray-500 text-xs font-bold uppercase">Almoxarife</p>
+      </div>
+    </div>
+  </aside>
 
-    <script>
-        lucide.createIcons();
-        document.addEventListener('DOMContentLoaded', () => {
-            const sidebar = document.getElementById('sidebar'), menuOpenBtn = document.getElementById('menu-open-btn'), sidebarOverlay = document.getElementById('sidebar-overlay');
-            const openSidebar = () => { sidebar.classList.remove('-translate-x-full'); sidebarOverlay.classList.remove('hidden'); };
-            const closeSidebar = () => { sidebar.classList.add('-translate-x-full'); sidebarOverlay.classList.add('hidden'); };
-            menuOpenBtn.addEventListener('click', openSidebar);
-            sidebarOverlay.addEventListener('click', closeSidebar);
-            document.querySelectorAll('.sidebar-link').forEach(link => { link.addEventListener('click', () => { if (window.innerWidth < 768) closeSidebar(); }); });
+  <!-- Main -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Header -->
+    <header class="h-20 bg-[#FF3D00] border-b-4 border-black flex items-center justify-between px-6 lg:px-10 flex-shrink-0" style="box-shadow:0 6px 0 0 #000;">
+      <div class="flex items-center gap-4">
+        <button onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full')" class="md:hidden border-4 border-black bg-black text-white p-2 font-black">☰</button>
+        <h1 class="font-black text-xl lg:text-2xl uppercase font-display tracking-tight text-white">Almoxarifado</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="notificacoes.html" class="neo-btn neo-shadow-sm border-4 border-black bg-white px-3 py-2 font-black uppercase text-xs hidden sm:flex items-center gap-2">🔔 Avisos <span class="bg-black text-white px-1.5 border-2 border-black font-black text-xs">1</span></a>
+        <a href="selectperfil.html" class="neo-btn neo-shadow-sm border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">← Sair</a>
+      </div>
+    </header>
 
-            const sections = document.querySelectorAll('main section'), navLinks = document.querySelectorAll('.sidebar-link');
-            const sectionObserver = new IntersectionObserver(entries => {
-                let activeId = '';
-                entries.forEach(entry => { if (entry.isIntersecting && entry.intersectionRatio > 0.1) activeId = entry.target.getAttribute('id'); });
-                navLinks.forEach(link => {
-                    link.classList.remove('active');
-                    if (link.getAttribute('href') === `#${activeId}`) {
-                        link.classList.add('active');
-                    }
-                });
-            }, { root: null, rootMargin: '0px', threshold: 0.1 });
-            sections.forEach(section => { sectionObserver.observe(section); });
-        });
-    </script>
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto p-6 lg:p-10 content-bg space-y-8">
+
+      <!-- Dashboard KPIs -->
+      <section id="dashboard">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Visão Geral do Estoque</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Status em tempo real</p>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Kits Disponíveis</p>
+            <p class="font-black text-4xl font-display mt-2 text-[#FF3D00]">42</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Em Esterilização</p>
+            <p class="font-black text-4xl font-display mt-2 text-blue-600">8</p>
+          </div>
+          <div class="bg-[#FFE600] border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-700">Estoque Baixo</p>
+            <p class="font-black text-4xl font-display mt-2">3</p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-xs uppercase tracking-widest text-gray-500">Ciclos Autoclave (Hoje)</p>
+            <p class="font-black text-4xl font-display mt-2">2</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Kits Cirúrgicos -->
+      <section id="kits">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-4 border-b-4 border-black pb-3 gap-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Kits Cirúrgicos</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Rastreamento do ciclo de vida</p>
+          </div>
+          <button onclick="document.getElementById('modal-kit').classList.remove('hidden')" class="neo-btn neo-shadow border-4 border-black bg-[#FF3D00] text-white px-5 py-2 font-black uppercase text-sm flex items-center gap-2">
+            ＋ Novo Kit
+          </button>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">ID do Kit</th>
+                <th class="p-4 font-black text-xs uppercase">Status</th>
+                <th class="p-4 font-black text-xs uppercase">Ciclo Autoclave</th>
+                <th class="p-4 font-black text-xs uppercase">Validade</th>
+                <th class="p-4 font-black text-xs uppercase">Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">KIT-CIR-001</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Disponível</span></td>
+                <td class="p-4 font-bold text-sm">A-345</td>
+                <td class="p-4 font-bold text-sm">11/09/2025</td>
+                <td class="p-4"><button class="neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Registrar Uso</button></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">KIT-ENDO-003</td>
+                <td class="p-4"><span class="bg-blue-400 border-2 border-black px-2 py-0.5 font-black text-xs uppercase text-white">Esterilizando</span></td>
+                <td class="p-4 font-bold text-sm">A-346</td>
+                <td class="p-4 font-bold text-sm">—</td>
+                <td class="p-4"><button class="neo-btn border-4 border-black bg-white px-3 py-1 font-black uppercase text-xs">Finalizar Ciclo</button></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">KIT-CIR-002</td>
+                <td class="p-4"><span class="bg-[#FF3D00] border-2 border-black px-2 py-0.5 font-black text-xs uppercase text-white">Bloqueado</span></td>
+                <td class="p-4 font-bold text-sm">A-342 (Falhou)</td>
+                <td class="p-4 font-bold text-sm">—</td>
+                <td class="p-4"><button class="neo-btn border-4 border-black bg-white px-3 py-1 font-black uppercase text-xs">Ver Motivo</button></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="p-4 font-black text-sm">KIT-PROT-007</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Disponível</span></td>
+                <td class="p-4 font-bold text-sm">A-344</td>
+                <td class="p-4 font-bold text-sm">10/09/2025</td>
+                <td class="p-4"><button class="neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Registrar Uso</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Inventário -->
+      <section id="inventario">
+        <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-4 border-b-4 border-black pb-3 gap-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Inventário de Consumíveis</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Materiais descartáveis e diários</p>
+          </div>
+          <div class="flex gap-3">
+            <button class="neo-btn neo-shadow-sm border-4 border-black bg-[#00E676] px-4 py-2 font-black uppercase text-xs">＋ Entrada</button>
+            <button class="neo-btn neo-shadow-sm border-4 border-black bg-white px-4 py-2 font-black uppercase text-xs">－ Saída</button>
+          </div>
+        </div>
+        <div class="bg-white border-4 border-black neo-shadow overflow-x-auto">
+          <table class="w-full text-left">
+            <thead>
+              <tr class="border-b-4 border-black bg-black text-white">
+                <th class="p-4 font-black text-xs uppercase">Item</th>
+                <th class="p-4 font-black text-xs uppercase">Em Estoque</th>
+                <th class="p-4 font-black text-xs uppercase">Estoque Mínimo</th>
+                <th class="p-4 font-black text-xs uppercase">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Luvas de Procedimento (Caixa)</td>
+                <td class="p-4 font-black text-sm">52</td>
+                <td class="p-4 font-bold text-sm text-gray-500">20</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">OK</span></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Máscaras Descartáveis (Caixa)</td>
+                <td class="p-4 font-black text-sm">15</td>
+                <td class="p-4 font-bold text-sm text-gray-500">15</td>
+                <td class="p-4"><span class="bg-[#FFE600] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">Baixo</span></td>
+              </tr>
+              <tr class="border-b-2 border-black hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Resina Composta A2 (Un.)</td>
+                <td class="p-4 font-black text-sm text-red-600">8</td>
+                <td class="p-4 font-bold text-sm text-gray-500">10</td>
+                <td class="p-4"><span class="bg-[#FF3D00] border-2 border-black px-2 py-0.5 font-black text-xs uppercase text-white">Crítico</span></td>
+              </tr>
+              <tr class="hover:bg-gray-50">
+                <td class="p-4 font-bold text-sm">Agulhas de Anestesia (Caixa)</td>
+                <td class="p-4 font-black text-sm">35</td>
+                <td class="p-4 font-bold text-sm text-gray-500">25</td>
+                <td class="p-4"><span class="bg-[#00E676] border-2 border-black px-2 py-0.5 font-black text-xs uppercase">OK</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Previsão de Demanda -->
+      <section id="demanda">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Previsão de Demanda</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Próximas 48 horas — baseado na agenda</p>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <div class="bg-[#FFE600] border-4 border-black neo-shadow p-5">
+            <p class="font-black text-sm uppercase tracking-wide">Amanhã — 15/05/2026</p>
+            <ul class="mt-3 space-y-2">
+              <li class="font-bold text-sm">📦 <strong>3× Procedimentos Cirúrgicos:</strong> Preparar 3 Kits Cirúrgicos (KIT-CIR)</li>
+              <li class="font-bold text-sm">🦷 <strong>5× Restaurações:</strong> Verificar estoque de Resina Composta ⚠️</li>
+            </ul>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-sm uppercase tracking-wide">Sábado — 16/05/2026</p>
+            <ul class="mt-3 space-y-2">
+              <li class="font-bold text-sm text-gray-600">🪥 <strong>8× Profilaxia/Limpeza:</strong> Sem demanda crítica de kits</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- Autoclave -->
+      <section id="autoclave">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Registros de Autoclave</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Ciclos de esterilização</p>
+          </div>
+          <button class="neo-btn neo-shadow-sm border-4 border-black bg-black text-white px-4 py-2 font-black uppercase text-xs">＋ Novo Ciclo</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <div class="flex justify-between items-start mb-3">
+              <p class="font-black text-sm uppercase">Ciclo A-346</p>
+              <span class="bg-blue-400 border-2 border-black px-2 py-0.5 font-black text-xs uppercase text-white">Em Andamento</span>
+            </div>
+            <p class="font-bold text-xs text-gray-500 uppercase">Início: 14/05/2026 08:30</p>
+            <p class="font-bold text-xs text-gray-500 uppercase mt-1">Kits: KIT-ENDO-003</p>
+            <p class="font-black text-lg mt-3">Temp: <span class="text-blue-600">134°C</span></p>
+          </div>
+          <div class="bg-[#00E676] border-4 border-black neo-shadow p-5">
+            <div class="flex justify-between items-start mb-3">
+              <p class="font-black text-sm uppercase">Ciclo A-345</p>
+              <span class="bg-black border-2 border-black px-2 py-0.5 font-black text-xs uppercase text-[#00E676]">Concluído</span>
+            </div>
+            <p class="font-bold text-xs uppercase">Início: 14/05/2026 06:00</p>
+            <p class="font-bold text-xs uppercase mt-1">Kits: KIT-CIR-001, KIT-PROT-007</p>
+            <p class="font-black text-lg mt-3">Temp: <span>134°C ✓</span></p>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <div class="flex justify-between items-start mb-3">
+              <p class="font-black text-sm uppercase">Ciclo A-342</p>
+              <span class="bg-[#FF3D00] border-2 border-black px-2 py-0.5 font-black text-xs uppercase text-white">Falhou</span>
+            </div>
+            <p class="font-bold text-xs text-gray-500 uppercase">Data: 12/05/2026</p>
+            <p class="font-bold text-xs text-gray-500 uppercase mt-1">Kits: KIT-CIR-002</p>
+            <p class="font-black text-sm mt-3 text-red-600">Falha de pressão — kit bloqueado</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Fornecedores -->
+      <section id="fornecedores">
+        <div class="flex items-end justify-between mb-4 border-b-4 border-black pb-3">
+          <div>
+            <h2 class="font-black text-3xl font-display uppercase tracking-tight">Fornecedores</h2>
+            <p class="font-bold text-gray-500 uppercase text-sm mt-1 bg-white border-2 border-black px-2 py-0.5 inline-block">Pedidos e contatos</p>
+          </div>
+          <button class="neo-btn neo-shadow-sm border-4 border-black bg-[#FF3D00] text-white px-4 py-2 font-black uppercase text-xs">＋ Novo Pedido</button>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-sm uppercase">DentSupply Ltda.</p>
+            <p class="font-bold text-xs text-gray-500 uppercase mt-1">Luvas, Máscaras, Descartáveis</p>
+            <p class="font-bold text-xs mt-3">📞 (11) 3456-7890</p>
+            <button class="mt-3 neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Fazer Pedido</button>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-sm uppercase">OrthoMed Brasil</p>
+            <p class="font-bold text-xs text-gray-500 uppercase mt-1">Resinas, Materiais Restauradores</p>
+            <p class="font-bold text-xs mt-3">📞 (11) 9876-5432</p>
+            <button class="mt-3 neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Fazer Pedido</button>
+          </div>
+          <div class="bg-white border-4 border-black neo-shadow p-5">
+            <p class="font-black text-sm uppercase">CirurgiMax</p>
+            <p class="font-bold text-xs text-gray-500 uppercase mt-1">Kits cirúrgicos, Instrumentais</p>
+            <p class="font-bold text-xs mt-3">📞 (11) 2345-6789</p>
+            <button class="mt-3 neo-btn border-4 border-black bg-black text-white px-3 py-1 font-black uppercase text-xs">Fazer Pedido</button>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<!-- Modal Novo Kit -->
+<div id="modal-kit" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+  <div class="bg-white border-4 border-black neo-shadow w-full max-w-md p-8">
+    <div class="flex justify-between items-center mb-6">
+      <p class="font-black text-2xl font-display uppercase">Novo Kit</p>
+      <button onclick="document.getElementById('modal-kit').classList.add('hidden')" class="font-black text-xl border-4 border-black w-10 h-10 flex items-center justify-center hover:bg-black hover:text-white">✕</button>
+    </div>
+    <div class="space-y-4">
+      <div>
+        <span class="neo-label">ID do Kit</span>
+        <input type="text" class="neo-input" placeholder="EX: KIT-CIR-010">
+      </div>
+      <div>
+        <span class="neo-label">Tipo</span>
+        <select class="neo-input bg-white">
+          <option>Cirúrgico</option>
+          <option>Endodôntico</option>
+          <option>Protético</option>
+          <option>Periodontal</option>
+        </select>
+      </div>
+      <div>
+        <span class="neo-label">Validade</span>
+        <input type="date" class="neo-input">
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button onclick="document.getElementById('modal-kit').classList.add('hidden')" class="flex-1 neo-btn border-4 border-black bg-white py-3 font-black uppercase text-sm">Cancelar</button>
+        <button class="flex-1 neo-btn neo-shadow border-4 border-black bg-[#FF3D00] text-white py-3 font-black uppercase text-sm">✓ Cadastrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const sidebar = document.getElementById('sidebar');
+  document.querySelectorAll('.sidebar-link').forEach(link => {
+    link.addEventListener('click', () => { if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full'); });
+  });
+
+  const navLinks = document.querySelectorAll('.sidebar-link');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.getAttribute('id');
+        navLinks.forEach(l => l.classList.remove('active'));
+        document.querySelector(`.sidebar-link[href="#${id}"]`)?.classList.add('active');
+      }
+    });
+  }, { threshold: 0.35 });
+  document.querySelectorAll('section[id]').forEach(s => observer.observe(s));
+</script>
 </body>
 </html>

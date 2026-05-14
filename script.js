@@ -1,70 +1,45 @@
-/* Requer: anime.js                                */
+document.addEventListener('DOMContentLoaded', function () {
 
-document.addEventListener('DOMContentLoaded', () => {
-
-    /* 1) UTILIDADE: Retorna o elemento de scroll do documento */
-    const getScrollElement = () => document.scrollingElement || document.documentElement;
-
-    /* 2) SMOOTH SCROLL: Rolagem suave para links de âncora (Mantido) */
-    const anchorLinks = document.querySelectorAll('a.nav-link, a[href^="#"]:not([href="#"])');
-    anchorLinks.forEach(a => {
-        a.addEventListener('click', (ev) => {
-            ev.preventDefault();
-            const href = a.getAttribute('href');
-            const target = document.querySelector(href);
-            if (!target) return;
-
-            const header = document.querySelector('header');
-            const headerH = header ? header.offsetHeight : 0;
-            const targetTop = window.scrollY + target.getBoundingClientRect().top - headerH - 16;
-
-            anime({
-                targets: getScrollElement(),
-                scrollTop: Math.max(0, targetTop),
-                duration: 700,
-                easing: 'easeInOutCubic'
-            });
-        });
+  /* ── Smooth scroll para âncoras ─────────────────────────── */
+  document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      var target = document.querySelector(a.getAttribute('href'));
+      if (!target) return;
+      e.preventDefault();
+      var header = document.querySelector('.site-header');
+      var offset = header ? header.offsetHeight : 0;
+      var top = target.getBoundingClientRect().top + window.scrollY - offset - 16;
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
     });
-    
-    /* 3) ANIMAÇÃO CTA: Pequena entrada animada para os botões (Mantido) */
-    const ctas = document.querySelectorAll('.button-highlight, .button-primary');
-    if (window.anime && ctas.length) {
-        anime({
-            targets: ctas,
-            translateY: [10, 0],
-            opacity: [0, 1],
-            duration: 700,
-            delay: anime.stagger(120, { start: 200 }),
-            easing: 'easeOutCubic'
-        });
-    }
+  });
 
-    /* 4) MENU MOBILE: Lógica para o menu hamburger (Mantido) */
-    const mobileMenuButton = document.getElementById('mobile-menu-button');
-    const mobileMenu = document.getElementById('mobile-menu');
-    
-    if (mobileMenuButton && mobileMenu) {
-        const hamburgerIcon = mobileMenuButton.querySelector('svg.block');
-        const closeIcon = mobileMenuButton.querySelector('svg.hidden');
+  /* ── Menu mobile ─────────────────────────────────────────── */
+  var btn  = document.getElementById('mobile-menu-button');
+  var menu = document.getElementById('mobile-menu');
 
-        mobileMenuButton.addEventListener('click', () => {
-            const isExpanded = mobileMenuButton.getAttribute('aria-expanded') === 'true';
+  if (btn && menu) {
+    btn.addEventListener('click', function () {
+      var open = !menu.classList.contains('hidden');
+      menu.classList.toggle('hidden', open);
+      btn.classList.toggle('open', !open);
+      btn.setAttribute('aria-expanded', String(!open));
+    });
 
-            mobileMenu.classList.toggle('hidden');
-            hamburgerIcon.classList.toggle('hidden');
-            closeIcon.classList.toggle('hidden');
-            mobileMenuButton.setAttribute('aria-expanded', !isExpanded);
-        });
+    menu.querySelectorAll('a').forEach(function (link) {
+      link.addEventListener('click', function () {
+        menu.classList.add('hidden');
+        btn.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      });
+    });
+  }
 
-        const mobileMenuLinks = mobileMenu.querySelectorAll('a');
-        mobileMenuLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (mobileMenuButton.getAttribute('aria-expanded') === 'true') {
-                    mobileMenuButton.click();
-                }
-            });
-        });
-    }
+  /* ── Header sombra ao rolar ──────────────────────────────── */
+  var header = document.querySelector('.site-header');
+  if (header) {
+    window.addEventListener('scroll', function () {
+      header.style.boxShadow = window.scrollY > 8 ? '0 4px 0 0 #000' : '';
+    }, { passive: true });
+  }
 
 });
