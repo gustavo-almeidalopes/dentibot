@@ -3,12 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>DentiBot — Transformando a Gestão Odontológica</title>
+  <title>DentiBot — Software de Gestão para Dentistas e Clínicas Odontológicas</title>
+  <meta name="description" content="DentiBot é o software de gestão para dentistas autônomos e clínicas de pequeno e médio porte. Agendamento, prontuário, cobrança e LGPD em uma plataforma só.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+  <a href="#main-content" class="skip-link">Ir para o conteúdo</a>
 
   <!-- ── HEADER ─────────────────────────────────────────────── -->
   <header class="site-header">
@@ -21,13 +24,14 @@
         </a>
 
         <nav class="nav-desktop" aria-label="Navegação principal">
-          <a href="#features" class="nav-link">Funcionalidades</a>
-          <a href="#benefits" class="nav-link">Benefícios</a>
+          <a href="#features"     class="nav-link">Funcionalidades</a>
+          <a href="#para-quem"    class="nav-link">Para Quem</a>
+          <a href="#pricing"      class="nav-link">Planos</a>
           <a href="#testimonials" class="nav-link">Depoimentos</a>
         </nav>
 
         <div class="header-actions">
-          <a href="#" class="btn btn-yellow btn-sm">Começar Grátis</a>
+          <a href="#pricing" class="btn btn-yellow btn-sm">Ver Planos</a>
           <a href="src/pages/login.html" class="btn btn-outline btn-sm">Login</a>
         </div>
 
@@ -39,64 +43,114 @@
     </div>
 
     <div class="mobile-menu hidden" id="mobile-menu">
-      <a href="#features" class="nav-link">Funcionalidades</a>
-      <a href="#benefits" class="nav-link">Benefícios</a>
+      <a href="#features"     class="nav-link">Funcionalidades</a>
+      <a href="#para-quem"    class="nav-link">Para Quem</a>
+      <a href="#pricing"      class="nav-link">Planos</a>
       <a href="#testimonials" class="nav-link">Depoimentos</a>
-      <a href="#" class="btn btn-yellow">Começar Grátis</a>
+      <a href="#pricing" class="btn btn-yellow">Ver Planos</a>
       <a href="src/pages/login.html" class="btn btn-outline">Login</a>
     </div>
   </header>
 
   <!-- ── HERO ───────────────────────────────────────────────── -->
-  <section class="hero">
+  <section id="main-content" class="hero">
     <div class="container">
       <div class="hero-grid">
 
         <div class="hero-content">
-          <div class="badge">🦷 Inovação em Gestão Odontológica</div>
-          <h1 class="hero-title">
-            Simplifique a gestão do seu consultório com o
-            <mark class="hero-mark">DentiBot</mark>
+          <div class="badge" data-reveal>🏢 Software B2B · Dentistas &amp; Clínicas</div>
+          <h1 class="hero-title" data-reveal data-delay="100">
+            Gerencie seu consultório como um negócio.
+            <mark class="hero-mark">Porque ele é.</mark>
           </h1>
-          <p class="hero-desc">
-            Sistema completo para clínicas odontológicas. Automatize tarefas e foque no que realmente importa: seus pacientes.
+          <p class="hero-desc" data-reveal data-delay="200">
+            Para dentistas autônomos e clínicas de pequeno e médio porte. Agendamento, prontuário, cobrança e LGPD em uma plataforma só — sem planilhas, sem papelada.
           </p>
-          <div class="hero-actions">
-            <a href="#" class="btn btn-green btn-lg">Começar Teste Grátis →</a>
-            <a href="#" class="btn btn-outline btn-lg">Ver Demonstração</a>
+          <div class="hero-actions" data-reveal data-delay="300">
+            <a href="#pricing" class="btn btn-green btn-lg">Testar 30 dias grátis →</a>
+            <a href="#features" class="btn btn-outline btn-lg">Ver como funciona</a>
           </div>
-          <div class="hero-stats">
+          <div class="hero-stats" data-reveal data-delay="400">
+            <div class="stat">
+              <span class="stat-num">8h</span>
+              <span class="stat-label">Economizadas/semana</span>
+            </div>
+            <div class="stat-sep"></div>
+            <div class="stat">
+              <span class="stat-num">↓35%</span>
+              <span class="stat-label">Faltas em média</span>
+            </div>
+            <div class="stat-sep"></div>
             <div class="stat">
               <span class="stat-num">500+</span>
-              <span class="stat-label">Clínicas</span>
-            </div>
-            <div class="stat-sep"></div>
-            <div class="stat">
-              <span class="stat-num">98%</span>
-              <span class="stat-label">Satisfação</span>
-            </div>
-            <div class="stat-sep"></div>
-            <div class="stat">
-              <span class="stat-num">24/7</span>
-              <span class="stat-label">Suporte</span>
+              <span class="stat-label">Consultórios</span>
             </div>
           </div>
         </div>
 
         <div class="hero-visual" aria-hidden="true">
           <div class="hero-card neo-shadow float">
-            <span class="hero-card-icon">🦷</span>
+            <span class="hero-card-icon">📊</span>
             <div>
-              <p class="hero-card-name">DentiBot</p>
-              <p class="hero-card-sub">Gestão Inteligente</p>
+              <p class="hero-card-name">Faturamento / Mês</p>
+              <p class="hero-card-sub">R$ 18.400 · +12% vs mês ant.</p>
             </div>
-            <span class="hero-card-badge">✓ Online</span>
+            <span class="hero-card-badge">↑ Meta</span>
           </div>
           <div class="hero-card-mini neo-shadow-sm" style="left:8px;top:72%;">
-            <span>📅</span> Consulta confirmada
+            <span>✅</span> 3 faltas evitadas hoje
           </div>
           <div class="hero-card-mini neo-shadow-sm" style="right:0;top:20%;">
-            <span>💬</span> WhatsApp enviado
+            <span>💰</span> Pix recebido — R$ 350
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── PARA QUEM ──────────────────────────────────────────── -->
+  <section id="para-quem" class="section">
+    <div class="container">
+      <header class="section-header" data-reveal>
+        <p class="section-tag">Para Quem</p>
+        <h2 class="section-title">Desenvolvido para quem trabalha com odontologia</h2>
+        <p class="section-desc">Duas realidades, uma plataforma. Escolha o perfil que mais se parece com o seu.</p>
+      </header>
+
+      <div class="grid-2">
+
+        <div class="audience-card" data-reveal>
+          <div class="audience-card-accent" style="background: var(--green);"></div>
+          <div class="audience-card-body">
+            <p class="audience-eyebrow">Perfil 1</p>
+            <h3 class="audience-title">Dentista Autônomo</h3>
+            <p class="audience-desc">
+              Você é dentista, recepcionista e gestor ao mesmo tempo. O DentiBot elimina o caos administrativo com agendamento automático, prontuário digital e cobrança sem esforço — para você focar 100% nos seus pacientes.
+            </p>
+            <div class="audience-tag-list">
+              <span class="audience-tag">Consultório Próprio</span>
+              <span class="audience-tag">Recém-Formado</span>
+              <span class="audience-tag">Autônomo</span>
+              <span class="audience-tag">Home Office</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="audience-card" data-reveal data-delay="200">
+          <div class="audience-card-accent" style="background: var(--yellow);"></div>
+          <div class="audience-card-body">
+            <p class="audience-eyebrow">Perfil 2</p>
+            <h3 class="audience-title">Clínica Pequena ou Média</h3>
+            <p class="audience-desc">
+              De 2 a 8 dentistas em uma só plataforma. Controle de agenda por profissional, relatórios de desempenho da clínica, gestão de equipe completa e financeiro centralizado — tudo em tempo real.
+            </p>
+            <div class="audience-tag-list">
+              <span class="audience-tag">2 a 8 Dentistas</span>
+              <span class="audience-tag">Multi-Cadeira</span>
+              <span class="audience-tag">Gestão de Equipe</span>
+              <span class="audience-tag">Sócio-Gestor</span>
+            </div>
           </div>
         </div>
 
@@ -105,49 +159,49 @@
   </section>
 
   <!-- ── FEATURES ───────────────────────────────────────────── -->
-  <section id="features" class="section">
+  <section id="features" class="section section-dots">
     <div class="container">
-      <header class="section-header">
+      <header class="section-header" data-reveal>
         <p class="section-tag">Funcionalidades</p>
-        <h2 class="section-title">Completo para o seu consultório</h2>
-        <p class="section-desc">Tudo que você precisa para gerenciar sua clínica com eficiência.</p>
+        <h2 class="section-title">O sistema que paga por si mesmo</h2>
+        <p class="section-desc">Cada módulo foi desenhado para gerar eficiência real e mais receita para o seu consultório.</p>
       </header>
       <div class="grid-3">
 
-        <article class="feature-card neo-shadow">
-          <div class="feature-icon" style="background:#00E676;">👥</div>
-          <h3>Gestão de Pacientes</h3>
-          <p>Cadastro completo e gerenciamento de todas as informações dos pacientes.</p>
+        <article class="feature-card neo-shadow" data-reveal>
+          <div class="feature-icon" style="background: var(--green);">📅</div>
+          <h3>Agenda Sem Faltas</h3>
+          <p>Lembretes automáticos via WhatsApp reduzem no-shows em até 35%. Confirmação com 1 clique para o paciente.</p>
         </article>
 
-        <article class="feature-card neo-shadow">
-          <div class="feature-icon" style="background:#FFE600;">📋</div>
-          <h3>Prontuário Digital</h3>
-          <p>Prontuário eletrônico seguro e acessível em qualquer momento.</p>
+        <article class="feature-card neo-shadow" data-reveal data-delay="100">
+          <div class="feature-icon" style="background: var(--yellow);">📋</div>
+          <h3>Prontuário na Nuvem</h3>
+          <p>Histórico clínico completo acessível de qualquer dispositivo. Com odontograma digital e upload de radiografias.</p>
         </article>
 
-        <article class="feature-card neo-shadow">
-          <div class="feature-icon" style="background:#00E676;">📅</div>
-          <h3>Agendamento Inteligente</h3>
-          <p>Sistema de agendamento com confirmação automática de consultas.</p>
+        <article class="feature-card neo-shadow" data-reveal data-delay="200">
+          <div class="feature-icon" style="background: var(--green);">💰</div>
+          <h3>Cobrança Automatizada</h3>
+          <p>Gere cobranças via Pix, boleto e cartão diretamente pelo sistema. Sem planilhas, sem inadimplência esquecida.</p>
         </article>
 
-        <article class="feature-card neo-shadow">
-          <div class="feature-icon" style="background:#FF8C00;">📦</div>
-          <h3>Controle de Estoque</h3>
-          <p>Gerenciamento completo do inventário de instrumentos e consumíveis.</p>
+        <article class="feature-card neo-shadow" data-reveal data-delay="300">
+          <div class="feature-icon" style="background: var(--orange);">📦</div>
+          <h3>Estoque Inteligente</h3>
+          <p>Alerta automático de reposição de materiais. Nunca mais falte anestésico no meio de um atendimento.</p>
         </article>
 
-        <article class="feature-card neo-shadow">
-          <div class="feature-icon" style="background:#00E676;">💬</div>
-          <h3>Comunicação Otimizada</h3>
-          <p>Lembretes automáticos via WhatsApp, SMS e e-mail.</p>
+        <article class="feature-card neo-shadow" data-reveal data-delay="400">
+          <div class="feature-icon" style="background: var(--green);">💬</div>
+          <h3>Comunicação em Escala</h3>
+          <p>WhatsApp Business, SMS e e-mail em uma interface só. Campanhas de retorno e pós-consulta automáticas.</p>
         </article>
 
-        <article class="feature-card neo-shadow">
-          <div class="feature-icon" style="background:#FFE600;">✍️</div>
-          <h3>Assinatura Digital</h3>
-          <p>Suporte completo para assinatura digital de documentos e termos.</p>
+        <article class="feature-card neo-shadow" data-reveal data-delay="500">
+          <div class="feature-icon" style="background: var(--yellow);">🛡️</div>
+          <h3>LGPD Sem Dor de Cabeça</h3>
+          <p>Conformidade completa com a LGPD. Termos digitais, consentimento registrado e auditoria automática incluídos.</p>
         </article>
 
       </div>
@@ -155,111 +209,172 @@
   </section>
 
   <!-- ── BENEFITS ───────────────────────────────────────────── -->
-  <section id="benefits" class="section section-dots">
+  <section id="benefits" class="section">
     <div class="container">
       <div class="benefits-grid">
 
-        <div class="benefits-text">
+        <div class="benefits-text" data-reveal>
           <p class="section-tag">Benefícios</p>
-          <h2 class="section-title">Por que escolher o DentiBot?</h2>
-          <p class="section-desc">Desenvolvido para superar os desafios das clínicas odontológicas.</p>
+          <h2 class="section-title">ROI em semanas, não em anos</h2>
+          <p class="section-desc">Cada real investido no DentiBot se paga em menos de 30 dias.</p>
           <div class="benefit-list">
 
-            <div class="benefit-item">
-              <div class="benefit-icon" style="background:#00E676;">⚡</div>
+            <div class="benefit-item" data-reveal>
+              <div class="benefit-icon" style="background: var(--green);">📈</div>
               <div>
-                <h3>Aumento da Produtividade</h3>
-                <p>Reduza o tempo em tarefas administrativas e foque no atendimento.</p>
+                <h3>+R$ 2.000/mês em Média</h3>
+                <p>Consultórios que reduzem 35% das faltas faturam em média R$ 2.000 a mais por mês — só com o agendamento automático.</p>
               </div>
             </div>
 
-            <div class="benefit-item">
-              <div class="benefit-icon" style="background:#FFE600;">💰</div>
+            <div class="benefit-item" data-reveal data-delay="100">
+              <div class="benefit-icon" style="background: var(--yellow);">⏱️</div>
               <div>
-                <h3>Solução Acessível</h3>
-                <p>Preços justos para clínicas de pequeno e médio porte, sem abrir mão da qualidade.</p>
+                <h3>8 Horas Economizadas por Semana</h3>
+                <p>Agendamentos automáticos e lembretes eliminam ligações manuais e o trabalho administrativo repetitivo.</p>
               </div>
             </div>
 
-            <div class="benefit-item">
-              <div class="benefit-icon" style="background:#00E676;">⏱️</div>
+            <div class="benefit-item" data-reveal data-delay="200">
+              <div class="benefit-icon" style="background: var(--green);">🚀</div>
               <div>
-                <h3>Implementação Rápida</h3>
-                <p>Sistema intuitivo que não requer treinamentos complexos.</p>
+                <h3>Implantação em 1 Dia</h3>
+                <p>Onboarding guiado, importação de dados e treinamento inclusos. Seu consultório no ar em menos de 24h, sem consultor.</p>
               </div>
             </div>
 
-            <div class="benefit-item">
-              <div class="benefit-icon" style="background:#FFE600;">🛡️</div>
+            <div class="benefit-item" data-reveal data-delay="300">
+              <div class="benefit-icon" style="background: var(--yellow);">⚖️</div>
               <div>
-                <h3>Segurança e Conformidade LGPD</h3>
-                <p>Totalmente em conformidade com a LGPD e padrões de segurança.</p>
+                <h3>Zero Risco de Multa LGPD</h3>
+                <p>Gestão de consentimento, portabilidade de dados e trilha de auditoria automática. Compliance garantido sem esforço.</p>
               </div>
             </div>
 
           </div>
         </div>
 
-        <div class="integration-card neo-shadow">
-          <p class="integration-eyebrow">Sistema Integrado</p>
-          <h3 class="integration-title">Todas as ferramentas em um único lugar</h3>
+        <div class="integration-card neo-shadow" data-reveal data-delay="200">
+          <p class="integration-eyebrow">Integrações Incluídas</p>
+          <h3 class="integration-title">Conectado com as ferramentas que você já usa</h3>
           <ul class="integration-list">
-            <li><span class="check">✓</span> Integração com WhatsApp Business</li>
-            <li><span class="check">✓</span> Conexão com Google Maps</li>
-            <li><span class="check">✓</span> Convênios via TISS / TUSS</li>
-            <li><span class="check">✓</span> Arquitetura de Microsserviços</li>
-            <li><span class="check">✓</span> 2FA e Autenticação Segura</li>
-            <li><span class="check">✓</span> Relatórios e Auditoria</li>
+            <li><span class="check">✓</span> WhatsApp Business API oficial</li>
+            <li><span class="check">✓</span> Google Calendar e Google Maps</li>
+            <li><span class="check">✓</span> Convênios via TISS / TUSS / ANS</li>
+            <li><span class="check">✓</span> Pix, boleto e cartão de crédito</li>
+            <li><span class="check">✓</span> 2FA e criptografia ponta a ponta</li>
+            <li><span class="check">✓</span> NF-e e recibos automáticos</li>
           </ul>
-          <a href="#" class="btn btn-green" style="width:100%;margin-top:24px;">Ver todos os recursos →</a>
+          <a href="#features" class="btn btn-green" style="width:100%;margin-top:24px;">Ver todas as integrações →</a>
         </div>
 
       </div>
     </div>
   </section>
 
+  <!-- ── PRICING ────────────────────────────────────────────── -->
+  <section id="pricing" class="section section-dots">
+    <div class="container">
+      <header class="section-header" data-reveal>
+        <p class="section-tag">Planos</p>
+        <h2 class="section-title">Preço justo para o tamanho do seu negócio</h2>
+        <p class="section-desc">Sem fidelidade. Cancele quando quiser. 30 dias grátis em qualquer plano, sem cartão de crédito.</p>
+      </header>
+
+      <div class="pricing-grid">
+
+        <!-- Plano Solo -->
+        <div class="pricing-card" data-reveal>
+          <span class="pricing-badge">Dentista Autônomo</span>
+          <p class="pricing-plan">Solo</p>
+          <p class="pricing-price"><sup>R$</sup>97</p>
+          <p class="pricing-period">por mês · ou R$ 970/ano (2 meses grátis)</p>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> 1 profissional</li>
+            <li><span class="check">✓</span> Agendamento ilimitado</li>
+            <li><span class="check">✓</span> Prontuário digital completo</li>
+            <li><span class="check">✓</span> Lembretes WhatsApp (500/mês)</li>
+            <li><span class="check">✓</span> Cobrança via Pix e boleto</li>
+            <li><span class="check">✓</span> LGPD e consentimento digital</li>
+            <li><span class="check">✓</span> Suporte por chat e e-mail</li>
+          </ul>
+          <a href="src/pages/login.html" class="btn btn-green" style="width:100%;">Começar grátis →</a>
+          <p class="pricing-note">30 dias grátis · sem cartão</p>
+        </div>
+
+        <!-- Plano Clínica -->
+        <div class="pricing-card highlight" data-reveal data-delay="200">
+          <span class="pricing-badge">Mais Popular</span>
+          <p class="pricing-plan">Clínica</p>
+          <p class="pricing-price"><sup>R$</sup>197</p>
+          <p class="pricing-period">por mês · ou R$ 1.970/ano (2 meses grátis)</p>
+          <div class="pricing-divider"></div>
+          <ul class="pricing-features">
+            <li><span class="check">✓</span> Até 8 profissionais</li>
+            <li><span class="check">✓</span> Tudo do plano Solo, mais:</li>
+            <li><span class="check">✓</span> Controle de estoque</li>
+            <li><span class="check">✓</span> Relatórios financeiros</li>
+            <li><span class="check">✓</span> Múltiplos perfis de acesso</li>
+            <li><span class="check">✓</span> WhatsApp ilimitado</li>
+            <li><span class="check">✓</span> Suporte prioritário 24/7</li>
+          </ul>
+          <a href="src/pages/login.html" class="btn btn-black btn-lg" style="width:100%;">Começar grátis →</a>
+          <p class="pricing-note">30 dias grátis · sem cartão</p>
+        </div>
+
+      </div>
+
+      <p class="pricing-enterprise" data-reveal data-delay="300">
+        Clínica com mais de 8 dentistas?
+        <a href="https://wa.me/5511941212737?text=Quero+um+plano+Enterprise+para+minha+cl%C3%ADnica" target="_blank" rel="noopener">Fale com nossa equipe →</a>
+      </p>
+
+    </div>
+  </section>
+
   <!-- ── TESTIMONIALS ───────────────────────────────────────── -->
   <section id="testimonials" class="section">
     <div class="container">
-      <header class="section-header">
+      <header class="section-header" data-reveal>
         <p class="section-tag">Depoimentos</p>
-        <h2 class="section-title">O que nossos clientes dizem</h2>
-        <p class="section-desc">Profissionais que já transformaram suas clínicas com o DentiBot.</p>
+        <h2 class="section-title">Consultórios que já crescem com o DentiBot</h2>
+        <p class="section-desc">Resultados reais de profissionais que fazem odontologia com mais eficiência e menos estresse.</p>
       </header>
       <div class="grid-3">
 
-        <article class="testimonial-card neo-shadow">
+        <article class="testimonial-card neo-shadow" data-reveal>
           <p class="stars">★★★★★</p>
-          <p class="testimonial-text">"A gestão do consultório ficou muito mais simples e eficiente com o DentiBot. Recomendo a todos os colegas!"</p>
+          <p class="testimonial-text">"Economizei quase 2 horas por dia só com o agendamento automático. Nos primeiros 3 meses, minhas faltas caíram mais de 40%. O sistema se pagou na primeira semana."</p>
           <div class="testimonial-author">
-            <div class="author-avatar" style="background:#00E676;">DR</div>
+            <div class="author-avatar" style="background: var(--green);">JS</div>
             <div>
               <strong>Dr. João Silva</strong>
-              <span>Clínica Odontovida</span>
+              <span>Consultório próprio · São Paulo</span>
             </div>
           </div>
         </article>
 
-        <article class="testimonial-card neo-shadow" style="background:#FFE600;">
+        <article class="testimonial-card neo-shadow" style="background: var(--yellow);" data-reveal data-delay="100">
           <p class="stars">★★★★★</p>
-          <p class="testimonial-text">"O agendamento automático e os lembretes via WhatsApp mudaram a forma como interagimos com os pacientes!"</p>
+          <p class="testimonial-text">"Tenho 5 dentistas na clínica. Antes era um caos de planilhas e WhatsApp. Com o DentiBot, tudo centralizado: agenda, pagamentos e estoque em uma tela só."</p>
           <div class="testimonial-author">
-            <div class="author-avatar" style="background:#fff;">AM</div>
+            <div class="author-avatar" style="background: var(--white);">AM</div>
             <div>
               <strong>Dra. Ana Mello</strong>
-              <span>Instituto Dental Pro</span>
+              <span>Instituto Dental Pro · Recife</span>
             </div>
           </div>
         </article>
 
-        <article class="testimonial-card neo-shadow">
+        <article class="testimonial-card neo-shadow" data-reveal data-delay="200">
           <p class="stars">★★★★★</p>
-          <p class="testimonial-text">"A conformidade com a LGPD e a segurança dos dados nos deram total tranquilidade. Ferramenta indispensável."</p>
+          <p class="testimonial-text">"A questão da LGPD estava me tirando o sono. Hoje tenho consentimentos digitais, auditoria automática e compliance completo. Ferramenta indispensável para qualquer clínica séria."</p>
           <div class="testimonial-author">
-            <div class="author-avatar" style="background:#00E676;">CS</div>
+            <div class="author-avatar" style="background: var(--green);">CS</div>
             <div>
               <strong>Dr. Carlos Souza</strong>
-              <span>Sorriso Perfeito Clinic</span>
+              <span>Clínica Sorriso+ · Belo Horizonte</span>
             </div>
           </div>
         </article>
@@ -271,12 +386,12 @@
   <!-- ── CTA ────────────────────────────────────────────────── -->
   <section class="cta-section">
     <div class="container">
-      <div class="cta-inner">
-        <p class="section-tag" style="background:#fff;color:#000;">Pronto para começar?</p>
-        <h2 class="cta-title">Transforme sua clínica hoje</h2>
-        <p class="cta-desc">Junte-se a centenas de profissionais que já escolheram o DentiBot.</p>
+      <div class="cta-inner" data-reveal>
+        <p class="section-tag" style="background: var(--white); color: var(--black);">30 dias grátis · sem cartão de crédito</p>
+        <h2 class="cta-title">Comece a usar hoje.<br>Veja o resultado em dias.</h2>
+        <p class="cta-desc">Junte-se a mais de 500 consultórios que já transformaram sua gestão com o DentiBot.</p>
         <div class="cta-actions">
-          <a href="#" class="btn btn-green btn-lg">Começar Teste Grátis de 30 Dias →</a>
+          <a href="src/pages/login.html" class="btn btn-green btn-lg">Criar minha conta grátis →</a>
           <a href="src/pages/login.html" class="btn btn-outline-white btn-lg">Já tenho conta</a>
         </div>
       </div>
@@ -291,8 +406,8 @@
           <div class="logo-mark">D</div>
           <span class="logo-text">DentiBot</span>
         </a>
-        <p class="footer-copy">© 2025 DentiBot. Todos os direitos reservados.</p>
-        <p class="footer-version">v1.2.0 · Arquitetura de Microsserviços</p>
+        <p class="footer-copy">© 2025 DentiBot. Todos os direitos reservados. CNPJ 00.000.000/0001-00</p>
+        <p class="footer-version">v1.2.0 · Arquitetura de Microsserviços · LGPD Compliant</p>
       </div>
     </div>
   </footer>
