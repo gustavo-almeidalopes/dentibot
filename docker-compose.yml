@@ -4,9 +4,12 @@ version: '3.8'
 # Para escalar qualquer serviço:
 #   docker compose up --scale gateway=3 --scale patient-service=2 -d
 #
-# Os serviços internos NÃO expõem portas no host (escalabilidade);
-# apenas o frontend (porta 80) é acessível externamente.
-# O nginx-lb distribui requisições entre as instâncias do gateway.
+# Os serviços internos NÃO expõem portas no host (escalabilidade + isolamento
+# east-west); apenas o frontend é acessível externamente. O nginx-lb distribui
+# requisições entre as instâncias do gateway.
+#
+# ADR-0001: um único PostgreSQL (com RLS multi-tenant) substitui os 7 MySQL.
+# Todos os serviços conectam como `dentibot_app` (privilégio mínimo), nunca root.
 # ─────────────────────────────────────────────────────────────────────────────
 
 x-service-defaults: &service-defaults
@@ -14,80 +17,63 @@ x-service-defaults: &service-defaults
   networks:
     - dentibot-network
 
+# Variáveis comuns de banco/infra injetadas em cada serviço de aplicação.
+x-app-env: &app-env
+  DATABASE_URL: postgresql+psycopg2://${DB_APP_USER:-dentibot_app}:${DB_APP_PASSWORD}@postgres:5432/${POSTGRES_DB:-dentibot_escrita}
+  JWT_SECRET: ${JWT_SECRET}
+  REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+  INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET}
+
 services:
 
-  # ─── Banco de Dados – Master (Escrita) ───────────────────────────────────────
-  mysql-master:
+  # ─── Banco de Dados único – PostgreSQL 16 (escrita + RLS) ────────────────────
+  postgres:
     <<: *service-defaults
-    image: mysql:8.0
-    container_name: dentibot-mysql-master
+    build: ./docker/postgres        # imagem custom com pg_cron + pgaudit
+    container_name: dentibot-postgres
+    command:
+      - "postgres"
+      - "-c"
+      - "shared_preload_libraries=pg_cron,pgaudit"
+      - "-c"
+      - "cron.database_name=${POSTGRES_DB:-dentibot_escrita}"
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: dentibot
+      POSTGRES_DB: ${POSTGRES_DB:-dentibot_escrita}
+      POSTGRES_USER: ${POSTGRES_SUPERUSER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+      # Disponíveis para o script de credenciais (99-credentials.sh):
+      POSTGRES_SUPERUSER_PASSWORD: ${POSTGRES_SUPERUSER_PASSWORD}
+      DB_APP_PASSWORD: ${DB_APP_PASSWORD}
+      DB_TOKENIZER_PASSWORD: ${DB_TOKENIZER_PASSWORD}
+      DB_REPLICATOR_PASSWORD: ${DB_REPLICATOR_PASSWORD}
     ports:
-      - "3306:3306"
+      # Exposto só para depuração local; remover/limitar em produção.
+      - "127.0.0.1:5432:5432"
     volumes:
-      - mysql_master_data:/var/lib/mysql
-      - ./docker/mysql/master.cnf:/etc/mysql/conf.d/master.cnf:ro
-      - ./docker/mysql/init-master.sql:/docker-entrypoint-initdb.d/init-master.sql:ro
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/db_escrita.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/02-auth-extensions.sql:/docker-entrypoint-initdb.d/02-auth-extensions.sql:ro
+      - ./database/03-domain-extensions.sql:/docker-entrypoint-initdb.d/03-domain-extensions.sql:ro
+      - ./database/04-audit-extensions.sql:/docker-entrypoint-initdb.d/04-audit-extensions.sql:ro
+      - ./database/05-tokenization-extensions.sql:/docker-entrypoint-initdb.d/05-tokenization-extensions.sql:ro
+      - ./database/init-credentials.sh:/docker-entrypoint-initdb.d/99-credentials.sh:ro
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_SUPERUSER:-postgres} -d ${POSTGRES_DB:-dentibot_escrita}"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  # ─── Banco de Dados – Replica (Leitura) ──────────────────────────────────────
-  mysql-replica:
+  # ─── Redis – rate limiting (Flask-Limiter) + blocklist de JTI ────────────────
+  redis:
     <<: *service-defaults
-    image: mysql:8.0
-    container_name: dentibot-mysql-replica
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-    volumes:
-      - mysql_replica_data:/var/lib/mysql
-      - ./docker/mysql/replica.cnf:/etc/mysql/conf.d/replica.cnf:ro
+    image: redis:7-alpine
+    container_name: dentibot-redis
+    command: ["redis-server", "--save", "60", "1", "--appendonly", "no"]
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD}"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
-      timeout: 5s
-      retries: 10
-    depends_on:
-      mysql-master:
-        condition: service_healthy
-
-  # ─── Setup de Replicação (roda uma vez e encerra) ────────────────────────────
-  replication-setup:
-    image: mysql:8.0
-    networks:
-      - dentibot-network
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      REPLICATION_PASSWORD: ${REPLICATION_PASSWORD}
-    command: >
-      bash -c "
-        echo 'Aguardando mysql-master...' &&
-        until mysql -h mysql-master -u root -p$${MYSQL_ROOT_PASSWORD} -e 'SELECT 1' 2>/dev/null; do sleep 3; done &&
-        echo 'Aguardando mysql-replica...' &&
-        until mysql -h mysql-replica -u root -p$${MYSQL_ROOT_PASSWORD} -e 'SELECT 1' 2>/dev/null; do sleep 3; done &&
-        echo 'Configurando replicação GTID...' &&
-        mysql -h mysql-replica -u root -p$${MYSQL_ROOT_PASSWORD} -e \"
-          STOP REPLICA;
-          CHANGE REPLICATION SOURCE TO
-            SOURCE_HOST='mysql-master',
-            SOURCE_USER='replicator',
-            SOURCE_PASSWORD='$${REPLICATION_PASSWORD}',
-            SOURCE_AUTO_POSITION=1;
-          START REPLICA;
-          SHOW REPLICA STATUS\\G;
-        \" &&
-        echo 'Replicação configurada com sucesso.'
-      "
-    depends_on:
-      mysql-master:
-        condition: service_healthy
-      mysql-replica:
-        condition: service_healthy
-    restart: "no"
+      timeout: 3s
+      retries: 5
 
   # ─── Load Balancer (distribui entre instâncias do gateway) ───────────────────
   nginx-lb:
@@ -104,11 +90,12 @@ services:
       timeout: 5s
       retries: 5
 
-  # ─── API Gateway (escalável) ──────────────────────────────────────────────────
+  # ─── API Gateway (PEP: authz, rate limit, propagação de tenant) ──────────────
   gateway:
     <<: *service-defaults
     build: ./gateway
     environment:
+      <<: *app-env
       AUTH_SERVICE_URL:          http://auth-service:5001
       PATIENT_SERVICE_URL:       http://patient-service:5002
       APPOINTMENT_SERVICE_URL:   http://appointment-service:5003
@@ -116,88 +103,79 @@ services:
       COMMUNICATION_SERVICE_URL: http://communication-service:5005
       FINANCIAL_SERVICE_URL:     http://financial-service:5006
       AUDIT_SERVICE_URL:         http://audit-service:5007
-      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_ORIGIN:           ${FRONTEND_ORIGIN:-https://localhost}
     depends_on:
-      - auth-service
-      - patient-service
-      - appointment-service
-      - inventory-service
-      - communication-service
-      - financial-service
-      - audit-service
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
 
-  # ─── Auth Service (escalável) ─────────────────────────────────────────────────
+  # ─── Auth Service ─────────────────────────────────────────────────────────────
   auth-service:
     <<: *service-defaults
     build: ./services/auth-service
     environment:
-      DATABASE_URL:      mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-master/dentibot_auth
-      DATABASE_READ_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-replica/dentibot_auth
-      JWT_SECRET:        ${JWT_SECRET}
-      MAIL_SERVER:       ${MAIL_SERVER}
-      MAIL_PORT:         ${MAIL_PORT}
-      MAIL_USE_TLS:      ${MAIL_USE_TLS}
-      MAIL_USERNAME:     ${MAIL_USERNAME}
-      MAIL_PASSWORD:     ${MAIL_PASSWORD}
+      <<: *app-env
+      PASSWORD_PEPPER: ${PASSWORD_PEPPER}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      MAIL_SERVER:   ${MAIL_SERVER}
+      MAIL_PORT:     ${MAIL_PORT}
+      MAIL_USE_TLS:  ${MAIL_USE_TLS}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
       PORT: 5001
     depends_on:
-      mysql-master:
+      postgres:
         condition: service_healthy
-      mysql-replica:
+      redis:
         condition: service_healthy
 
-  # ─── Patient Service (escalável) ──────────────────────────────────────────────
+  # ─── Patient Service ────────────────────────────────────────────────────────
   patient-service:
     <<: *service-defaults
     build: ./services/patient-service
     environment:
-      DATABASE_URL:      mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-master/dentibot_patients
-      DATABASE_READ_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-replica/dentibot_patients
-      JWT_SECRET: ${JWT_SECRET}
+      <<: *app-env
+      # Role/segredo do vault de tokenização de PII (Fase 8).
+      TOKEN_VAULT_AES_KEY: ${TOKEN_VAULT_AES_KEY}
+      DB_TOKENIZER_USER: ${DB_TOKENIZER_USER:-dentibot_tokenizer}
+      DB_TOKENIZER_PASSWORD: ${DB_TOKENIZER_PASSWORD}
       PORT: 5002
     depends_on:
-      mysql-master:
-        condition: service_healthy
-      mysql-replica:
+      postgres:
         condition: service_healthy
 
-  # ─── Appointment Service (escalável) ──────────────────────────────────────────
+  # ─── Appointment Service ──────────────────────────────────────────────────────
   appointment-service:
     <<: *service-defaults
     build: ./services/appointment-service
     environment:
-      DATABASE_URL:        mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-master/dentibot_appointments
-      DATABASE_READ_URL:   mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-replica/dentibot_appointments
-      JWT_SECRET:          ${JWT_SECRET}
+      <<: *app-env
       PATIENT_SERVICE_URL: http://patient-service:5002
       PORT: 5003
     depends_on:
-      mysql-master:
-        condition: service_healthy
-      mysql-replica:
+      postgres:
         condition: service_healthy
 
-  # ─── Inventory Service (escalável) ────────────────────────────────────────────
+  # ─── Inventory Service ────────────────────────────────────────────────────────
   inventory-service:
     <<: *service-defaults
     build: ./services/inventory-service
     environment:
-      DATABASE_URL:      mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-master/dentibot_inventory
-      DATABASE_READ_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-replica/dentibot_inventory
-      JWT_SECRET: ${JWT_SECRET}
+      <<: *app-env
       PORT: 5004
     depends_on:
-      mysql-master:
-        condition: service_healthy
-      mysql-replica:
+      postgres:
         condition: service_healthy
 
-  # ─── Communication Service (escalável, sem banco) ─────────────────────────────
+  # ─── Communication Service (sem banco) ────────────────────────────────────────
   communication-service:
     <<: *service-defaults
     build: ./services/communication-service
     environment:
       JWT_SECRET:    ${JWT_SECRET}
+      REDIS_URL:     ${REDIS_URL:-redis://redis:6379/0}
+      INTERNAL_SERVICE_SECRET: ${INTERNAL_SERVICE_SECRET}
       MAIL_SERVER:   ${MAIL_SERVER}
       MAIL_PORT:     ${MAIL_PORT}
       MAIL_USE_TLS:  ${MAIL_USE_TLS}
@@ -207,52 +185,50 @@ services:
       TWILIO_TOKEN:  ${TWILIO_TOKEN}
       TWILIO_PHONE:  ${TWILIO_PHONE}
       WHATSAPP_TOKEN: ${WHATSAPP_TOKEN}
+      WHATSAPP_PHONE_ID: ${WHATSAPP_PHONE_ID}
       PORT: 5005
+    depends_on:
+      redis:
+        condition: service_healthy
 
-  # ─── Financial Service (escalável) ────────────────────────────────────────────
+  # ─── Financial Service ────────────────────────────────────────────────────────
   financial-service:
     <<: *service-defaults
     build: ./services/financial-service
     environment:
-      DATABASE_URL:      mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-master/dentibot_financial
-      DATABASE_READ_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-replica/dentibot_financial
-      JWT_SECRET: ${JWT_SECRET}
+      <<: *app-env
       PORT: 5006
     depends_on:
-      mysql-master:
-        condition: service_healthy
-      mysql-replica:
+      postgres:
         condition: service_healthy
 
-  # ─── Audit Service (escalável) ────────────────────────────────────────────────
+  # ─── Audit Service (append-only / WORM) ───────────────────────────────────────
   audit-service:
     <<: *service-defaults
     build: ./services/audit-service
     environment:
-      DATABASE_URL:      mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-master/dentibot_audit
-      DATABASE_READ_URL: mysql+pymysql://root:${MYSQL_ROOT_PASSWORD}@mysql-replica/dentibot_audit
-      JWT_SECRET: ${JWT_SECRET}
+      <<: *app-env
       PORT: 5007
     depends_on:
-      mysql-master:
-        condition: service_healthy
-      mysql-replica:
+      postgres:
         condition: service_healthy
 
-  # ─── Frontend (Nginx estático + proxy para LB) ────────────────────────────────
+  # ─── Frontend (Nginx estático com TLS + proxy para o gateway) ──────────────────
   frontend:
     <<: *service-defaults
-    build: ./frontend
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
     container_name: dentibot-frontend
     ports:
       - "80:80"
+      - "443:443"
     depends_on:
-      - nginx-lb
+      - gateway
 
 networks:
   dentibot-network:
     driver: bridge
 
 volumes:
-  mysql_master_data:
-  mysql_replica_data:
+  postgres_data:
