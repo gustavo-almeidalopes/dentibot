@@ -1,0 +1,79 @@
+name: ci-security
+
+# Pipeline de segurança Shift-Left (Padrões 04 e 10) — GATES BLOQUEANTES (Fase 11).
+# Qualquer segredo vazado, CVE conhecido ou achado de SAST de alta severidade
+# reprova o PR.
+
+on:
+  push:
+    branches: [main, master, develop]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  secret-scan:
+    name: Secret scanning (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "true"
+
+  sca:
+    name: SCA (pip-audit) + SBOM (CycloneDX)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar ferramentas
+        run: pip install pip-audit cyclonedx-bom
+      - name: pip-audit em todos os requirements.txt (bloqueante)
+        run: |
+          set -e
+          for req in $(find . -name requirements.txt); do
+            echo "::group::pip-audit $req"
+            pip-audit -r "$req" --strict
+            echo "::endgroup::"
+          done
+      - name: Gerar SBOM (CycloneDX)
+        run: |
+          for req in $(find . -name requirements.txt); do
+            cyclonedx-py requirements "$req" -o "sbom-$(echo $req | tr '/' '_').json"
+          done
+      - name: Publicar SBOM
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: sbom-*.json
+          if-no-files-found: ignore
+
+  sast:
+    name: SAST (bandit + semgrep)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: bandit (bloqueante em alta severidade)
+        run: |
+          pip install bandit
+          bandit -r gateway services -lll
+      - name: semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/python
+            p/flask
+            p/security-audit
+            p/secrets
