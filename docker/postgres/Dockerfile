@@ -2,7 +2,7 @@
 #   - pgcrypto  (já vem no contrib) — crypt()/bcrypt, pgp_sym_encrypt (AES-256), digest()
 #   - pgaudit   — auditoria a nível de banco (Padrão 09)
 #   - pg_cron   — jobs agendados: desbloqueio de contas, revogação de acesso JIT
-FROM postgres:16
+FROM postgres:18
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
