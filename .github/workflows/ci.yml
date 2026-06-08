@@ -51,7 +51,7 @@ jobs:
             cyclonedx-py requirements "$req" -o "sbom-$(echo $req | tr '/' '_').json"
           done
       - name: Publicar SBOM
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sbom
           path: sbom-*.json
