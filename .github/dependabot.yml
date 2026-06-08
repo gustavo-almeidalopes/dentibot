@@ -1,0 +1,39 @@
+version: 2
+updates:
+  # Dependências Python de cada serviço + gateway (SCA contínuo, Padrão 10).
+  - package-ecosystem: pip
+    directory: "/gateway"
+    schedule: { interval: weekly }
+    open-pull-requests-limit: 5
+  - package-ecosystem: pip
+    directory: "/services/auth-service"
+    schedule: { interval: weekly }
+  - package-ecosystem: pip
+    directory: "/services/patient-service"
+    schedule: { interval: weekly }
+  - package-ecosystem: pip
+    directory: "/services/appointment-service"
+    schedule: { interval: weekly }
+  - package-ecosystem: pip
+    directory: "/services/inventory-service"
+    schedule: { interval: weekly }
+  - package-ecosystem: pip
+    directory: "/services/financial-service"
+    schedule: { interval: weekly }
+  - package-ecosystem: pip
+    directory: "/services/communication-service"
+    schedule: { interval: weekly }
+  - package-ecosystem: pip
+    directory: "/services/audit-service"
+    schedule: { interval: weekly }
+  # Imagens base dos Dockerfiles.
+  - package-ecosystem: docker
+    directory: "/docker/postgres"
+    schedule: { interval: weekly }
+  - package-ecosystem: docker
+    directory: "/frontend"
+    schedule: { interval: weekly }
+  # GitHub Actions.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule: { interval: weekly }
