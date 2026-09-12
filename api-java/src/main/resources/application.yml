@@ -1,0 +1,95 @@
+spring:
+  application:
+    name: dentibot-api
+
+  # A aplicação conecta como dentibot_app: sem posse de tabela, sem superusuário.
+  # Se algum dia alguém apontar isto para o role dono, o RLS para de valer sem
+  # nenhum erro aparecer — ver docs/architecture/tenancy.md.
+  datasource:
+    url: ${DENTIBOT_DB_URL}
+    username: ${DENTIBOT_DB_USER:dentibot_app}
+    password: ${DENTIBOT_DB_PASSWORD}
+    hikari:
+      maximum-pool-size: ${DENTIBOT_DB_POOL:10}
+      pool-name: dentibot-app
+
+  # Flyway tem credencial própria, de um role que é dono do schema e não é a app.
+  flyway:
+    enabled: true
+    url: ${DENTIBOT_DB_URL}
+    user: ${DENTIBOT_DB_MIGRADOR_USER:dentibot_migrador}
+    password: ${DENTIBOT_DB_MIGRADOR_PASSWORD}
+    schemas: plataforma
+    default-schema: plataforma
+    create-schemas: true
+    validate-on-migrate: true
+    # Migration aplicada nunca muda (invariante 13). Se o checksum divergir, é
+    # porque alguém editou — e o certo é falhar, não "reparar".
+    clean-disabled: true
+
+  data:
+    redis:
+      url: ${DENTIBOT_REDIS_URL:redis://localhost:6379}
+      # Redis cair degrada, não corrompe (camada 11). Timeout curto para não
+      # segurar a requisição esperando o cache.
+      timeout: 500ms
+      connect-timeout: 500ms
+
+  threads:
+    virtual:
+      enabled: true
+
+dentibot:
+  jwt:
+    # Chave de assinatura RSA em PEM, injetada por variável de ambiente. Nunca
+    # no repositório (invariante 12) — o gate do gitleaks é bloqueante.
+    chave-privada-pem: ${DENTIBOT_JWT_PRIVATE_KEY:}
+    chave-publica-pem: ${DENTIBOT_JWT_PUBLIC_KEY:}
+    emissor: ${DENTIBOT_JWT_ISSUER:https://api.dentibot.com.br}
+    # Access curto: a blocklist de JTI só precisa cobrir esta janela.
+    validade-access: PT15M
+    validade-refresh: P14D
+  cors:
+    origens: ${DENTIBOT_CORS_ORIGINS:http://localhost:5173}
+  seguranca:
+    max-falhas-login: 5
+    duracao-bloqueio: PT30M
+  # Camada de DENTRO do rate limit. A camada de borda (Cloudflare) barra volume
+  # antes de consumir thread da aplicação — as duas existem e fazem coisas
+  # diferentes (camada 12).
+  ratelimit:
+    # Apertado: é onde se tenta senha.
+    auth-por-minuto: ${DENTIBOT_RATELIMIT_AUTH:10}
+    geral-por-minuto: ${DENTIBOT_RATELIMIT_GERAL:300}
+    janela: PT1M
+  # Cookie de refresh com Secure. Só vira false em dev sobre HTTP puro.
+  cookie-seguro: ${DENTIBOT_COOKIE_SEGURO:true}
+
+server:
+  port: ${PORT:8080}
+  error:
+    include-message: never
+    include-stacktrace: never
+  forward-headers-strategy: framework
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      # Detalhe de health revela topologia interna para quem não precisa.
+      show-details: when-authorized
+  health:
+    redis:
+      enabled: true
+
+logging:
+  level:
+    root: INFO
+    br.com.dentibot: ${DENTIBOT_LOG_LEVEL:INFO}
+  pattern:
+    # correlacaoId no padrão de log é o que permite responder "sumiu a agenda de
+    # ontem" com log em vez de chute.
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlacaoId:-}] %logger{36} - %msg%n"

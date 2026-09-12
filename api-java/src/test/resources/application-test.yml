@@ -1,0 +1,34 @@
+# Perfil de teste. url/user/password de banco vêm do Testcontainers via
+# @DynamicPropertySource — ver TesteIntegracao.
+dentibot:
+  jwt:
+    # Par RSA 2048 gerado SÓ para teste, nunca usado em outro lugar. Fica em
+    # claro de propósito: é preciso que o gitleaks e a revisão vejam que é
+    # material de teste, e não um segredo de produção vazado.
+    emissor: https://teste.dentibot.local
+    validade-access: PT15M
+    validade-refresh: P14D
+  cors:
+    origens: http://localhost:5173
+  cookie-seguro: false
+  ratelimit:
+    # Teste roda dezenas de logins em segundos; o limite de produção
+    # transformaria isso em 429 intermitente e num teste instável.
+    auth-por-minuto: 10000
+    geral-por-minuto: 10000
+    janela: PT1M
+
+spring:
+  data:
+    redis:
+      url: redis://localhost:6379
+      timeout: 200ms
+      connect-timeout: 200ms
+
+logging:
+  level:
+    root: WARN
+    br.com.dentibot: INFO
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN
+    org.flywaydb: INFO
