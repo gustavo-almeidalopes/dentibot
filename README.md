@@ -53,6 +53,43 @@ não alcança dado clínico e que a aplicação não é dona das tabelas. A V1 d
 projeto pretendia 31 políticas de RLS, criou zero, e vazava dados entre
 clínicas sem um único teste vermelho.
 
+## Publicar
+
+`web/` vai para a Vercel, e o `vercel.json` da raiz é quem descreve o build.
+Não existe `package.json` na raiz: sem esse arquivo a Vercel clona o
+repositório, não encontra nada para construir e publica um deploy vazio — que
+fica `READY` no painel e responde **404** no navegador.
+
+```json
+"installCommand":  "cd web && npm ci",
+"buildCommand":    "cd web && npm run build",
+"outputDirectory": "web/dist"
+```
+
+O `rewrites` manda todo caminho sem arquivo correspondente para o
+`index.html`. `/login` e `/clientes` são lidos de `window.location.pathname`
+em `web/src/main.jsx`, e não existem como arquivo no `dist` — sem o rewrite,
+abrir uma dessas URLs direto dá 404. Arquivo estático continua tendo
+precedência sobre o rewrite, então `/assets/*` não é afetado.
+
+Se o **Root Directory** do projeto na Vercel for apontado para `web`, o
+`vercel.json` da raiz deixa de valer: a Vercel só lê o do diretório raiz do
+projeto. Por isso o mesmo rewrite está também em `web/vercel.json` — assim o
+deploy sai correto nas duas configurações.
+
+Duas variáveis de ambiente no projeto da Vercel, ambas embutidas no bundle
+pelo Vite e portanto públicas:
+
+| Variável | O que quebra sem ela |
+| --- | --- |
+| `VITE_CLERK_PUBLISHABLE_KEY` | a landing carrega, mas o widget do Clerk em `/login` não monta |
+| `VITE_API_BASE` | o front chama `/api` no domínio da Vercel, onde não há back-end |
+
+Falta ainda o **Deployment Protection**, que é do painel e não do
+repositório: com "Vercel Authentication" em _Standard Protection_, todo
+domínio `*.vercel.app` — o de produção inclusive — pede login da Vercel antes
+de servir a página. Só domínio próprio fica de fora.
+
 ## Arquitetura
 
 - **[docs/architecture/tenancy.md](docs/architecture/tenancy.md)** — como uma
