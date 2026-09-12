@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "DentiBot",
+    "slug": "dentibot",
+    "version": "2.0.0",
+    "orientation": "portrait",
+    "scheme": "dentibot",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "backgroundColor": "#000000",
+    "plugins": ["expo-router"],
+    "ios": {
+      "bundleIdentifier": "br.com.dentibot.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "br.com.dentibot.app",
+      "edgeToEdgeEnabled": true,
+      "adaptiveIcon": {
+        "backgroundColor": "#000000"
+      },
+      "permissions": []
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

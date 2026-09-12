@@ -1,0 +1,20 @@
+node_modules/
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Builds nativos: gerados por `expo prebuild`, nunca versionados enquanto o
+# projeto for managed. Se um dia precisar de código nativo, o commit é
+# deliberado e este arquivo muda junto.
+/ios/
+/android/
+
+# Credenciais de assinatura e segredos de build.
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.env
+.env.local
