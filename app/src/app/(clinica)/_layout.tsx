@@ -1,5 +1,5 @@
+import { useAuth } from '@clerk/expo';
 import { Redirect, Tabs } from 'expo-router';
-import { useAuth } from '../../auth';
 import { cor, espaco, tipo } from '../../theme';
 import { Carregando } from '../../ui';
 
@@ -13,10 +13,10 @@ import { Carregando } from '../../ui';
  * o que três palavras já dizem.
  */
 export default function LayoutClinica() {
-  const { situacao } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
-  if (situacao === 'carregando') return <Carregando />;
-  if (situacao !== 'autenticado') return <Redirect href="/login" />;
+  if (!isLoaded) return <Carregando />;
+  if (!isSignedIn) return <Redirect href="/login" />;
 
   return (
     <Tabs

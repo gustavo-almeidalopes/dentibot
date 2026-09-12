@@ -11,11 +11,13 @@
     "test": "node --test src/*.test.mjs"
   },
   "dependencies": {
+    "@clerk/expo": "^4.6.6",
     "expo": "~54.0.0",
     "expo-constants": "~18.0.0",
     "expo-crypto": "~15.0.0",
     "expo-linking": "~8.0.12",
     "expo-router": "~6.0.0",
+    "expo-secure-store": "~15.0.8",
     "expo-status-bar": "~3.0.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",

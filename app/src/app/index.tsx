@@ -1,15 +1,15 @@
+import { useAuth } from '@clerk/expo';
 import { Redirect } from 'expo-router';
-import { useAuth } from '../auth';
 import { Carregando } from '../ui';
 
 /**
- * Porteiro. Enquanto o provedor pergunta ao backend se existe sessão (um POST
- * /auth/refresh), não há para onde mandar o usuário — mostrar o login aqui
- * faria a tela piscar em quem já estava logado.
+ * Porteiro. isLoaded antes de isSignedIn não é zelo: enquanto o Clerk lê o
+ * token do Keychain, isSignedIn é false — mandar para o login aí faria a tela
+ * piscar em quem já estava logado.
  */
 export default function Entrada() {
-  const { situacao } = useAuth();
+  const { isLoaded, isSignedIn } = useAuth();
 
-  if (situacao === 'carregando') return <Carregando />;
-  return <Redirect href={situacao === 'autenticado' ? '/agenda' : '/login'} />;
+  if (!isLoaded) return <Carregando />;
+  return <Redirect href={isSignedIn ? '/agenda' : '/login'} />;
 }

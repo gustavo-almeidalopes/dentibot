@@ -3,20 +3,14 @@
  *
  * Três decisões que valem uma linha de explicação cada:
  *
- * 1. **O access token vive em memória, nunca em disco.** Ele dura 15 minutos
- *    (`validade-access: PT15M`) e persistir isso só criaria uma cópia de
- *    credencial para alguém achar. Fechar o app derruba a variável; o refresh
- *    é que reconstrói a sessão.
+ * 1. **A sessão é do Clerk.** O token curto e a renovação saíram daqui: quem
+ *    guarda é o `tokenCache` do @clerk/expo, sobre expo-secure-store — Keychain
+ *    no iOS, Keystore no Android. Sumiram o refresh manual, o mutex de
+ *    renovação e o handler de sessão expirada, porque o SDK já faz os três.
  *
- * 2. **O refresh viaja em cookie HttpOnly**, como no SPA — o backend só o lê de
- *    `@CookieValue("dentibot_refresh")`. O fetch do React Native usa o cookie
- *    store nativo (NSHTTPCookieStorage no iOS, CookieManager no Android), que
- *    persiste entre execuções. Nenhum código aqui toca no token: é ilegível
- *    para o JavaScript do app, o que é exatamente a propriedade desejada.
- *
- *    ponytail: cookie jar nativo. Trocar por expo-secure-store quando o
- *    backend aceitar o refresh no corpo — é o que MASVS pede, e é o único jeito
- *    de o app saber se tem sessão antes de gastar uma requisição descobrindo.
+ * 2. **getClerkInstance, não useAuth.** Este módulo não é componente e não tem
+ *    hook. O singleton é o caminho documentado para chamar a API fora do React,
+ *    e `getToken()` nele renova sozinho quando o token está perto de vencer.
  *
  * 3. **A chave de idempotência é gerada uma vez por requisição lógica**, não por
  *    tentativa HTTP. Se um 401 disparar refresh e retry, a segunda tentativa
@@ -24,6 +18,7 @@
  *    segunda operação, que é precisamente o que o `FiltroIdempotencia` existe
  *    para impedir.
  */
+import { getClerkInstance } from '@clerk/expo';
 import * as Crypto from 'expo-crypto';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080';
@@ -40,20 +35,21 @@ const EXIGEM_IDEMPOTENCIA = [
   '/api/v1/orcamentos',
 ];
 
-// ─── Estado de sessão ────────────────────────────────────────────────────────
+// ─── Sessão ──────────────────────────────────────────────────────────────────
 
-let accessToken: string | null = null;
-let aoExpirarSessao: (() => void) | null = null;
-/** Um refresh por vez: cinco 401 simultâneos não viram cinco renovações. */
-let renovacaoEmCurso: Promise<boolean> | null = null;
-
-export function definirAccessToken(token: string | null): void {
-  accessToken = token;
-}
-
-/** Chamado quando o refresh falha: a camada de auth derruba a sessão na UI. */
-export function definirHandlerDeSessaoExpirada(fn: (() => void) | null): void {
-  aoExpirarSessao = fn;
+/**
+ * `skipCache` força ida ao Clerk em vez de devolver o token em cache. Só o
+ * retry usa: o caminho normal aproveita o cache, e sem isso o retry de um 401
+ * remandaria exatamente o token que acabou de ser recusado.
+ */
+async function tokenDeSessao(skipCache = false): Promise<string | null> {
+  try {
+    return (await getClerkInstance().session?.getToken({ skipCache })) ?? null;
+  } catch {
+    // Sem sessão, ou o SDK ainda não carregou. Ir sem Authorization e deixar o
+    // 401 do backend decidir é mais honesto do que adivinhar aqui.
+    return null;
+  }
 }
 
 export class ErroApi extends Error {
@@ -71,7 +67,7 @@ export class ErroApi extends Error {
 type Opcoes = {
   metodo?: 'GET' | 'POST';
   corpo?: unknown;
-  /** Login e refresh não mandam Bearer nem tentam renovar. */
+  /** Rota pública: não manda Bearer nem tenta renovar no 401. */
   semAuth?: boolean;
 };
 
@@ -79,6 +75,7 @@ async function enviar(
   caminho: string,
   o: Opcoes,
   chaveIdempotencia: string | null,
+  skipCache = false,
 ): Promise<Response> {
   const metodo = o.metodo ?? 'GET';
   const cabecalhos: Record<string, string> = {
@@ -88,38 +85,17 @@ async function enviar(
     'X-Correlation-Id': Crypto.randomUUID(),
   };
   if (o.corpo !== undefined) cabecalhos['Content-Type'] = 'application/json';
-  if (!o.semAuth && accessToken) cabecalhos.Authorization = `Bearer ${accessToken}`;
+  if (!o.semAuth) {
+    const token = await tokenDeSessao(skipCache);
+    if (token) cabecalhos.Authorization = `Bearer ${token}`;
+  }
   if (chaveIdempotencia) cabecalhos['Idempotency-Key'] = chaveIdempotencia;
 
   return fetch(BASE + caminho, {
     method: metodo,
     headers: cabecalhos,
     body: o.corpo === undefined ? undefined : JSON.stringify(o.corpo),
-    // Manda o cookie de refresh. É o padrão no RN, mas explícito documenta.
-    credentials: 'include',
   });
-}
-
-async function renovar(): Promise<boolean> {
-  if (renovacaoEmCurso) return renovacaoEmCurso;
-
-  renovacaoEmCurso = (async () => {
-    try {
-      const r = await enviar('/api/v1/auth/refresh', { metodo: 'POST', semAuth: true }, null);
-      if (!r.ok) return false;
-      const dados = (await r.json()) as RespostaLogin;
-      accessToken = dados.accessToken;
-      return true;
-    } catch {
-      // Rede caiu no meio da renovação. Não é sessão inválida — mas daqui não
-      // há como distinguir, e tratar como expirada só custa um login.
-      return false;
-    } finally {
-      renovacaoEmCurso = null;
-    }
-  })();
-
-  return renovacaoEmCurso;
 }
 
 async function interpretar<T>(r: Response): Promise<T> {
@@ -171,14 +147,12 @@ export async function pedir<T>(caminho: string, o: Opcoes = {}): Promise<T> {
     throw new ErroApi(0, 'Sem conexão com a API.');
   }
 
+  // Uma tentativa só, com token fora do cache: se o Clerk continua entregando
+  // sessão e o backend continua recusando, o problema não é frescor de token e
+  // repetir não conserta. Quem manda a UI de volta ao login é o estado do
+  // Clerk, não este 401.
   if (r.status === 401 && !o.semAuth) {
-    if (await renovar()) {
-      r = await enviar(caminho, o, chave);
-    } else {
-      accessToken = null;
-      aoExpirarSessao?.();
-      throw new ErroApi(401, 'Sessão expirada.');
-    }
+    r = await enviar(caminho, o, chave, true);
   }
 
   return interpretar<T>(r);
@@ -187,12 +161,6 @@ export async function pedir<T>(caminho: string, o: Opcoes = {}): Promise<T> {
 // ─── Contratos ───────────────────────────────────────────────────────────────
 // Espelham os records do backend. Nomes idênticos de propósito: a tradução
 // acontece na tela, não aqui, para que uma mudança de DTO apareça no typecheck.
-
-export type RespostaLogin = {
-  accessToken: string;
-  expiraEm: string;
-  tokenType: string;
-};
 
 export type Identidade = {
   usuarioId: number | null;
@@ -231,15 +199,8 @@ export type Paciente = {
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
 export const api = {
-  login: (email: string, senha: string) =>
-    pedir<RespostaLogin>('/api/v1/auth/login', {
-      metodo: 'POST',
-      corpo: { email, senha },
-      semAuth: true,
-    }),
-
-  logout: () => pedir<void>('/api/v1/auth/logout', { metodo: 'POST' }),
-
+  // login/logout saíram: quem cria e derruba sessão é o Clerk. O eu() fica —
+  // papel e clínica são do domínio, não da identidade, e só o backend os sabe.
   eu: () => pedir<Identidade>('/api/v1/auth/me'),
 
   /** `de`/`ate` em ISO-8601 UTC — o backend os recebe como Instant. */
