@@ -6,7 +6,7 @@ um tenant, e o isolamento é imposto pelo Postgres, não pelo código da aplica�
 ```text
 web/            landing page + telas web — React 19 (Vite)
 app/            app Android e iOS — um projeto Expo / React Native
-api-java/       API — Spring Boot 3, Java 21, PostgreSQL, Redis
+api-java/       API — Spring Boot 3, Java 25, PostgreSQL, Redis
 infrastructure/ compose local (Postgres, Redis, MinIO) e provisionamento
 docs/           decisões de arquitetura
 ```
@@ -16,7 +16,7 @@ domínio: mesma API, mesma autorização, mesmo banco. Não há API por platafor
 
 ## Rodar
 
-Precisa de Docker Desktop, JDK 21 e Node. Um comando para sair do zero:
+Precisa de Docker Desktop, JDK 25 e Node. Um comando para sair do zero:
 
 ```powershell
 ./infrastructure/init.ps1
