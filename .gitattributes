@@ -1,0 +1,57 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Fim de linha. Este repositório é editado no Windows com core.autocrlf=true e
+# construído em CI Linux — sem as regras abaixo, `mvnw` é entregue com CRLF no
+# clone e falha com `bad interpreter: /bin/sh^M`, um erro que não parece ter
+# nada a ver com fim de linha.
+#
+# Nada aqui mexe em detecção de linguagem: Java já é 282 KB contra 76 KB de
+# todo o JS/TS somado, e domina a classificação por conta própria assim que
+# `api-java/` entra no git. Forçar `linguist-` para maquiar a barra do GitHub
+# seria mentir sobre o próprio código.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Normaliza texto no repositório (LF) e deixa o git decidir no working tree.
+* text=auto
+
+# Scripts POSIX: LF sempre, inclusive no Windows. É o executável, não o fonte.
+api-java/mvnw    text eol=lf
+*.sh             text eol=lf
+
+# Scripts do Windows: CRLF sempre. cmd.exe e o PowerShell 5.1 são sensíveis.
+*.cmd            text eol=crlf
+*.bat            text eol=crlf
+*.ps1            text eol=crlf
+
+# Fontes e config: LF explícito, para não depender da configuração de quem
+# clona.
+*.java           text eol=lf
+*.sql            text eol=lf
+*.ts             text eol=lf
+*.tsx            text eol=lf
+*.js             text eol=lf
+*.jsx            text eol=lf
+*.css            text eol=lf
+*.html           text eol=lf
+*.json           text eol=lf
+*.yml            text eol=lf
+*.yaml           text eol=lf
+*.xml            text eol=lf
+*.md             text eol=lf
+*.properties     text eol=lf
+.gitignore       text eol=lf
+.gitattributes   text eol=lf
+
+# Binários: nunca normalizar. Uma conversão de fim de linha num PNG o corrompe.
+*.png            binary
+*.jpg            binary
+*.jpeg           binary
+*.gif            binary
+*.ico            binary
+*.webp           binary
+*.pdf            binary
+*.woff           binary
+*.woff2          binary
+*.ttf            binary
+*.otf            binary
+*.jar            binary
+*.keystore       binary

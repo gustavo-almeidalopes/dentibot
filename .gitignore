@@ -1,0 +1,61 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Não havia .gitignore na raiz, e era por isso que `api-java/target/` (157
+# arquivos) e `web/node_modules/` apareciam como untracked num `git status` de
+# 148 linhas — ruído que esconde o que importa e convida a um `git add .`
+# que commita 1,4 MB de build.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─── Build ───────────────────────────────────────────────────────────────────
+target/
+dist/
+build/
+node_modules/
+.expo/
+expo-env.d.ts
+*.tsbuildinfo
+
+# ─── Segredos ────────────────────────────────────────────────────────────────
+# O repositório tem gate de gitleaks bloqueante (invariante 12); isto é a
+# primeira barreira, não a única. `.env.example` fica versionado de propósito:
+# documenta os nomes das variáveis sem carregar valor nenhum.
+.env
+.env.*
+!.env.example
+
+# Credenciais de assinatura de app. Um .p8 vazado dá para publicar na App
+# Store em seu nome.
+*.jks
+*.keystore
+*.p8
+*.p12
+*.pem
+*.key
+*.mobileprovision
+
+# ─── Java ────────────────────────────────────────────────────────────────────
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+hs_err_pid*.log
+replay_pid*.log
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# ─── Editores ────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# ─── Sistema ─────────────────────────────────────────────────────────────────
+# O projeto vive numa pasta do OneDrive, que semeia Desktop.ini e arquivos de
+# bloqueio `~$` pela árvore inteira.
+Desktop.ini
+desktop.ini
+Thumbs.db
+~$*
+.DS_Store
