@@ -1,17 +1,34 @@
+import { useClerk, useUser } from '@clerk/expo';
 import Constants from 'expo-constants';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useAuth } from '../../auth';
+import { api, type Identidade } from '../../api';
 import { cor, espaco, tipo } from '../../theme';
 import { Botao, Divisoria, Rotulo, Titulo } from '../../ui';
 
 export default function Perfil() {
   const inset = useSafeAreaInsets();
-  const auth = useAuth();
+  const { user } = useUser();
+  const { signOut } = useClerk();
   const [saindo, setSaindo] = useState(false);
 
-  const identidade = auth.situacao === 'autenticado' ? auth.identidade : null;
+  // Quem é a pessoa vem do Clerk; qual o papel dela na clínica vem do backend,
+  // que é o dono dessa informação. Falha vira "—", como antes: o perfil não é
+  // tela de erro, e papel é detalhe ao lado do botão de sair.
+  const [identidade, setIdentidade] = useState<Identidade | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    api
+      .eu()
+      .then((i) => {
+        if (vivo) setIdentidade(i);
+      })
+      .catch(() => {});
+    return () => {
+      vivo = false;
+    };
+  }, []);
 
   return (
     <ScrollView
@@ -25,6 +42,8 @@ export default function Perfil() {
       <Titulo>Perfil</Titulo>
 
       <View style={{ gap: espaco.md }}>
+        <Dado rotulo="Conta" valor={user?.primaryEmailAddress?.emailAddress ?? '—'} />
+        <Divisoria />
         <Dado rotulo="Papel" valor={identidade?.papel ?? '—'} />
         <Divisoria />
         <Dado rotulo="Clínica" valor={identidade?.clinicaId ? `#${identidade.clinicaId}` : '—'} />
@@ -37,8 +56,10 @@ export default function Perfil() {
         ocupado={saindo}
         onPress={() => {
           setSaindo(true);
-          // `sair` não lança: falha de rede ainda derruba a sessão local.
-          void auth.sair().finally(() => setSaindo(false));
+          // signOut limpa o tokenCache no Keychain/Keystore. A troca de estado
+          // do Clerk derruba o guarda do layout, que redireciona para /login —
+          // não é preciso navegar daqui.
+          void signOut().finally(() => setSaindo(false));
         }}
       >
         Sair

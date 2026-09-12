@@ -2,16 +2,19 @@
  * Cliente do back-end DentiBot.
  *
  * Um `req` genérico em vez de um método por rota: a lista de endpoints vive
- * no OpenAPI do FastAPI (http://localhost:8000/docs), não duplicada aqui.
+ * no OpenAPI do back-end, não duplicada aqui.
  *
  * Em dev o Vite faz proxy de /api para o back-end, então não há CORS.
  * Em produção, defina VITE_API_BASE se o back-end estiver em outro domínio.
+ *
+ * Autenticação é do Clerk. Não há mais token em localStorage: o de sessão vive
+ * em memória do ClerkJS, é curto e se renova sozinho — guardar credencial
+ * legível no browser era exatamente o que o XSS levava embora.
  */
 
-const BASE = import.meta.env.VITE_API_BASE || '/api';
-const TOKEN_KEY = 'dentibot_token';
+import { getToken } from '@clerk/react';
 
-let token = localStorage.getItem(TOKEN_KEY) || '';
+const BASE = import.meta.env.VITE_API_BASE || '/api';
 
 export class ApiError extends Error {
   constructor(message, status, data) {
@@ -22,9 +25,23 @@ export class ApiError extends Error {
   }
 }
 
+/* getToken do próprio SDK, não o hook: este módulo não é componente e o helper
+   existe justamente para camada de dados — ele espera o ClerkJS carregar e
+   devolve null se não há sessão. Offline ou timeout viram ausência de token, e
+   quem decide o que fazer com isso é o 401 do back-end. */
+async function tokenDeSessao() {
+  try {
+    return (await getToken()) ?? '';
+  } catch {
+    return '';
+  }
+}
+
 async function req(method, path, body) {
   const headers = {};
   if (body !== undefined) headers['Content-Type'] = 'application/json';
+
+  const token = await tokenDeSessao();
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const res = await fetch(`${BASE}${path}`, {
@@ -36,16 +53,9 @@ async function req(method, path, body) {
   const data = res.status === 204 ? null : await res.json().catch(() => null);
 
   if (!res.ok) {
-    if (res.status === 401) setToken('');
     throw new ApiError(data?.detail || `Erro ${res.status}`, res.status, data);
   }
   return data;
-}
-
-function setToken(value) {
-  token = value;
-  if (value) localStorage.setItem(TOKEN_KEY, value);
-  else localStorage.removeItem(TOKEN_KEY);
 }
 
 export const api = {
@@ -53,26 +63,4 @@ export const api = {
   post: (path, body) => req('POST', path, body ?? {}),
   put: (path, body) => req('PUT', path, body ?? {}),
   del: (path) => req('DELETE', path),
-
-  get authenticated() {
-    return Boolean(token);
-  },
-
-  async signup(payload) {
-    const data = await req('POST', '/auth/signup', payload);
-    setToken(data.access_token);
-    return data.user;
-  },
-
-  async login(email, password) {
-    const data = await req('POST', '/auth/login', { email, password });
-    setToken(data.access_token);
-    return data.user;
-  },
-
-  me: () => req('GET', '/auth/me'),
-
-  logout() {
-    setToken('');
-  },
 };

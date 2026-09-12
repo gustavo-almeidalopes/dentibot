@@ -644,65 +644,18 @@ html:not(.no-js) #odontograma.visible .fdi {
   padding-block: var(--spacing-20);
 }
 
-/* O resto do site encosta na borda de propósito; um formulário não. 44ch é
-   onde um campo ainda é confortável de mirar e de ler. */
-.auth-providers, .auth-form, .auth-sep, .auth-swap { max-width: 44ch; }
-
-.auth-providers { display: flex; flex-direction: column; gap: var(--spacing-15); }
-/* Nome de provedor é nome próprio — o caixa-alta do .btn viraria grito. */
-.auth-providers .btn { justify-content: center; text-transform: none; }
-
-/* Régua com rótulo no meio. Os traços são pseudo-elementos: nada de div. */
-.auth-sep {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-15);
-  margin-block: var(--spacing-30);
-  color: var(--ash);
-}
-.auth-sep::before, .auth-sep::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--hair);
-}
-.auth-sep span {
-  font-family: var(--f-credit);
-  font-size: 14px;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-}
-
-/* Campo sem caixa: só a hairline de baixo, que endurece no foco. O outline
-   global continua valendo por cima — é ele que serve o teclado. */
-.field { display: flex; flex-direction: column; gap: 8px; margin-bottom: var(--spacing-20); }
-.field input {
-  padding: 12px 0;
-  border: 0;
-  border-bottom: 1px solid var(--hair);
-  border-radius: 0;
-  background: none;
-  color: var(--bone);
-  font: inherit;
-}
-.field input:focus { border-bottom-color: var(--bone); }
-/* O autofill do Chrome pinta o campo de azul e ignora background. */
-.field input:-webkit-autofill {
-  -webkit-text-fill-color: var(--bone);
-  -webkit-box-shadow: 0 0 0 1000px var(--obsidian) inset;
-}
-
-.auth-submit { width: 100%; justify-content: center; margin-top: var(--spacing-15); }
-.auth-error { min-height: 1.4em; color: var(--alarm); font-size: 19px; line-height: 1.3; }
+/* O widget do Clerk traz o próprio formulário; sobrou só a largura de
+   leitura. 44ch é onde uma coluna de texto ainda é confortável de mirar. */
+.auth-swap { max-width: 44ch; }
 
 .auth-swap { margin-top: var(--spacing-30); }
-.auth-swap button {
+.auth-swap a, .auth-swap button {
   cursor: pointer;
   color: var(--ash);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.auth-swap button:hover { color: var(--bone); }
+.auth-swap a:hover, .auth-swap button:hover { color: var(--bone); }
 
 /* Bloco inerte não deve prometer o wipe que não vai acontecer. */
 .btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -710,6 +663,6 @@ html:not(.no-js) #odontograma.visible .fdi {
 
 @media (max-width: 900px) {
   /* .who já colapsa para uma coluna aqui; a medida deixa de ajudar. */
-  .auth-providers, .auth-form, .auth-sep, .auth-swap { max-width: none; }
+  .auth-swap { max-width: none; }
   .auth-top { padding-block: var(--spacing-15); }
 }

@@ -1,3 +1,4 @@
+import { Show, UserButton } from '@clerk/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NAV_LINKS, LOGIN_HREF } from '../content.js';
 
@@ -61,14 +62,26 @@ export default function Nav() {
         </nav>
 
         <div className="menu-foot edge">
-          <a href={LOGIN_HREF} className="btn btn-fill btn-lg">Entrar</a>
+          <Show when="signed-out">
+            <a href={LOGIN_HREF} className="btn btn-fill btn-lg">Entrar</a>
+          </Show>
+          <Show when="signed-in">
+            <a href="/clientes" className="btn btn-fill btn-lg">Meus clientes</a>
+            <UserButton />
+          </Show>
           <p className="credit">Agenda · Prontuário · Cobrança · Estoque · LGPD</p>
         </div>
       </div>
 
       <nav className="nav edge" aria-label="Navegação principal">
         {NAV_LINKS.map((l) => <a key={l.href} href={l.href} className="btn">{l.label}</a>)}
-        <a href={LOGIN_HREF} className="btn btn-fill">Entrar</a>
+        <Show when="signed-out">
+          <a href={LOGIN_HREF} className="btn btn-fill">Entrar</a>
+        </Show>
+        <Show when="signed-in">
+          <a href="/clientes" className="btn">Clientes</a>
+          <UserButton />
+        </Show>
       </nav>
     </>
   );

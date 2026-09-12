@@ -1,3 +1,4 @@
+import { RedirectToSignIn, Show } from '@clerk/react';
 import { useEffect, useState } from 'react';
 import { Lines, Reveal } from './Reveal.jsx';
 import { api } from '../api.js';
@@ -13,8 +14,8 @@ const endereco = (c) => [
   c.cep,
 ].filter(Boolean).join(' · ');
 
-/** GET /api/clients — servido por api/backend/Api.cs sobre o Postgres. */
-export default function Clientes() {
+/** GET /api/clients — servido pelo back-end sobre o Postgres. */
+function Lista() {
   const [estado, setEstado] = useState({ status: 'carregando' });
 
   useEffect(() => {
@@ -69,5 +70,21 @@ export default function Clientes() {
         ))}
       </div>
     </main>
+  );
+}
+
+/* O gate fica fora de <Lista> de propósito: assim o useEffect que busca
+   /clients nem monta para quem está deslogado, em vez de disparar a chamada e
+   descartar o 401 depois. signInUrl no ClerkProvider manda para /login. */
+export default function Clientes() {
+  return (
+    <>
+      <Show when="signed-in">
+        <Lista />
+      </Show>
+      <Show when="signed-out">
+        <RedirectToSignIn />
+      </Show>
+    </>
   );
 }
