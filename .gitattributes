@@ -29,6 +29,8 @@ api-java/mvnw    text eol=lf
 *.ts             text eol=lf
 *.tsx            text eol=lf
 *.js             text eol=lf
+*.mjs            text eol=lf
+*.cjs            text eol=lf
 *.jsx            text eol=lf
 *.css            text eol=lf
 *.html           text eol=lf
@@ -40,6 +42,7 @@ api-java/mvnw    text eol=lf
 *.properties     text eol=lf
 .gitignore       text eol=lf
 .gitattributes   text eol=lf
+.env.example     text eol=lf
 
 # Binários: nunca normalizar. Uma conversão de fim de linha num PNG o corrompe.
 *.png            binary
