@@ -1,0 +1,44 @@
+# Alvos reais do repositório depois da remoção da V1. A configuração anterior
+# saiu junto com ela e deixou 43 PRs apontando para gateway/, services/* e
+# frontend/ — diretórios que não existem mais. Cada entrada abaixo corresponde
+# a um manifesto que está mesmo no main; se um sumir, esta lista muda junto.
+version: 2
+
+updates:
+  # Expo (iOS + Android). O ecossistema é npm mesmo em projeto React Native.
+  - package-ecosystem: npm
+    directory: /app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      # Os pacotes do Expo sobem em conjunto e travam uns aos outros por peer
+      # dependency: cinco PRs separados seriam cinco conflitos.
+      expo:
+        patterns:
+          - expo
+          - expo-*
+          - react-native
+          - react-native-*
+      clerk:
+        patterns:
+          - '@clerk/*'
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      clerk:
+        patterns:
+          - '@clerk/*'
+
+  - package-ecosystem: maven
+    directory: /api-java
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+# Sem entrada github-actions: .github/workflows está vazio no main, então não
+# há action para atualizar. Quando existir CI, adicione o ecossistema aqui.
