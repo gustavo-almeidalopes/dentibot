@@ -1,0 +1,105 @@
+# Ambiente de desenvolvimento local.
+#
+# Não há serviço da aplicação aqui de propósito: a API roda pelo Maven, com
+# hot reload, e o compose sobe só a infraestrutura de que ela depende. Dockerizar
+# a API em dev troca segundos de rebuild por minutos de imagem.
+#
+#   docker compose -f infrastructure/docker-compose.yml up -d
+#   cd api-java && ./mvnw spring-boot:run
+#
+# As senhas abaixo são LOCAIS e estão em claro de propósito: é preciso que fique
+# óbvio, para o gitleaks e para quem lê, que não são segredo de produção. Em
+# produção tudo vem de variável de ambiente (invariante 12).
+
+name: dentibot
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: dentibot-postgres
+    environment:
+      POSTGRES_DB: dentibot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres_local_apenas
+      # Collation ICU pt-BR para ORDER BY de nome sair na ordem que um
+      # brasileiro espera ("Álvaro" antes de "Bruno", não depois).
+      #
+      # Via ICU e não LANG=pt_BR.utf8: a imagem oficial do Postgres é Debian
+      # slim e não tem locales do sistema gerados — initdb falha com
+      # "invalid locale settings". O ICU vem compilado na imagem e é o
+      # provedor recomendado a partir do PG15.
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=pt-BR --encoding=UTF8 --locale=C.UTF-8"
+    command:
+      - postgres
+      # Log de query lenta: 500 ms. É como se descobre o índice faltando depois
+      # do RLS — toda query ganha WHERE id_clinica, e a que não tem índice
+      # começando por ele vira Seq Scan.
+      - -c
+      - log_min_duration_statement=500
+      - -c
+      - max_connections=100
+    ports:
+      # 5433 no host, 5432 no container. 5433 porque é comum já haver um
+      # PostgreSQL instalado nativamente na máquina ocupando a 5432 — e o
+      # certo é o projeto se desviar, não pedir para desligarem o que já roda.
+      # 127.0.0.1: o banco não fica exposto na rede local.
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - postgres_dados:/var/lib/postgresql/data
+      # Roda uma vez, na criação do volume: cria os roles com privilégio mínimo.
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d dentibot"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: dentibot-redis
+    command:
+      - redis-server
+      # Rate limit, idempotência e blocklist são cache e estado temporário;
+      # nenhum deles é fonte de verdade (camada 11). Sem persistência em dev
+      # para que isso fique evidente: reiniciar o Redis não pode corromper nada.
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+    ports:
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  minio:
+    # quay.io e não Docker Hub: a MinIO restringiu as imagens lá, e
+    # `docker pull minio/minio` responde "pull access denied". O registro
+    # oficial documentado é este.
+    image: quay.io/minio/minio:latest
+    container_name: dentibot-minio
+    # Faz o papel do Cloudflare R2 em dev: mesma API S3, mesmas URLs assinadas.
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: dentibot_local
+      MINIO_ROOT_PASSWORD: dentibot_local_apenas
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+    volumes:
+      - minio_dados:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_dados:
+  minio_dados:
