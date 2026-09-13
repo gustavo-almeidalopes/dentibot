@@ -1,1 +1,151 @@
-/* telas do sistema — preenchido na Task 2 */
+/* ═══════════════════════════════════════════════════════════════
+   DENTIBOT — telas do sistema. Papel clínico, não manifesto.
+   A landing é preta e grita; a ferramenta é clara e cala.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* O tema não precisa de JavaScript. As telas do sistema são as únicas que
+   montam `.app-main`, e `:has` é vivo: troca na hora da rota, sem useEffect,
+   sem limpeza no desmonte, sem piscada. A landing e o 404 não montam
+   `.app-main` e por isso continuam pretos. */
+:root:has(.app-main) {
+  color-scheme: light;
+
+  --fundo:       #faf9f7;   /* papel, não branco de tela */
+  --superficie:  #ffffff;
+  --tinta:       #111111;
+  /* NÃO é o --ash da marca: #838383 sobre #faf9f7 dá 3,66:1, abaixo do mínimo
+     AA de 4,5:1. O cinza que funciona sobre obsidiana reprova sobre papel. */
+  --tinta-fraca: #5c5c5c;
+  --hair:        rgba(0, 0, 0, .22);
+  --hair-fraca:  rgba(0, 0, 0, .10);
+  --foco:        #111111;
+}
+
+:root:has(.app-main) body { background: var(--fundo); color: var(--tinta); }
+
+/* ── TELAS DO SISTEMA ─────────────────────────────────────────────────────── */
+.app-topo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20, 20px);
+  flex-wrap: wrap;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--hair);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--fundo);
+}
+.app-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-right: auto; }
+.app-main { padding-block: var(--spacing-30, 30px) var(--spacing-50, 50px); }
+
+.app-cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-20, 20px);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-30, 30px);
+}
+.display-sm { font-size: clamp(2rem, 6vw, 3.2rem); }
+
+.filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filtros-linha {
+  align-items: flex-end;
+  padding-bottom: var(--spacing-20, 20px);
+  border-bottom: 1px solid var(--hair-fraca);
+  margin-bottom: var(--spacing-20, 20px);
+}
+
+/* Um controle só, para input, select e textarea: três estilos separados é como
+   um deles fica diferente dos outros sem ninguém decidir isso. */
+.campo-app { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.filtros input, .filtros select,
+.campo-app input, .campo-app select, .campo-app textarea {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 11px;
+  width: 100%;
+}
+.campo-app textarea { resize: vertical; font-family: inherit; line-height: 1.5; }
+.filtros input:focus-visible, .filtros select:focus-visible,
+.campo-app input:focus-visible, .campo-app select:focus-visible,
+.campo-app textarea:focus-visible { outline: 2px solid var(--tinta); outline-offset: -1px; }
+
+.form-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid var(--hair);
+  padding: var(--spacing-20, 20px);
+  margin-bottom: var(--spacing-30, 30px);
+}
+.form-linha { display: flex; gap: 14px; flex-wrap: wrap; }
+.form-linha .campo-app { flex: 1 1 180px; }
+
+.lista { list-style: none; margin: 0; padding: 0; }
+.acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row-consulta, .row-membro { align-items: center; }
+.row-evolucao[data-retificada="sim"] { opacity: .62; }
+
+.aviso-plano {
+  border: 1px solid var(--alarm);
+  border-left-width: 4px;
+  padding: 14px 18px;
+  margin-bottom: var(--spacing-20, 20px);
+  font-size: 14px;
+}
+[data-vinculado="nao"] { color: var(--alarm); }
+.selo-staff { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--alarm); }
+
+.abas { display: flex; gap: 8px; margin-bottom: var(--spacing-20, 20px); }
+.abas [aria-selected="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
+
+/* ── ODONTOGRAMA CLÍNICO ──────────────────────────────────────────────────── */
+.odonto { display: grid; gap: 10px; margin-bottom: var(--spacing-30, 30px); }
+.odonto-arcada { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; }
+@media (max-width: 620px) { .odonto-arcada { grid-template-columns: repeat(8, 1fr); } }
+
+.odonto-dente {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--hair);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  padding: 10px 2px;
+  cursor: pointer;
+  transition: background .15s linear;
+}
+.odonto-dente:hover { background: rgba(255, 255, 255, .07); }
+.odonto-dente[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
+.odonto-dente:focus-visible { outline: 2px solid var(--alarm); outline-offset: 2px; }
+/* A condição é cor E borda: cor sozinha não existe para quem não a distingue. */
+.odonto-dente[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
+.odonto-dente[data-condicao="ausente"] { opacity: .38; border-style: dashed; }
+.odonto-dente[data-condicao="restaurado"],
+.odonto-dente[data-condicao="coroa"],
+.odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; }
+
+/* ── TABELA ───────────────────────────────────────────────────────────────── */
+.tabela-rolagem { overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tabela th, .tabela td {
+  text-align: left;
+  padding: 10px 14px 10px 0;
+  border-bottom: 1px solid var(--hair-fraca);
+  vertical-align: top;
+}
+.tabela th {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--tinta-fraca); font-weight: 400;
+  border-bottom-color: var(--hair);
+  white-space: nowrap;
+}
+.tabela .num { font-variant-numeric: tabular-nums; white-space: nowrap; }

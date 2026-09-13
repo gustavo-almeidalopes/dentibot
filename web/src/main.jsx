@@ -15,6 +15,7 @@ import NaoEncontrada from './paginas/NaoEncontrada.jsx';
 import Pacientes from './paginas/Pacientes.jsx';
 import Prontuario from './paginas/Prontuario.jsx';
 import './style.css';
+import './app.css';
 import {
   AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES, PRONTUARIO,
 } from './rotas.js';

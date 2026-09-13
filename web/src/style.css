@@ -15,6 +15,19 @@
   --hair:      rgba(255, 255, 255, .26);
   --hair-red:  rgba(0, 0, 0, .32);
 
+  /* ── Camada semântica ──────────────────────────────────────────
+     Os literais acima são a MARCA e não mudam. Estes são o PAPEL, e
+     é só deles que componente pode depender. Enquanto `--bone` foi ao
+     mesmo tempo "o branco da DentiBot" e "a cor do texto", claro e
+     escuro não tinham como coexistir — e `--ink`, que ninguém nunca
+     definiu, viveu em nove lugares por causa disso. */
+  --fundo:       var(--obsidian);
+  --superficie:  var(--obsidian);
+  --tinta:       var(--bone);
+  --tinta-fraca: var(--ash);
+  --hair-fraca:  rgba(255, 255, 255, .12);
+  --foco:        var(--bone);
+
   /* Type */
   --f-display: 'Antonio', 'Druk Wide', Impact, sans-serif;
   --f-ui:      'Inter', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica, sans-serif;
@@ -770,7 +783,7 @@ html:not(.no-js) #odontograma.visible .fdi {
 .cartao-chip::before { top: 10px; }
 .cartao-chip::after  { top: 21px; }
 
-.cartao-marca { color: var(--ink); display: block; }
+.cartao-marca { color: var(--tinta); display: block; }
 .marca { width: 62px; height: 20px; display: block; }
 .marca-texto {
   fill: currentColor;
@@ -806,7 +819,7 @@ html:not(.no-js) #odontograma.visible .fdi {
    validade para fora do cartão. */
 .cartao-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.cartao-tarja { height: 44px; background: #0a0a0a; border-block: 1px solid var(--hair-dim); }
+.cartao-tarja { height: 44px; background: #0a0a0a; border-block: 1px solid var(--hair-fraca); }
 .cartao-assinatura {
   display: flex; align-items: center; gap: 10px;
   margin: 20px 24px 0;
@@ -820,7 +833,7 @@ html:not(.no-js) #odontograma.visible .fdi {
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 15px; letter-spacing: .18em;
   font-variant-numeric: tabular-nums;
-  background: var(--ink); color: var(--obsidian);
+  background: var(--tinta); color: var(--obsidian);
   padding: 6px 10px;
 }
 .cartao-aviso {
@@ -853,7 +866,7 @@ html:not(.no-js) #odontograma.visible .fdi {
   background: transparent;
   border: 1px solid var(--hair);
   border-radius: 0;
-  color: var(--ink);
+  color: var(--tinta);
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   font-size: 15px;
   font-variant-numeric: tabular-nums;
@@ -862,7 +875,7 @@ html:not(.no-js) #odontograma.visible .fdi {
   width: 100%;
 }
 .pagamento-campo input::placeholder { color: var(--ash); }
-.pagamento-campo input:focus-visible { outline: 2px solid var(--ink); outline-offset: -1px; }
+.pagamento-campo input:focus-visible { outline: 2px solid var(--tinta); outline-offset: -1px; }
 
 .pagamento-erro { margin: 0; font-size: 12px; color: var(--alarm); }
 
@@ -871,129 +884,3 @@ html:not(.no-js) #odontograma.visible .fdi {
   cursor: not-allowed;
 }
 
-/* ── TELAS DO SISTEMA ─────────────────────────────────────────────────────── */
-.app-topo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-20, 20px);
-  flex-wrap: wrap;
-  padding-block: 14px;
-  border-bottom: 1px solid var(--hair);
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  background: var(--obsidian);
-}
-.app-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-right: auto; }
-.app-main { padding-block: var(--spacing-30, 30px) var(--spacing-50, 50px); }
-
-.app-cabecalho {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--spacing-20, 20px);
-  flex-wrap: wrap;
-  margin-bottom: var(--spacing-30, 30px);
-}
-.display-sm { font-size: clamp(2rem, 6vw, 3.2rem); }
-
-.filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.filtros-linha {
-  align-items: flex-end;
-  padding-bottom: var(--spacing-20, 20px);
-  border-bottom: 1px solid var(--hair-dim, rgba(255,255,255,.12));
-  margin-bottom: var(--spacing-20, 20px);
-}
-
-/* Um controle só, para input, select e textarea: três estilos separados é como
-   um deles fica diferente dos outros sem ninguém decidir isso. */
-.campo-app { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.filtros input, .filtros select,
-.campo-app input, .campo-app select, .campo-app textarea {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--hair);
-  border-radius: 0;
-  color: var(--ink, #fff);
-  font-family: inherit;
-  font-size: 14px;
-  padding: 9px 11px;
-  width: 100%;
-}
-.campo-app textarea { resize: vertical; font-family: inherit; line-height: 1.5; }
-.filtros input:focus-visible, .filtros select:focus-visible,
-.campo-app input:focus-visible, .campo-app select:focus-visible,
-.campo-app textarea:focus-visible { outline: 2px solid var(--ink, #fff); outline-offset: -1px; }
-
-.form-bloco {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  border: 1px solid var(--hair);
-  padding: var(--spacing-20, 20px);
-  margin-bottom: var(--spacing-30, 30px);
-}
-.form-linha { display: flex; gap: 14px; flex-wrap: wrap; }
-.form-linha .campo-app { flex: 1 1 180px; }
-
-.lista { list-style: none; margin: 0; padding: 0; }
-.acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.row-consulta, .row-membro { align-items: center; }
-.row-evolucao[data-retificada="sim"] { opacity: .62; }
-
-.aviso-plano {
-  border: 1px solid var(--alarm);
-  border-left-width: 4px;
-  padding: 14px 18px;
-  margin-bottom: var(--spacing-20, 20px);
-  font-size: 14px;
-}
-[data-vinculado="nao"] { color: var(--alarm); }
-.selo-staff { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--alarm); }
-
-.abas { display: flex; gap: 8px; margin-bottom: var(--spacing-20, 20px); }
-.abas [aria-selected="true"] { background: var(--ink, #fff); color: var(--obsidian, #000); font-weight: 700; }
-
-/* ── ODONTOGRAMA CLÍNICO ──────────────────────────────────────────────────── */
-.odonto { display: grid; gap: 10px; margin-bottom: var(--spacing-30, 30px); }
-.odonto-arcada { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; }
-@media (max-width: 620px) { .odonto-arcada { grid-template-columns: repeat(8, 1fr); } }
-
-.odonto-dente {
-  appearance: none;
-  background: transparent;
-  border: 1px solid var(--hair);
-  color: var(--ink, #fff);
-  font-family: inherit;
-  font-size: 12px;
-  font-variant-numeric: tabular-nums;
-  padding: 10px 2px;
-  cursor: pointer;
-  transition: background .15s linear;
-}
-.odonto-dente:hover { background: rgba(255, 255, 255, .07); }
-.odonto-dente[aria-pressed="true"] { background: var(--ink, #fff); color: var(--obsidian, #000); font-weight: 700; }
-.odonto-dente:focus-visible { outline: 2px solid var(--alarm); outline-offset: 2px; }
-/* A condição é cor E borda: cor sozinha não existe para quem não a distingue. */
-.odonto-dente[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
-.odonto-dente[data-condicao="ausente"] { opacity: .38; border-style: dashed; }
-.odonto-dente[data-condicao="restaurado"],
-.odonto-dente[data-condicao="coroa"],
-.odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; }
-
-/* ── TABELA ───────────────────────────────────────────────────────────────── */
-.tabela-rolagem { overflow-x: auto; }
-.tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; }
-.tabela th, .tabela td {
-  text-align: left;
-  padding: 10px 14px 10px 0;
-  border-bottom: 1px solid var(--hair-dim, rgba(255,255,255,.12));
-  vertical-align: top;
-}
-.tabela th {
-  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--ash, #838383); font-weight: 400;
-  border-bottom-color: var(--hair);
-  white-space: nowrap;
-}
-.tabela .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
