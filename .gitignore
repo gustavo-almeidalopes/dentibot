@@ -59,3 +59,9 @@ desktop.ini
 Thumbs.db
 ~$*
 .DS_Store
+
+# ─── Saída de ferramenta ─────────────────────────────────────────────────────
+# Cache de AST do graphify: 7 MB de arquivos com nome em hash, regenerados a
+# cada execução. Git guarda blob para sempre — o que entra aqui pesa em todo
+# clone futuro, mesmo depois de apagado.
+graphify-out/
