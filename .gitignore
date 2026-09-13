@@ -65,3 +65,7 @@ Thumbs.db
 # cada execução. Git guarda blob para sempre — o que entra aqui pesa em todo
 # clone futuro, mesmo depois de apagado.
 graphify-out/
+
+.vercel
+.env*
+!.env.example
