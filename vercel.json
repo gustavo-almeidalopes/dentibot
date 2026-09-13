@@ -5,7 +5,6 @@
   "outputDirectory": "web/dist",
   "trailingSlash": false,
   "rewrites": [
-    { "source": "/login", "destination": "/index.html" },
-    { "source": "/clientes", "destination": "/index.html" }
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
