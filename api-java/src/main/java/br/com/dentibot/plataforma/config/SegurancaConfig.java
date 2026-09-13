@@ -1,47 +1,49 @@
 package br.com.dentibot.plataforma.config;
 
-import br.com.dentibot.plataforma.seguranca.ChavesJwt;
-import br.com.dentibot.plataforma.seguranca.PropriedadesJwt;
-import com.nimbusds.jose.jwk.JWKSet;
-import com.nimbusds.jose.jwk.RSAKey;
-import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
-import com.nimbusds.jose.jwk.source.JWKSource;
-import com.nimbusds.jose.proc.SecurityContext;
+import br.com.dentibot.plataforma.seguranca.PropriedadesClerk;
+import br.com.dentibot.plataforma.seguranca.ValidadorDeParteAutorizada;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.env.Environment;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
-import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtValidators;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 
+/**
+ * O Clerk é o emissor dos tokens; esta aplicação só valida.
+ *
+ * <p>Saiu daqui, na V18, todo o material de assinatura próprio: par RSA,
+ * {@code JwtEncoder}, {@code JWKSource} e o endpoint de JWKS. Emitir token
+ * deixou de ser trabalho deste serviço — e chave de assinatura que não existe
+ * não vaza, não expira sem aviso e não precisa de rotação coordenada.
+ *
+ * <p>O que continua sendo trabalho daqui, e não do Clerk: decidir de qual
+ * clínica é o usuário e o que o papel dele alcança. Ver
+ * {@link br.com.dentibot.plataforma.seguranca.ProvedorDeIdentidade}.
+ */
 @Configuration(proxyBeanMethods = false)
-@EnableConfigurationProperties(PropriedadesJwt.class)
+@EnableConfigurationProperties(PropriedadesClerk.class)
 public class SegurancaConfig {
 
+    /**
+     * {@code withJwkSetUri} e não uma chave fixa: o Clerk rotaciona a chave de
+     * assinatura, e o Nimbus busca o JWKS, cacheia e refaz a busca quando
+     * aparece um {@code kid} desconhecido. Fixar a chave pública funcionaria até
+     * a primeira rotação, que derrubaria a autenticação inteira num horário
+     * escolhido por outra pessoa.
+     */
     @Bean
-    public ChavesJwt chavesJwt(PropriedadesJwt props, Environment env) {
-        boolean dev = env.matchesProfiles("dev", "test", "local");
-        return ChavesJwt.de(props, dev);
-    }
+    public JwtDecoder jwtDecoder(PropriedadesClerk clerk) {
+        NimbusJwtDecoder decoder = NimbusJwtDecoder.withJwkSetUri(clerk.urlDoJwks()).build();
 
-    @Bean
-    public JWKSource<SecurityContext> jwkSource(ChavesJwt chaves) {
-        RSAKey chave = new RSAKey.Builder(chaves.publica())
-                .privateKey(chaves.privada())
-                .keyID(chaves.idChave())
-                .build();
-        return new ImmutableJWKSet<>(new JWKSet(chave));
-    }
+        // createDefaultWithIssuer já cobre assinatura, exp, nbf e iss. O azp é a
+        // parte que o default NÃO cobre e que o Clerk documenta como necessária.
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<Jwt>(
+                JwtValidators.createDefaultWithIssuer(clerk.emissor()),
+                new ValidadorDeParteAutorizada(clerk.partesAutorizadas())));
 
-    @Bean
-    public JwtEncoder jwtEncoder(JWKSource<SecurityContext> jwks) {
-        return new NimbusJwtEncoder(jwks);
-    }
-
-    @Bean
-    public JwtDecoder jwtDecoder(ChavesJwt chaves) {
-        return NimbusJwtDecoder.withPublicKey(chaves.publica()).build();
+        return decoder;
     }
 }

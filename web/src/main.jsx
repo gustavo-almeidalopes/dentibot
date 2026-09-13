@@ -2,16 +2,24 @@ import { ptBR } from '@clerk/localizations';
 import { ClerkProvider } from '@clerk/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';
-import Clientes from './components/Clientes.jsx';
 import Login from './components/Login.jsx';
+import Agenda from './paginas/Agenda.jsx';
+import Auditoria from './paginas/Auditoria.jsx';
+import Equipe from './paginas/Equipe.jsx';
+import Layout from './paginas/Layout.jsx';
+import NaoEncontrada from './paginas/NaoEncontrada.jsx';
+import Pacientes from './paginas/Pacientes.jsx';
+import Prontuario from './paginas/Prontuario.jsx';
 import './style.css';
-import { CRIAR, LOGIN } from './rotas.js';
+import { AGENDA, AUDITORIA, CRIAR, EQUIPE, LOGIN, PACIENTES } from './rotas.js';
 
-// Três telas, um mapa: a lista tem dado pessoal e o acesso não pertence à
-// landing pública. Vale um router quando existir rota com parâmetro.
-const ROTAS = { '/clientes': Clientes, '/login': Login };
-const Page = ROTAS[window.location.pathname] ?? App;
+/* Router de verdade, e não o mapa de `window.location.pathname` que estava
+   aqui. O comentário anterior dizia "vale um router quando existir rota com
+   parâmetro" — `/pacientes/:id/prontuario` é essa rota. O mapa também não tinha
+   404: qualquer caminho desconhecido caía na landing com 200, então um link
+   errado parecia funcionar. */
 
 /* Variáveis em vez de @clerk/themes: o tema daqui é preto, branco e canto
    vivo — sete tokens cobrem isso e não entra dependência para reescrevê-los
@@ -35,14 +43,30 @@ const aparencia = {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <ClerkProvider
-      localization={ptBR}
-      appearance={aparencia}
-      signInUrl={LOGIN}
-      signUpUrl={CRIAR}
-      afterSignOutUrl="/"
-    >
-      <Page />
-    </ClerkProvider>
+    <BrowserRouter>
+      <ClerkProvider
+        localization={ptBR}
+        appearance={aparencia}
+        signInUrl={LOGIN}
+        signUpUrl={CRIAR}
+        afterSignOutUrl="/"
+      >
+        <Routes>
+          <Route path="/" element={<App />} />
+          <Route path={LOGIN} element={<Login />} />
+
+          {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
+          <Route element={<Layout />}>
+            <Route path={AGENDA} element={<Agenda />} />
+            <Route path={PACIENTES} element={<Pacientes />} />
+            <Route path="/pacientes/:idPaciente/prontuario" element={<Prontuario />} />
+            <Route path={EQUIPE} element={<Equipe />} />
+            <Route path={AUDITORIA} element={<Auditoria />} />
+          </Route>
+
+          <Route path="*" element={<NaoEncontrada />} />
+        </Routes>
+      </ClerkProvider>
+    </BrowserRouter>
   </StrictMode>,
 );

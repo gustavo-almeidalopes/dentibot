@@ -10,7 +10,7 @@ import { CRIAR, LOGIN } from '../rotas.js';
 /* routing="virtual": o app roteia por window.location.pathname num mapa em
    main.jsx, sem router. Virtual mantém os passos do widget em memória, sem
    mexer na URL — hash routing brigaria com os dois widgets na mesma tela. */
-const COMUM = { routing: 'virtual', forceRedirectUrl: '/clientes' };
+const COMUM = { routing: 'virtual', forceRedirectUrl: '/agenda' };
 
 /* Entrar e criar são a mesma rota com ?criar=1, e não estado de React, para que
    o link "criar conta" que o próprio widget monta caia aqui em vez de recarregar
@@ -50,7 +50,7 @@ export default function Login() {
           <Show when="signed-in">
             <p className="body">Você já está autenticado.</p>
             <p className="auth-swap">
-              <a href="/clientes" className="btn btn-lg btn-fill">Ir para os clientes</a>
+              <a href="/agenda" className="btn btn-lg btn-fill">Abrir o sistema</a>
             </p>
           </Show>
 

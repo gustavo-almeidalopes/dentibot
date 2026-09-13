@@ -1,8 +1,9 @@
 import { Lines, Reveal } from './components/Reveal.jsx';
 import {
-  FEATURES, LOGIN_HREF, NAV_LINKS, PLANS, TESTIMONIALS,
+  FEATURES, NAV_LINKS, PLANS, TESTIMONIALS,
   TICKER, TICKER_TAIL, WALL_METRICS, WHATSAPP_URL, WHO,
 } from './content.js';
+import { CRIAR, LOGIN } from './rotas.js';
 
 /* ══ HERO — the wordmark is the architecture ══════════════════════════ */
 export function Hero() {
@@ -153,7 +154,9 @@ export function Plans() {
             <ul className="plan-list">
               {p.items.map((it) => <li key={it}>{it}</li>)}
             </ul>
-            <a href={LOGIN_HREF} className={p.fill ? 'btn btn-lg btn-fill' : 'btn btn-lg'}>
+            {/* Plano leva a CRIAR CONTA, não ao widget de entrar: quem clica
+                aqui ainda não tem conta — é o que o botão promete. */}
+            <a href={CRIAR} className={p.fill ? 'btn btn-lg btn-fill' : 'btn btn-lg'}>
               Começar grátis
             </a>
           </div>
@@ -204,8 +207,8 @@ export function Cta() {
     <section className="sec edge">
       <Lines as="h2" className="display" lines={['Sua clínica.', 'Sem o caos.']} />
       <Reveal className="cta-actions" delay="80ms">
-        <a href={LOGIN_HREF} className="btn btn-lg btn-fill">Criar minha conta grátis</a>
-        <a href={LOGIN_HREF} className="btn btn-lg">Já tenho conta</a>
+        <a href={CRIAR} className="btn btn-lg btn-fill">Criar minha conta grátis</a>
+        <a href={LOGIN} className="btn btn-lg">Já tenho conta</a>
       </Reveal>
     </section>
   );
@@ -223,7 +226,7 @@ export function Footer() {
             <a key={l.href} href={l.href} className="credit">{l.label}</a>
           ))}
           <a href="/politica-de-privacidade.pdf" className="credit">Privacidade</a>
-          <a href={LOGIN_HREF} className="credit">Entrar</a>
+          <a href={LOGIN} className="credit">Entrar</a>
         </div>
         <p className="credit">v2.0.0 · React + FastAPI · LGPD</p>
       </div>

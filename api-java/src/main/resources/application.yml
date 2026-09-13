@@ -40,30 +40,26 @@ spring:
       enabled: true
 
 dentibot:
-  jwt:
-    # Chave de assinatura RSA em PEM, injetada por variável de ambiente. Nunca
-    # no repositório (invariante 12) — o gate do gitleaks é bloqueante.
-    chave-privada-pem: ${DENTIBOT_JWT_PRIVATE_KEY:}
-    chave-publica-pem: ${DENTIBOT_JWT_PUBLIC_KEY:}
-    emissor: ${DENTIBOT_JWT_ISSUER:https://api.dentibot.com.br}
-    # Access curto: a blocklist de JTI só precisa cobrir esta janela.
-    validade-access: PT15M
-    validade-refresh: P14D
+  clerk:
+    # A Frontend API da instância, exatamente como vem no claim `iss` do token.
+    # É daqui que sai a URL do JWKS; sem ela nenhuma rota autenticada funciona.
+    # Não é segredo (é público e vai no bundle do front), mas continua vindo de
+    # variável porque muda entre ambientes.
+    emissor: ${DENTIBOT_CLERK_ISSUER:}
+    # Origens que o claim `azp` pode conter. Lista vazia desliga a checagem —
+    # só faz sentido em teste, onde não há browser do outro lado.
+    partes-autorizadas: ${DENTIBOT_CLERK_ORIGINS:http://localhost:5173}
   cors:
     origens: ${DENTIBOT_CORS_ORIGINS:http://localhost:5173}
-  seguranca:
-    max-falhas-login: 5
-    duracao-bloqueio: PT30M
   # Camada de DENTRO do rate limit. A camada de borda (Cloudflare) barra volume
   # antes de consumir thread da aplicação — as duas existem e fazem coisas
   # diferentes (camada 12).
   ratelimit:
-    # Apertado: é onde se tenta senha.
+    # Apertado: /api/v1/auth/cadastro cria clínica e é a rota que roda sem
+    # tenant. Tentativa de senha não passa mais por aqui — é do Clerk.
     auth-por-minuto: ${DENTIBOT_RATELIMIT_AUTH:10}
     geral-por-minuto: ${DENTIBOT_RATELIMIT_GERAL:300}
     janela: PT1M
-  # Cookie de refresh com Secure. Só vira false em dev sobre HTTP puro.
-  cookie-seguro: ${DENTIBOT_COOKIE_SEGURO:true}
 
 server:
   port: ${PORT:8080}

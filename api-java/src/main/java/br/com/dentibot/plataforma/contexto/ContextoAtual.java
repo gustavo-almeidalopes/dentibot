@@ -54,4 +54,18 @@ public final class ContextoAtual {
     public static UUID correlacao() {
         return obter().correlacaoId();
     }
+
+    /**
+     * O {@code sub} do Clerk, exigindo que o token tenha sido validado. Só o
+     * cadastro de clínica usa: é o único fluxo que age em nome de uma conta do
+     * Clerk que ainda não tem linha em {@code identidade.usuarios}.
+     */
+    public static String sujeitoExternoObrigatorio() {
+        String sub = obter().sujeitoExterno();
+        if (sub == null) {
+            throw new IllegalStateException(
+                    "Operação exige um token do Clerk validado e a requisição não trouxe um.");
+        }
+        return sub;
+    }
 }

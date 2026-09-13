@@ -30,4 +30,14 @@ public interface AuditoriaApi {
     /** Login, logout, falha de login. Escrito mesmo quando não há usuário resolvido. */
     void registrarAutenticacao(String acao, Long idClinica, Long idUsuario,
                                String ipOrigem, String userAgent);
+
+    /**
+     * Consulta a trilha da própria clínica.
+     *
+     * <p>Ler a trilha é, ele mesmo, um ato auditável — e é registrado. Sem isso,
+     * a pergunta "quem andou consultando quem acessou o prontuário de fulano?"
+     * não teria resposta, e ela é exatamente o tipo de pergunta que uma
+     * investigação faz.
+     */
+    java.util.List<EventoAuditoria> consultar(FiltroDeTrilha filtro);
 }
