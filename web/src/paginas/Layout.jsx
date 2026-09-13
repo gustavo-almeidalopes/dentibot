@@ -47,11 +47,21 @@ function Autenticado() {
   const eu = useRecurso('/eu');
   const { pathname } = useLocation();
 
-  /* 401 aqui não é erro: é o intervalo legítimo entre criar a conta no Clerk e
-     cadastrar a clínica — existe token, não existe linha em
+  /* Negativa aqui não é erro: é o intervalo legítimo entre criar a conta no
+     Clerk e cadastrar a clínica — existe token, não existe linha em
      `identidade.usuarios`. Sem este desvio a pessoa que entra com Google cai
-     numa tela de erro em vez do formulário que resolve o problema dela. */
-  if (eu.status === 'erro' && eu.erro?.status === 401) {
+     numa tela de erro em vez do formulário que resolve o problema dela.
+
+     403 e não só 401 porque a CadeiaDeSeguranca não configura
+     authenticationEntryPoint: com httpBasic e formLogin desligados, o
+     ExceptionTranslationFilter do Spring cai no Http403ForbiddenEntryPoint e
+     responde 403 para quem não tem Authentication no contexto. Medido, não
+     suposto — a primeira versão disto testava 401 e nunca desviava.
+
+     Só vale para o /eu, e só porque este componente monta apenas quando o Clerk
+     diz que há sessão: aqui 403 significa "sem conta nesta base", nunca "sem
+     permissão", porque o endpoint não consulta a matriz. */
+  if (eu.status === 'erro' && (eu.erro?.status === 401 || eu.erro?.status === 403)) {
     return <Navigate to={CADASTRO} replace />;
   }
 
