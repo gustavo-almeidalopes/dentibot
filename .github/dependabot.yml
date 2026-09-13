@@ -11,15 +11,20 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # O agrupamento anterior não bastava: o Dependabot sobe para o latest do
+    # npm, e o Expo publica uma matriz de versões testadas que quase nunca é o
+    # latest. O grupo expo subiu react-native para 0.87.1 quando o SDK 57 pede
+    # 0.86.3, e o bundle do Metro parou de compilar. Estes pacotes não sobem
+    # sozinhos: sobem com "npx expo install --fix" quando o SDK subir.
+    ignore:
+      - dependency-name: expo
+      - dependency-name: expo-*
+      - dependency-name: react
+      - dependency-name: react-dom
+      - dependency-name: react-native
+      - dependency-name: react-native-*
+      - dependency-name: '@types/react'
     groups:
-      # Os pacotes do Expo sobem em conjunto e travam uns aos outros por peer
-      # dependency: cinco PRs separados seriam cinco conflitos.
-      expo:
-        patterns:
-          - expo
-          - expo-*
-          - react-native
-          - react-native-*
       clerk:
         patterns:
           - '@clerk/*'
