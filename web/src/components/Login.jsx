@@ -1,4 +1,4 @@
-import { Show, SignIn, SignUp } from '@clerk/react';
+import { ClerkLoaded, ClerkLoading, Show, SignIn, SignUp } from '@clerk/react';
 import { Lines, Reveal } from './Reveal.jsx';
 import { CRIAR, LOGIN } from '../rotas.js';
 
@@ -133,6 +133,14 @@ export default function Login() {
         </section>
 
         <section className="who-half">
+          {/* O widget vem de um script remoto do Clerk e demora. <Show> devolve
+              null enquanto isso, então sem este aviso a metade da tela fica
+              vazia — que é indistinguível de estar quebrada. */}
+          <ClerkLoading>
+            <p className="body body-ash" aria-live="polite">Carregando o acesso…</p>
+          </ClerkLoading>
+
+          <ClerkLoaded>
           {/* Quem já tem sessão e volta em /login não fica olhando o widget. */}
           <Show when="signed-in">
             <p className="body">Você já está autenticado.</p>
@@ -166,6 +174,7 @@ export default function Login() {
               </a>
             </p>
           </Show>
+          </ClerkLoaded>
         </section>
       </main>
     </>

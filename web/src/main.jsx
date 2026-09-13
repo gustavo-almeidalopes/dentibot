@@ -41,11 +41,30 @@ const aparencia = {
   },
 };
 
+/* Sem a chave o ClerkProvider não carrega NADA e não reclama: o próprio SDK faz
+   `else if (this.#publishableKey) this.getEntryChunks()` — chave ausente é um
+   ramo vazio. Aí todo <Show> devolve null para sempre e /login sobe com a
+   metade direita em branco, sem os botões do Google/Microsoft/Apple. Era um
+   sintoma sem nenhuma mensagem em lugar nenhum; agora a falta da variável no
+   build aparece na tela em vez de virar depuração de página vazia. */
+const chaveClerk = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
 createRoot(document.getElementById('root')).render(
+  !chaveClerk ? (
+    <main className="edge" style={{ padding: 'var(--spacing-30)' }} role="alert">
+      <h1 className="display display-sm">Configuração ausente.</h1>
+      <p className="body body-ash">
+        Este build subiu sem <code>VITE_CLERK_PUBLISHABLE_KEY</code>. Sem ela não há login:
+        defina a variável no ambiente do build (Vercel → Environment Variables, ou
+        <code> web/.env.local</code> em dev) e publique de novo.
+      </p>
+    </main>
+  ) : (
   <StrictMode>
     <BrowserRouter>
       <ClerkProvider
         localization={ptBR}
+        publishableKey={chaveClerk}
         appearance={aparencia}
         signInUrl={LOGIN}
         signUpUrl={CRIAR}
@@ -68,5 +87,6 @@ createRoot(document.getElementById('root')).render(
         </Routes>
       </ClerkProvider>
     </BrowserRouter>
-  </StrictMode>,
+  </StrictMode>
+  ),
 );
