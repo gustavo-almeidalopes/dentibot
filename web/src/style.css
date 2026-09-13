@@ -666,3 +666,334 @@ html:not(.no-js) #odontograma.visible .fdi {
   .auth-swap { max-width: none; }
   .auth-top { padding-block: var(--spacing-15); }
 }
+
+/* ── TILT — card que inclina seguindo o ponteiro ──────────────────────────── */
+/* O wrapper só cria a perspectiva; quem gira é o filho. Aplicar perspective e
+   transform no MESMO elemento faz o navegador achatar os dois numa matriz só, e
+   a rotação perde a profundidade — parece um cisalhamento, não um giro. */
+.tilt {
+  perspective: var(--perspectiva, 1200px);
+  /* Isola repaint: sem isto, girar o card convida o navegador a repintar a
+     seção inteira a cada frame do ponteiro. */
+  isolation: isolate;
+}
+
+.tilt-plano {
+  position: relative;
+  transform:
+    rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg))
+    scale(var(--escala-atual, 1));
+  transform-style: preserve-3d;
+  /* Curto: a transição existe só para o RETORNO ao repouso e para o primeiro
+     frame. Mais que isto e o card "persegue" o cursor com atraso visível. */
+  transition: transform .12s var(--ease-brut);
+  will-change: transform;
+}
+
+.tilt:hover .tilt-plano { --escala-atual: var(--escala, 1.05); }
+
+/* Volta ao repouso com mais calma do que acompanha o cursor: a saída é a única
+   parte do movimento que o olho realmente lê. */
+.tilt:not(:hover) .tilt-plano { transition-duration: .4s; }
+
+.tilt-brilho {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--brilho, 0);
+  transition: opacity .2s linear;
+  background: radial-gradient(
+    circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, .16),
+    transparent 55%);
+}
+
+/* O card é decoração. Quem pediu menos movimento não recebe nenhum — e o
+   conteúdo continua inteiro, que é o ponto. */
+@media (prefers-reduced-motion: reduce) {
+  .tilt-plano,
+  .tilt:not(:hover) .tilt-plano {
+    transform: none;
+    transition: none;
+  }
+  .tilt-brilho { display: none; }
+}
+
+/* ── CARTÃO DE CRÉDITO ────────────────────────────────────────────────────── */
+/* Três camadas de transform empilhadas, e a ordem é o que faz funcionar:
+     .tilt        → perspective (só ela)
+     .tilt-plano  → rotação que segue o ponteiro
+     .cartao      → rotação do FLIP
+   Juntar o flip e o tilt no mesmo elemento faria um cancelar o outro na mesma
+   matriz — o cartão viraria 180° e perderia a inclinação, ou vice-versa. */
+.cartao-tilt { width: min(370px, 100%); }
+
+.cartao {
+  position: relative;
+  aspect-ratio: 1.586;          /* ISO/IEC 7810 ID-1: 85,6 × 53,98 mm */
+  transform-style: preserve-3d;
+  transition: transform .62s var(--ease-brut);
+}
+.cartao[data-virado="sim"] { transform: rotateY(180deg); }
+
+.cartao-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1px solid var(--hair);
+  background:
+    linear-gradient(148deg, #141414 0%, #000000 58%, #0d0d0d 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cartao-frente { padding: 24px 24px 20px; justify-content: space-between; }
+.cartao-verso  { transform: rotateY(180deg); padding-block: 22px; }
+
+.cartao-topo { display: flex; align-items: center; justify-content: space-between; }
+
+/* O chip dourado é o único ponto de cor quente do sistema. Ele existe porque é
+   o que faz o retângulo ser lido como "cartão" antes de qualquer texto. */
+.cartao-chip {
+  width: 42px; height: 32px;
+  background: linear-gradient(135deg, #d4af6a, #8c6f3f 48%, #e6c98a);
+  position: relative;
+}
+.cartao-chip::before,
+.cartao-chip::after {
+  content: ""; position: absolute; left: 0; right: 0;
+  height: 1px; background: rgba(0, 0, 0, .38);
+}
+.cartao-chip::before { top: 10px; }
+.cartao-chip::after  { top: 21px; }
+
+.cartao-marca { color: var(--ink); display: block; }
+.marca { width: 62px; height: 20px; display: block; }
+.marca-texto {
+  fill: currentColor;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.cartao-numero {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(16px, 5vw, 21px);
+  letter-spacing: .06em;
+  /* tabular-nums: sem isto a linha "pula" de largura a cada dígito digitado,
+     porque a bolinha e o algarismo têm medidas diferentes. */
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cartao-rodape { display: flex; align-items: flex-end; gap: 18px; }
+.cartao-campo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cartao-campo-validade { margin-left: auto; }
+.cartao-rotulo {
+  font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--ash);
+}
+.cartao-valor {
+  font-size: 13px; letter-spacing: .06em; text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+/* O nome é o único campo de tamanho imprevisível; ele corta, nunca empurra a
+   validade para fora do cartão. */
+.cartao-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.cartao-tarja { height: 44px; background: #0a0a0a; border-block: 1px solid var(--hair-dim); }
+.cartao-assinatura {
+  display: flex; align-items: center; gap: 10px;
+  margin: 20px 24px 0;
+}
+.cartao-painel {
+  flex: 1; height: 32px;
+  background: repeating-linear-gradient(
+    -45deg, rgba(255,255,255,.10) 0 6px, rgba(255,255,255,.03) 6px 12px);
+}
+.cartao-cvv {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 15px; letter-spacing: .18em;
+  font-variant-numeric: tabular-nums;
+  background: var(--ink); color: var(--obsidian);
+  padding: 6px 10px;
+}
+.cartao-aviso {
+  margin: auto 24px 0;
+  font-size: 10px; line-height: 1.4; color: var(--ash);
+}
+
+/* Virar é informação, não enfeite: quem pediu menos movimento continua vendo o
+   verso, só que sem os 620ms de giro. */
+@media (prefers-reduced-motion: reduce) {
+  .cartao { transition: none; }
+}
+
+/* ── FORMULÁRIO DE PAGAMENTO ──────────────────────────────────────────────── */
+.pagamento {
+  display: grid;
+  grid-template-columns: min(370px, 100%) minmax(0, 1fr);
+  gap: var(--spacing-30, 30px);
+  align-items: start;
+}
+@media (max-width: 760px) { .pagamento { grid-template-columns: 1fr; } }
+
+.pagamento-campos { display: flex; flex-direction: column; gap: 16px; }
+.pagamento-linha { display: flex; gap: 14px; }
+.pagamento-linha .pagamento-campo { flex: 1; min-width: 0; }
+.pagamento-campo { display: flex; flex-direction: column; gap: 6px; }
+
+.pagamento-campo input {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  color: var(--ink);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+  padding: 12px 14px;
+  width: 100%;
+}
+.pagamento-campo input::placeholder { color: var(--ash); }
+.pagamento-campo input:focus-visible { outline: 2px solid var(--ink); outline-offset: -1px; }
+
+.pagamento-erro { margin: 0; font-size: 12px; color: var(--alarm); }
+
+.pagamento-campos button[disabled] {
+  opacity: .4;
+  cursor: not-allowed;
+}
+
+/* ── TELAS DO SISTEMA ─────────────────────────────────────────────────────── */
+.app-topo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20, 20px);
+  flex-wrap: wrap;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--hair);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--obsidian);
+}
+.app-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-right: auto; }
+.app-main { padding-block: var(--spacing-30, 30px) var(--spacing-50, 50px); }
+
+.app-cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-20, 20px);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-30, 30px);
+}
+.display-sm { font-size: clamp(2rem, 6vw, 3.2rem); }
+
+.filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filtros-linha {
+  align-items: flex-end;
+  padding-bottom: var(--spacing-20, 20px);
+  border-bottom: 1px solid var(--hair-dim, rgba(255,255,255,.12));
+  margin-bottom: var(--spacing-20, 20px);
+}
+
+/* Um controle só, para input, select e textarea: três estilos separados é como
+   um deles fica diferente dos outros sem ninguém decidir isso. */
+.campo-app { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.filtros input, .filtros select,
+.campo-app input, .campo-app select, .campo-app textarea {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--hair);
+  border-radius: 0;
+  color: var(--ink, #fff);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 11px;
+  width: 100%;
+}
+.campo-app textarea { resize: vertical; font-family: inherit; line-height: 1.5; }
+.filtros input:focus-visible, .filtros select:focus-visible,
+.campo-app input:focus-visible, .campo-app select:focus-visible,
+.campo-app textarea:focus-visible { outline: 2px solid var(--ink, #fff); outline-offset: -1px; }
+
+.form-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid var(--hair);
+  padding: var(--spacing-20, 20px);
+  margin-bottom: var(--spacing-30, 30px);
+}
+.form-linha { display: flex; gap: 14px; flex-wrap: wrap; }
+.form-linha .campo-app { flex: 1 1 180px; }
+
+.lista { list-style: none; margin: 0; padding: 0; }
+.acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.row-consulta, .row-membro { align-items: center; }
+.row-evolucao[data-retificada="sim"] { opacity: .62; }
+
+.aviso-plano {
+  border: 1px solid var(--alarm);
+  border-left-width: 4px;
+  padding: 14px 18px;
+  margin-bottom: var(--spacing-20, 20px);
+  font-size: 14px;
+}
+[data-vinculado="nao"] { color: var(--alarm); }
+.selo-staff { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--alarm); }
+
+.abas { display: flex; gap: 8px; margin-bottom: var(--spacing-20, 20px); }
+.abas [aria-selected="true"] { background: var(--ink, #fff); color: var(--obsidian, #000); font-weight: 700; }
+
+/* ── ODONTOGRAMA CLÍNICO ──────────────────────────────────────────────────── */
+.odonto { display: grid; gap: 10px; margin-bottom: var(--spacing-30, 30px); }
+.odonto-arcada { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; }
+@media (max-width: 620px) { .odonto-arcada { grid-template-columns: repeat(8, 1fr); } }
+
+.odonto-dente {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--hair);
+  color: var(--ink, #fff);
+  font-family: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  padding: 10px 2px;
+  cursor: pointer;
+  transition: background .15s linear;
+}
+.odonto-dente:hover { background: rgba(255, 255, 255, .07); }
+.odonto-dente[aria-pressed="true"] { background: var(--ink, #fff); color: var(--obsidian, #000); font-weight: 700; }
+.odonto-dente:focus-visible { outline: 2px solid var(--alarm); outline-offset: 2px; }
+/* A condição é cor E borda: cor sozinha não existe para quem não a distingue. */
+.odonto-dente[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
+.odonto-dente[data-condicao="ausente"] { opacity: .38; border-style: dashed; }
+.odonto-dente[data-condicao="restaurado"],
+.odonto-dente[data-condicao="coroa"],
+.odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; }
+
+/* ── TABELA ───────────────────────────────────────────────────────────────── */
+.tabela-rolagem { overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tabela th, .tabela td {
+  text-align: left;
+  padding: 10px 14px 10px 0;
+  border-bottom: 1px solid var(--hair-dim, rgba(255,255,255,.12));
+  vertical-align: top;
+}
+.tabela th {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--ash, #838383); font-weight: 400;
+  border-bottom-color: var(--hair);
+  white-space: nowrap;
+}
+.tabela .num { font-variant-numeric: tabular-nums; white-space: nowrap; }

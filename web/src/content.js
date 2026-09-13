@@ -149,5 +149,3 @@ export const LOWER_ARCH = [
 
 export const WHATSAPP_URL =
   'https://wa.me/5511941212737?text=Olá%2C+gostaria+de+saber+mais+sobre+o+DentiBot';
-
-export const LOGIN_HREF = '/login';
