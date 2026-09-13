@@ -9,12 +9,15 @@ import Agenda from './paginas/Agenda.jsx';
 import Auditoria from './paginas/Auditoria.jsx';
 import Cadastro from './paginas/Cadastro.jsx';
 import Equipe from './paginas/Equipe.jsx';
+import Financeiro from './paginas/Financeiro.jsx';
 import Layout from './paginas/Layout.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
 import Pacientes from './paginas/Pacientes.jsx';
 import Prontuario from './paginas/Prontuario.jsx';
 import './style.css';
-import { AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, LOGIN, PACIENTES } from './rotas.js';
+import {
+  AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES, PRONTUARIO,
+} from './rotas.js';
 
 /* Router de verdade, e não o mapa de `window.location.pathname` que estava
    aqui. O comentário anterior dizia "vale um router quando existir rota com
@@ -82,7 +85,8 @@ createRoot(document.getElementById('root')).render(
           <Route element={<Layout />}>
             <Route path={AGENDA} element={<Agenda />} />
             <Route path={PACIENTES} element={<Pacientes />} />
-            <Route path="/pacientes/:idPaciente/prontuario" element={<Prontuario />} />
+            <Route path={PRONTUARIO} element={<Prontuario />} />
+            <Route path={FINANCEIRO} element={<Financeiro />} />
             <Route path={EQUIPE} element={<Equipe />} />
             <Route path={AUDITORIA} element={<Auditoria />} />
           </Route>

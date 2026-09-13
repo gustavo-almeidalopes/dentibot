@@ -4,7 +4,7 @@ import { api } from '../api.js';
 import FichaPaciente from '../components/FichaPaciente.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { prontuarioDe } from '../rotas.js';
-import { Cabecalho, Estado } from './Layout.jsx';
+import { Cabecalho, Estado, usePode } from './Layout.jsx';
 
 /**
  * Lista de pacientes.
@@ -20,6 +20,7 @@ import { Cabecalho, Estado } from './Layout.jsx';
  */
 export default function Pacientes() {
   const [criando, setCriando] = useState(false);
+  const pode = usePode();
   const pacientes = useRecurso('/pacientes?limite=200');
   const lista = pacientes.dados ?? [];
 
@@ -30,7 +31,9 @@ export default function Pacientes() {
         detalhe={pacientes.status === 'ok'
           ? `${lista.length} no cadastro`
           : 'GET /api/v1/pacientes'}
-        acao={(
+        /* Financeiro e auxiliar leem o cadastro e não criam. Mostrar o botão
+           para eles seria oferecer um formulário que termina em 403. */
+        acao={pode('PACIENTE', 'CRIAR') && (
           <button type="button" className="btn btn-fill"
                   onClick={() => setCriando((c) => !c)}>
             {criando ? 'Cancelar' : 'Novo paciente'}
@@ -59,7 +62,11 @@ export default function Pacientes() {
                 <p className="body">{p.telefoneCelular || '—'}</p>
               </div>
               <div className="acoes">
-                <Link className="btn" to={prontuarioDe(p.idPaciente)}>Prontuário</Link>
+                {/* Recepção e financeiro não alcançam prontuário — dado de
+                    saúde, LGPD art. 11. Sem o link a tela não convida ao 403. */}
+                {pode('PRONTUARIO') && (
+                  <Link className="btn" to={prontuarioDe(p.idPaciente)}>Prontuário</Link>
+                )}
               </div>
             </li>
           ))}
