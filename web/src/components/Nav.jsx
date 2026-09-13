@@ -1,7 +1,7 @@
 import { Show, UserButton } from '@clerk/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NAV_LINKS } from '../content.js';
-import { LOGIN } from '../rotas.js';
+import { AGENDA, LOGIN } from '../rotas.js';
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
@@ -63,11 +63,9 @@ export default function Nav() {
         </nav>
 
         <div className="menu-foot edge">
-          <Show when="signed-out" fallback={<a href={LOGIN} className="btn btn-fill btn-lg">Entrar</a>}>
-            <a href={LOGIN} className="btn btn-fill btn-lg">Entrar</a>
-          </Show>
+          <a href={LOGIN} className="btn btn-fill btn-lg">Entrar</a>
           <Show when="signed-in">
-            <a href="/agenda" className="btn btn-fill btn-lg">Abrir o sistema</a>
+            <a href={AGENDA} className="btn btn-fill btn-lg">Abrir o sistema</a>
             <UserButton />
           </Show>
           <p className="credit">Agenda · Prontuário · Cobrança · Estoque · LGPD</p>
@@ -76,15 +74,15 @@ export default function Nav() {
 
       <nav className="nav edge" aria-label="Navegação principal">
         {NAV_LINKS.map((l) => <a key={l.href} href={l.href} className="btn">{l.label}</a>)}
-        {/* fallback: <Show> devolve null enquanto o Clerk carrega — e para
-            sempre se ele não carregar (script bloqueado, offline, chave
-            ausente). Sem isto a landing sobe sem botão de entrar, que é
-            exatamente o sintoma relatado. */}
-        <Show when="signed-out" fallback={<a href={LOGIN} className="btn btn-fill">Entrar</a>}>
-          <a href={LOGIN} className="btn btn-fill">Entrar</a>
-        </Show>
+        {/* Fora do <Show>: /login é href estático, não precisa do Clerk para
+            existir. <Show> devolve null ENQUANTO o Clerk carrega — e para
+            sempre se ele não carregar (chave ausente no build, script
+            bloqueado, offline). O `fallback` não cobre isso: ele só entra
+            quando a condição é falsa, nunca durante a carga. Era esse o
+            motivo de a landing subir sem botão de entrar. */}
+        <a href={LOGIN} className="btn btn-fill">Entrar</a>
         <Show when="signed-in">
-          <a href="/agenda" className="btn">Sistema</a>
+          <a href={AGENDA} className="btn">Sistema</a>
           <UserButton />
         </Show>
       </nav>
