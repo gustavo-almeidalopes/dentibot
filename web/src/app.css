@@ -257,3 +257,35 @@
    ferramenta que a pessoa usa oito horas por dia. */
 :root:has(.app-main) .btn::before { transition: none; }
 .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+/* ── NAVEGAÇÃO ────────────────────────────────────────────────────────────── */
+/* Deixa de ser fileira de blocos preenchidos. Um bloco invertido para o item
+   ativo grita tanto quanto o botão de ação primária da tela, e eles competem. */
+.app-aba {
+  padding: 8px 2px;
+  margin-right: 18px;
+  border-bottom: 2px solid transparent;
+  color: var(--tinta-fraca);
+  font-size: 14px;
+  text-decoration: none;
+}
+.app-aba:hover { color: var(--tinta); }
+.app-aba-ativa { color: var(--tinta); border-bottom-color: var(--alarm); font-weight: 700; }
+
+.app-papel { font-size: 11px; letter-spacing: .1em; text-transform: capitalize; }
+
+.vazio {
+  padding-block: var(--spacing-50, 50px);
+  border-top: 1px solid var(--hair);
+}
+
+/* Anel de foco em tudo que recebe foco, no tema certo. A regra existente
+   apontava para `var(--ink, #fff)`: sobre papel, branco sobre branco. */
+:root:has(.app-main) :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+
+/* Título de tela: 51px era altura de manifesto. Numa ferramenta o título é
+   orientação, não declaração. */
+.display-sm { font-size: clamp(1.6rem, 3vw, 1.9rem); }
+:root:has(.app-main) { font-size: 15px; }
+:root:has(.app-main) .body { line-height: 1.45; }
+:root:has(.app-main) .cap { font-size: 12px; }

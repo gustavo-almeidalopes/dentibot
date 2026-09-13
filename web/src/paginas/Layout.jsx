@@ -1,8 +1,25 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
 import { createContext, useContext } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Esqueleto } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
 import { CADASTRO, MENU, recursoDaTela } from '../rotas.js';
+
+/* Espelha os tokens de `:root:has(.app-main)` em app.css. O Clerk não lê
+   variável CSS nossa; se a paleta do tema claro mudar lá, muda aqui também. */
+const APARENCIA_CLARA = {
+  colorBackground: '#ffffff',
+  colorForeground: '#111111',
+  colorMuted: '#faf9f7',
+  colorMutedForeground: '#5c5c5c',
+  colorPrimary: '#111111',
+  colorPrimaryForeground: '#ffffff',
+  colorInput: '#ffffff',
+  colorInputForeground: '#111111',
+  colorBorder: 'rgba(0, 0, 0, .22)',
+  colorDanger: '#ed1c24',
+  borderRadius: '0px',
+};
 
 /**
  * Casca das telas autenticadas.
@@ -93,14 +110,18 @@ function Autenticado() {
               to={item.href}
               /* aria-current vem do NavLink; a classe é só o estilo. Um item
                  ativo marcado apenas por cor não existe para leitor de tela. */
-              className={({ isActive }) => `btn${isActive ? ' btn-fill' : ''}`}
+              className={({ isActive }) => `app-aba${isActive ? ' app-aba-ativa' : ''}`}
             >
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <UserButton />
+        {eu.dados.papel && <p className="cap cap-ash app-papel">{eu.dados.papel.toLowerCase()}</p>}
+        {/* O provider inteiro está com aparência preta, para a landing e o
+            login. Dentro do app o cabeçalho é claro, e o popover do Clerk
+            entraria preto sobre papel. */}
+        <UserButton appearance={{ variables: APARENCIA_CLARA }} />
       </header>
 
       <main id="main" className="app-main edge">
@@ -117,7 +138,7 @@ function Autenticado() {
 
 function SemAcesso({ papel }) {
   return (
-    <div role="alert">
+    <div className="vazio" role="alert">
       <h1 className="display display-sm">Sem acesso.</h1>
       <p className="body body-ash">
         O papel {papel ? <b>{papel.toLowerCase()}</b> : 'atual'} não alcança esta tela.
@@ -128,9 +149,14 @@ function SemAcesso({ papel }) {
 }
 
 /** Os três estados de carga, num componente só. */
-export function Estado({ status, erro, vazio, children, onTentarDeNovo }) {
+export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNovo }) {
   if (status === 'carregando') {
-    return <p className="body body-ash" aria-live="polite">Carregando…</p>;
+    /* Quem passa a forma do que vai chegar não vê a página saltar quando ela
+       chega — e o salto é o que faz alguém clicar no lugar errado. Quem não
+       passa continua com o texto, então nenhuma tela quebrou na troca. */
+    return esqueleto
+      ? <Esqueleto linhas={esqueleto.linhas} colunas={esqueleto.colunas} />
+      : <p className="body body-ash" aria-live="polite">Carregando…</p>;
   }
   if (status === 'erro') {
     return (
@@ -141,7 +167,18 @@ export function Estado({ status, erro, vazio, children, onTentarDeNovo }) {
         {/* O correlacaoId vem do ProblemDetail do back-end e é o que o suporte
             usa para achar a linha de log exata sem pedir print de tela. */}
         {erro?.data?.correlacaoId && (
-          <p className="cap cap-ash">Referência: {erro.data.correlacaoId}</p>
+          <p className="cap cap-ash">
+            Referência: <code>{erro.data.correlacaoId}</code>{' '}
+            {/* O suporte pede este número por telefone. Ler 36 caracteres de
+                UUID em voz alta é onde a pessoa desiste e desliga. */}
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => navigator.clipboard?.writeText(erro.data.correlacaoId)}
+            >
+              Copiar
+            </button>
+          </p>
         )}
         {onTentarDeNovo && (
           <button type="button" className="btn" onClick={onTentarDeNovo}>

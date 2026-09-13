@@ -39,13 +39,20 @@ export function useRecurso(caminho, { inicial = null } = {}) {
 export function useAcao(aoConcluir) {
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState(null);
+  const [sucesso, setSucesso] = useState(null);
 
-  const executar = useCallback(async (promessa) => {
+  const executar = useCallback(async (promessa, mensagem) => {
     setEnviando(true);
     setErro(null);
+    setSucesso(null);
     try {
       const resultado = await promessa;
       aoConcluir?.(resultado);
+      /* Sucesso mudo era o buraco: a lista recarregava e quem clicou não sabia
+         se clicou. Quem não passar mensagem continua sem aviso — nem toda
+         escrita precisa de uma, e "Salvo." em cima de um formulário que já
+         fechou é ruído. */
+      if (mensagem) setSucesso(mensagem);
       return resultado;
     } catch (e) {
       setErro(e);
@@ -55,5 +62,5 @@ export function useAcao(aoConcluir) {
     }
   }, [aoConcluir]);
 
-  return { executar, enviando, erro };
+  return { executar, enviando, erro, sucesso, limparSucesso: () => setSucesso(null) };
 }
