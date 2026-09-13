@@ -11,7 +11,7 @@
   "dependencies": {
     "@clerk/localizations": "^4.16.1",
     "@clerk/react": "^6.15.2",
-    "react": "^19.1.1",
+    "react": "^19.3.0",
     "react-dom": "^19.1.1"
   },
   "devDependencies": {
