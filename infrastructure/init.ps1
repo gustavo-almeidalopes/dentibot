@@ -145,7 +145,24 @@ if ([int]$violacoes -ne 0) {
 Ok 'toda tabela com id_clinica tem RLS + FORCE + tenant_isolation'
 
 Write-Host "`nPronto." -ForegroundColor Green
-Write-Host "  API:      cd api-java; ./mvnw spring-boot:run"
+
+# As variáveis que este script usou valem só DENTRO dele. Num terminal novo o
+# `spring-boot:run` falha primeiro em DENTIBOT_DB_URL e, depois de resolvida
+# essa, em DENTIBOT_CLERK_ISSUER — duas mensagens em sequência, cada uma
+# parecendo o problema todo. Quatro linhas prontas custam menos que descobrir
+# as duas na ordem.
+Write-Host "`nCole no terminal onde a API vai rodar:" -ForegroundColor Cyan
+Write-Host '  $env:DENTIBOT_DB_URL = "jdbc:postgresql://localhost:5433/dentibot"'
+Write-Host '  $env:DENTIBOT_DB_PASSWORD = "app_local_apenas"'
+Write-Host '  $env:DENTIBOT_DB_MIGRADOR_PASSWORD = "migrador_local_apenas"'
+Write-Host '  $env:DENTIBOT_CLERK_ISSUER = "https://SUA-INSTANCIA.clerk.accounts.dev"'
+# O issuer tem de ser o par da publishable key: chave de uma instância com
+# emissor de outra devolve 401 em tudo, sem pista de qual das duas está errada.
+# O host está dentro da própria chave — o trecho depois de `pk_test_` é o
+# base64 de "<host>$".
+Write-Host "  (o host é o base64 dentro da VITE_CLERK_PUBLISHABLE_KEY)" -ForegroundColor DarkGray
+
+Write-Host "`n  API:      cd api-java; ./mvnw spring-boot:run"
 Write-Host "  Landing:  cd web; npm run dev"
 Write-Host "  SPA:      cd app; npm run dev"
 Write-Host "  MinIO:    http://localhost:9001  (dentibot_local / dentibot_local_apenas)"
