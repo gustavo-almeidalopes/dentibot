@@ -1,0 +1,49 @@
+# Alvos reais do repositório depois da remoção da V1. A configuração anterior
+# saiu junto com ela e deixou 43 PRs apontando para gateway/, services/* e
+# frontend/ — diretórios que não existem mais. Cada entrada abaixo corresponde
+# a um manifesto que está mesmo no main; se um sumir, esta lista muda junto.
+version: 2
+
+updates:
+  # Expo (iOS + Android). O ecossistema é npm mesmo em projeto React Native.
+  - package-ecosystem: npm
+    directory: /app
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    # O agrupamento anterior não bastava: o Dependabot sobe para o latest do
+    # npm, e o Expo publica uma matriz de versões testadas que quase nunca é o
+    # latest. O grupo expo subiu react-native para 0.87.1 quando o SDK 57 pede
+    # 0.86.3, e o bundle do Metro parou de compilar. Estes pacotes não sobem
+    # sozinhos: sobem com "npx expo install --fix" quando o SDK subir.
+    ignore:
+      - dependency-name: expo
+      - dependency-name: expo-*
+      - dependency-name: react
+      - dependency-name: react-dom
+      - dependency-name: react-native
+      - dependency-name: react-native-*
+      - dependency-name: '@types/react'
+    groups:
+      clerk:
+        patterns:
+          - '@clerk/*'
+
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      clerk:
+        patterns:
+          - '@clerk/*'
+
+  - package-ecosystem: maven
+    directory: /api-java
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+# Sem entrada github-actions: .github/workflows está vazio no main, então não
+# há action para atualizar. Quando existir CI, adicione o ecossistema aqui.
