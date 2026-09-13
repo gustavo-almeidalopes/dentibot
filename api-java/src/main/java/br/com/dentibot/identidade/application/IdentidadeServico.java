@@ -3,6 +3,7 @@ package br.com.dentibot.identidade.application;
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.billing.BillingApi;
 import br.com.dentibot.billing.LimiteDoPlano;
+import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.DentistaResumo;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.identidade.MembroEquipe;
@@ -66,8 +67,8 @@ public class IdentidadeServico implements IdentidadeApi {
 
     @Override
     @Transactional
-    public long criarPessoa(String nomeCompleto, String cpf, String telefoneCelular, String email) {
-        return pessoas.inserir(nomeCompleto, cpf, telefoneCelular, email);
+    public long criarPessoa(DadosPessoais dados) {
+        return pessoas.inserir(dados);
     }
 
     /**
@@ -79,7 +80,7 @@ public class IdentidadeServico implements IdentidadeApi {
     @Override
     @Transactional
     public long criarUsuario(String nomeCompleto, String email, Papel papel, String clerkUserId) {
-        long idPessoa = pessoas.inserir(nomeCompleto, null, null, email);
+        long idPessoa = pessoas.inserir(DadosPessoais.basico(nomeCompleto, email));
         return usuarios.inserir(idPessoa, email, papel, clerkUserId);
     }
 
@@ -179,7 +180,7 @@ public class IdentidadeServico implements IdentidadeApi {
             }
         }
 
-        long idPessoa = pessoas.inserir(novo.nomeCompleto(), null, null, novo.email());
+        long idPessoa = pessoas.inserir(DadosPessoais.basico(novo.nomeCompleto(), novo.email()));
         long idUsuario = usuarios.inserir(idPessoa, novo.email(), novo.papel(), null);
 
         if (novo.papel() == Papel.DENTISTA) {

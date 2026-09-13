@@ -1,5 +1,6 @@
 package br.com.dentibot.identidade.infrastructure;
 
+import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.PessoaResumo;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import java.util.Collection;
@@ -21,18 +22,33 @@ public class PessoaRepositorio {
      * (invariante 5). O RLS ainda confere no WITH CHECK: se o contexto e o valor
      * divergirem, o INSERT é recusado pelo banco.
      */
-    public long inserir(String nomeCompleto, String cpf, String telefoneCelular, String email) {
+    public long inserir(DadosPessoais d) {
         return jdbc.sql("""
                         INSERT INTO identidade.pessoas
-                            (id_clinica, nome_completo, cpf, telefone_celular, email)
-                        VALUES (:clinica, :nome, :cpf, :telefone, :email)
+                            (id_clinica, nome_completo, cpf, rg, data_nascimento,
+                             telefone_celular, email, profissao, responsavel_legal,
+                             cep, logradouro, numero, complemento, bairro, cidade, uf)
+                        VALUES (:clinica, :nome, :cpf, :rg, :nascimento,
+                                :telefone, :email, :profissao, :responsavel,
+                                :cep, :logradouro, :numero, :complemento, :bairro, :cidade, :uf)
                         RETURNING id_pessoa
                         """)
                 .param("clinica", ContextoAtual.clinicaObrigatoria())
-                .param("nome", nomeCompleto)
-                .param("cpf", cpf)
-                .param("telefone", telefoneCelular)
-                .param("email", email)
+                .param("nome", d.nomeCompleto())
+                .param("cpf", d.cpf())
+                .param("rg", d.rg())
+                .param("nascimento", d.dataNascimento())
+                .param("telefone", d.telefoneCelular())
+                .param("email", d.email())
+                .param("profissao", d.profissao())
+                .param("responsavel", d.responsavelLegal())
+                .param("cep", d.cep())
+                .param("logradouro", d.logradouro())
+                .param("numero", d.numero())
+                .param("complemento", d.complemento())
+                .param("bairro", d.bairro())
+                .param("cidade", d.cidade())
+                .param("uf", d.uf())
                 .query(Long.class)
                 .single();
     }
