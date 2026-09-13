@@ -56,6 +56,19 @@ public class TratadorGlobalDeErros {
         return p;
     }
 
+    /**
+     * Regra de negócio que o Bean Validation não expressa: "dentista exige CRO",
+     * "a clínica não pode ficar sem admin". São 400 e não 500 — o cliente
+     * corrige a requisição e tenta de novo.
+     *
+     * <p>A mensagem chega ao cliente, e por isso quem lança é responsável por
+     * ela não conter dado pessoal. As de hoje falam de regra, não de valor.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail regraDeNegocio(IllegalArgumentException e) {
+        return problema(HttpStatus.BAD_REQUEST, "requisicao-invalida", e.getMessage());
+    }
+
     @ExceptionHandler(DuplicateKeyException.class)
     public ProblemDetail duplicado(DuplicateKeyException e) {
         log.info("Violação de unicidade", e);

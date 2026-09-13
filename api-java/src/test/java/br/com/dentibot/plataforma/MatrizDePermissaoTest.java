@@ -181,7 +181,8 @@ class MatrizDePermissaoTest {
     @DisplayName("token com os dois eixos é impossível de construir")
     void eixosSaoExclusivos() {
         assertThatThrownBy(() -> new ContextoRequisicao(
-                1L, 10L, Papel.ADMIN, StaffPapel.ENGENHARIA, 99L, UUID.randomUUID(), false))
+                1L, 10L, Papel.ADMIN, StaffPapel.ENGENHARIA, 99L, UUID.randomUUID(),
+                false, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("camada 5");
     }

@@ -1,12 +1,22 @@
 package br.com.dentibot.identidade.infrastructure;
 
-import br.com.dentibot.identidade.domain.CredenciaisUsuario;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.contexto.Papel;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
+/**
+ * Usuários da clínica (eixo A).
+ *
+ * <p>Saiu daqui, na V18: tudo que atendia senha. {@code senha_hash},
+ * {@code bloqueio_login}, contagem de falha e desbloqueio por decurso de prazo
+ * eram a implementação de um login que este serviço não faz mais — o Clerk faz,
+ * junto com 2FA, proteção contra força bruta e recuperação de conta. Código de
+ * autenticação que continua existindo sem ser chamado é pior que código
+ * ausente: parece uma defesa ativa numa revisão.
+ */
 @Repository
 public class UsuarioRepositorio {
 
@@ -16,144 +26,167 @@ public class UsuarioRepositorio {
         this.jdbc = jdbc;
     }
 
+    /** O que a resolução por {@code sub} do Clerk devolve. */
+    public record AcessoDeClinica(long idUsuario, long idClinica, Papel papel, String status) {
+    }
+
+    /** Idem, para o eixo B. Staff não tem clínica, por definição. */
+    public record AcessoDeStaff(long idStaff, String papel, String status) {
+    }
+
+    /** Linha crua de usuário, sem o nome: o nome é de {@code identidade.pessoas}. */
+    public record LinhaUsuario(long idUsuario, long idPessoa, String email, Papel papel,
+                               String status, boolean vinculado) {
+    }
+
     /**
-     * Resolve a clínica de um e-mail ANTES de existir contexto de tenant.
+     * Resolve a conta a partir do {@code sub} do token do Clerk, ANTES de existir
+     * contexto de tenant.
      *
-     * <p>Chama a função SECURITY DEFINER da V3 — a única travessia legítima do
-     * RLS no sistema. Devolve vazio quando o e-mail não existe, e quem chama
-     * responde sempre "credenciais inválidas": distinguir "e-mail não existe" de
-     * "senha errada" entrega a lista de usuários a quem tentar.
+     * <p>Chama uma função SECURITY DEFINER da V18 — a travessia do RLS tem
+     * sujeito próprio ({@code dentibot_autenticador}) e privilégio por coluna,
+     * pelo mesmo motivo documentado na V3: a tabela tem RLS e, no momento desta
+     * consulta, ninguém sabe ainda de qual clínica é a linha.
+     *
+     * <p>Roda a cada requisição autenticada: uma ida a mais ao banco, por índice
+     * único, dentro de uma transação de leitura.
      */
-    public Optional<Long> resolverClinicaPorEmail(String email) {
-        return jdbc.sql("SELECT identidade.resolver_clinica_por_email(:email)")
-                .param("email", email.toLowerCase())
-                .query(Long.class)
+    // ponytail: uma consulta por requisição; cachear em Redis por ~60s com
+    // invalidação no UPDATE de papel/status se o perfil de carga cobrar.
+    public Optional<AcessoDeClinica> resolverAcessoPorClerk(String sub) {
+        return jdbc.sql("SELECT * FROM identidade.resolver_acesso_por_clerk(:sub)")
+                .param("sub", sub)
+                .query(UsuarioRepositorio::mapearAcesso)
                 .optional();
     }
 
     /**
-     * O LEFT JOIN é com {@code identidade.bloqueio_login} — mesmo schema, mesmo
-     * módulo. Juntar schemas de módulos diferentes é o que a camada 7 proíbe;
-     * dentro do próprio módulo, JOIN é só SQL.
+     * A conta que a clínica cadastrou e que ainda espera o primeiro login —
+     * e-mail bate, {@code clerk_user_id} ainda nulo. A função filtra por isso;
+     * ver a V18 para por que a segunda metade da condição é a que importa.
      */
-    private static final String SQL_CREDENCIAIS = """
-            SELECT u.id_usuario, u.id_clinica, u.senha_hash, u.papel, u.status,
-                   u.metodo_2fa, u.totp_secret,
-                   COALESCE(b.falhas_consecutivas, 0) AS falhas,
-                   b.bloqueado_ate
-            FROM identidade.usuarios u
-            LEFT JOIN identidade.bloqueio_login b ON b.id_usuario = u.id_usuario
-            """;
-
-    /** Exige contexto de tenant já promovido. */
-    public Optional<CredenciaisUsuario> buscarCredenciaisPorEmail(String email) {
-        return jdbc.sql(SQL_CREDENCIAIS + " WHERE u.email = :email")
+    public Optional<AcessoDeClinica> resolverAcessoPendentePorEmail(String email) {
+        return jdbc.sql("SELECT * FROM identidade.resolver_acesso_pendente_por_email(:email)")
                 .param("email", email.toLowerCase())
-                .query(this::mapear)
+                .query(UsuarioRepositorio::mapearAcesso)
                 .optional();
     }
 
-    /** Usado na renovação de token, quando o e-mail não viaja no refresh. */
-    public Optional<CredenciaisUsuario> buscarCredenciaisPorId(long idUsuario) {
-        return jdbc.sql(SQL_CREDENCIAIS + " WHERE u.id_usuario = :id")
+    /**
+     * O eixo B mora em {@code identidade.staff_plataforma} — outra tabela, mesmo
+     * schema, mesmo módulo. Fica neste repositório em vez de ganhar uma classe
+     * para uma consulta só: a pergunta é a mesma ("quem é este sub?"), e o que
+     * difere é a resposta.
+     */
+    public Optional<AcessoDeStaff> resolverStaffPorClerk(String sub) {
+        return jdbc.sql("SELECT * FROM identidade.resolver_staff_por_clerk(:sub)")
+                .param("sub", sub)
+                .query((rs, n) -> new AcessoDeStaff(
+                        rs.getLong("id_staff"),
+                        rs.getString("papel"),
+                        rs.getString("status")))
+                .optional();
+    }
+
+    /**
+     * Vincula a conta do Clerk ao usuário. Escrita normal da app, sob RLS: quem
+     * chama precisa ter promovido o tenant antes, senão o UPDATE encontra zero
+     * linhas e não avisa.
+     */
+    public void vincularClerk(long idUsuario, String sub) {
+        jdbc.sql("""
+                        UPDATE identidade.usuarios
+                        SET clerk_user_id = :sub
+                        WHERE id_usuario = :id
+                        """)
                 .param("id", idUsuario)
-                .query(this::mapear)
-                .optional();
+                .param("sub", sub)
+                .update();
     }
 
-    private CredenciaisUsuario mapear(java.sql.ResultSet rs, int linha) throws java.sql.SQLException {
-        return new CredenciaisUsuario(
-                rs.getLong("id_usuario"),
-                rs.getLong("id_clinica"),
-                rs.getString("senha_hash"),
-                Papel.de(rs.getString("papel")),
-                rs.getString("status"),
-                rs.getString("metodo_2fa"),
-                rs.getString("totp_secret"),
-                rs.getInt("falhas"),
-                rs.getTimestamp("bloqueado_ate") == null
-                        ? null : rs.getTimestamp("bloqueado_ate").toInstant());
-    }
-
-    public long inserir(long idPessoa, String email, String senhaHash, Papel papel) {
+    /**
+     * @param clerkUserId o {@code sub} de quem já tem conta no Clerk (o admin
+     *                    que acabou de cadastrar a clínica), ou nulo para quem a
+     *                    clínica cadastrou pela tela de equipe e ainda vai
+     *                    entrar pela primeira vez.
+     */
+    public long inserir(long idPessoa, String email, Papel papel, String clerkUserId) {
         return jdbc.sql("""
                         INSERT INTO identidade.usuarios
-                            (id_clinica, id_pessoa, email, senha_hash, papel)
-                        VALUES (:clinica, :pessoa, :email, :hash, :papel)
+                            (id_clinica, id_pessoa, email, papel, clerk_user_id)
+                        VALUES (:clinica, :pessoa, :email, :papel, :clerk)
                         RETURNING id_usuario
                         """)
                 .param("clinica", ContextoAtual.clinicaObrigatoria())
                 .param("pessoa", idPessoa)
                 .param("email", email.toLowerCase())
-                .param("hash", senhaHash)
                 .param("papel", papel.valorBanco())
+                .param("clerk", clerkUserId)
                 .query(Long.class)
                 .single();
     }
 
-    public void registrarLoginBemSucedido(long idUsuario) {
-        jdbc.sql("UPDATE identidade.usuarios SET ultimo_login_em = NOW() WHERE id_usuario = :id")
-                .param("id", idUsuario)
-                .update();
-        jdbc.sql("""
-                        UPDATE identidade.bloqueio_login
-                        SET falhas_consecutivas = 0, bloqueado_ate = NULL, ultima_falha_em = NULL
+    /** Listagem da tela de equipe. O RLS já limita ao tenant. */
+    public List<LinhaUsuario> listar() {
+        return jdbc.sql("""
+                        SELECT id_usuario, id_pessoa, email, papel, status,
+                               clerk_user_id IS NOT NULL AS vinculado
+                        FROM identidade.usuarios
+                        ORDER BY id_usuario
+                        """)
+                .query((rs, n) -> new LinhaUsuario(
+                        rs.getLong("id_usuario"),
+                        rs.getLong("id_pessoa"),
+                        rs.getString("email"),
+                        Papel.de(rs.getString("papel")),
+                        rs.getString("status"),
+                        rs.getBoolean("vinculado")))
+                .list();
+    }
+
+    public Optional<LinhaUsuario> buscar(long idUsuario) {
+        return jdbc.sql("""
+                        SELECT id_usuario, id_pessoa, email, papel, status,
+                               clerk_user_id IS NOT NULL AS vinculado
+                        FROM identidade.usuarios
                         WHERE id_usuario = :id
                         """)
                 .param("id", idUsuario)
-                .update();
+                .query((rs, n) -> new LinhaUsuario(
+                        rs.getLong("id_usuario"),
+                        rs.getLong("id_pessoa"),
+                        rs.getString("email"),
+                        Papel.de(rs.getString("papel")),
+                        rs.getString("status"),
+                        rs.getBoolean("vinculado")))
+                .optional();
     }
 
     /**
-     * Conta a falha e bloqueia ao atingir o limite. Um UPSERT só: duas
-     * requisições simultâneas com senha errada não podem perder uma contagem,
-     * senão o limite de tentativas vira sugestão.
+     * Muda papel e status. Os dois num UPDATE só porque é uma tela só — e porque
+     * separar em dois abriria a janela em que o usuário está com o papel novo e
+     * o status velho.
      */
-    public int registrarFalhaLogin(long idUsuario, int limite, java.time.Duration bloqueio) {
-        Integer falhas = jdbc.sql("""
-                        INSERT INTO identidade.bloqueio_login
-                            (id_usuario, id_clinica, falhas_consecutivas, ultima_falha_em)
-                        VALUES (:id, :clinica, 1, NOW())
-                        ON CONFLICT (id_usuario) DO UPDATE
-                            SET falhas_consecutivas = identidade.bloqueio_login.falhas_consecutivas + 1,
-                                ultima_falha_em = NOW()
-                        RETURNING falhas_consecutivas
+    public int atualizar(long idUsuario, Papel papel, String status) {
+        return jdbc.sql("""
+                        UPDATE identidade.usuarios
+                        SET papel = :papel, status = :status
+                        WHERE id_usuario = :id
                         """)
                 .param("id", idUsuario)
-                .param("clinica", ContextoAtual.clinicaObrigatoria())
-                .query(Integer.class)
-                .single();
-
-        if (falhas >= limite) {
-            jdbc.sql("""
-                            UPDATE identidade.bloqueio_login
-                            SET bloqueado_ate = NOW() + CAST(:janela AS INTERVAL)
-                            WHERE id_usuario = :id
-                            """)
-                    .param("id", idUsuario)
-                    .param("janela", bloqueio.toMinutes() + " minutes")
-                    .update();
-            jdbc.sql("UPDATE identidade.usuarios SET status = 'bloqueado' WHERE id_usuario = :id")
-                    .param("id", idUsuario)
-                    .update();
-        }
-        return falhas;
+                .param("papel", papel.valorBanco())
+                .param("status", status)
+                .update();
     }
 
-    /** Desbloqueio por decurso de prazo, avaliado na hora do login. */
-    public void desbloquearSeExpirado(long idUsuario) {
-        jdbc.sql("""
-                        UPDATE identidade.usuarios u
-                        SET status = 'ativo'
-                        FROM identidade.bloqueio_login b
-                        WHERE u.id_usuario = b.id_usuario
-                          AND u.id_usuario = :id
-                          AND u.status = 'bloqueado'
-                          AND b.bloqueado_ate IS NOT NULL
-                          AND b.bloqueado_ate < NOW()
+    /** Quantos admins ativos restam. Guarda contra a clínica ficar sem dono. */
+    public int contarAdminsAtivos() {
+        return jdbc.sql("""
+                        SELECT count(*) FROM identidade.usuarios
+                        WHERE papel = 'admin' AND status = 'ativo'
                         """)
-                .param("id", idUsuario)
-                .update();
+                .query(Integer.class)
+                .single();
     }
 
     public int contarProfissionaisAtivos() {
@@ -163,5 +196,14 @@ public class UsuarioRepositorio {
                         """)
                 .query(Integer.class)
                 .single();
+    }
+
+    private static AcessoDeClinica mapearAcesso(java.sql.ResultSet rs, int linha)
+            throws java.sql.SQLException {
+        return new AcessoDeClinica(
+                rs.getLong("id_usuario"),
+                rs.getLong("id_clinica"),
+                Papel.de(rs.getString("papel")),
+                rs.getString("status"));
     }
 }

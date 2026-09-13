@@ -47,8 +47,12 @@ public class CadeiaDeSeguranca {
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Cadastro de clínica: sem tenant (é ele que o cria), mas
+                        // não anônimo — o controller exige token do Clerk válido,
+                        // porque o `sub` vira o dono da clínica. Desde a V18 esta
+                        // aplicação não emite token nenhum e por isso não publica
+                        // mais JWKS: o emissor é o Clerk.
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/.well-known/jwks.json").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         // Webhook de PSP não tem token: a autenticidade vem da
                         // assinatura HMAC do provedor, verificada ANTES do parse.

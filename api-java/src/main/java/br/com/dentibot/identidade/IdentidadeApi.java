@@ -32,8 +32,15 @@ public interface IdentidadeApi {
      */
     long criarPessoa(String nomeCompleto, String cpf, String telefoneCelular, String email);
 
-    /** Cria pessoa + usuário com login. Usado pelo onboarding e pela tela de equipe. */
-    long criarUsuario(String nomeCompleto, String email, String senhaEmClaro, Papel papel);
+    /**
+     * Cria pessoa + usuário com acesso.
+     *
+     * <p>{@code clerkUserId} nulo é o caso normal da tela de equipe: a clínica
+     * cadastra a pessoa, e o vínculo com a conta do Clerk acontece na primeira
+     * entrada dela, por e-mail verificado. O onboarding é a exceção — lá quem
+     * cadastra JÁ está autenticado, e o {@code sub} é conhecido na hora.
+     */
+    long criarUsuario(String nomeCompleto, String email, Papel papel, String clerkUserId);
 
     /**
      * O dentista correspondente a um usuário, quando houver.
@@ -48,4 +55,17 @@ public interface IdentidadeApi {
 
     /** Quantos profissionais contam para o limite do plano (camada 12). */
     int contarProfissionaisAtivos();
+
+    /** Os dentistas ativos da clínica, para preencher seletor de agenda. */
+    List<DentistaResumo> listarDentistas();
+
+    // ─── Tela de equipe ──────────────────────────────────────────────────────
+
+    List<MembroEquipe> listarEquipe();
+
+    /** Cadastra um membro da equipe. Devolve o id do usuário criado. */
+    long admitirMembro(NovoMembro novo);
+
+    /** Muda papel e/ou status de um membro. */
+    void atualizarMembro(long idUsuario, Papel papel, String status);
 }

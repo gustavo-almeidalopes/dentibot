@@ -4,6 +4,7 @@ import br.com.dentibot.clinicas.application.OnboardingServico;
 import br.com.dentibot.clinicas.application.OnboardingServico.ClinicaCriada;
 import br.com.dentibot.clinicas.application.OnboardingServico.NovaClinica;
 import br.com.dentibot.clinicas.domain.Plano;
+import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -45,16 +46,23 @@ public class OnboardingController {
             String timezone,
             String plano,
             @NotBlank @Size(max = 150) String nomeAdmin,
-            @NotBlank @Email @Size(max = 254) String emailAdmin,
-            // Mínimo de 12: a política de senha vive aqui e no Zod do frontend,
-            // que é gerado do mesmo OpenAPI — uma regra, dois lugares que a
-            // derivam.
-            @NotBlank @Size(min = 12, max = 200) String senhaAdmin) {
+            @NotBlank @Email @Size(max = 254) String emailAdmin) {
     }
 
+    /**
+     * Público na cadeia de segurança, mas não anônimo: exige um token do Clerk
+     * válido, porque é o {@code sub} dele que vira o dono da clínica.
+     *
+     * <p>"Público" aqui quer dizer só que a cadeia não pede contexto de tenant —
+     * e não poderia, já que o tenant é o que este endpoint cria. A checagem que
+     * importa é a de baixo, e ela é explícita de propósito: sem ela qualquer um
+     * criaria clínicas sem conta nenhuma associada.
+     */
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Long> cadastrar(@Valid @RequestBody PedidoCadastro pedido) {
+        String subDoClerk = ContextoAtual.sujeitoExternoObrigatorio();
+
         ClinicaCriada criada = onboarding.provisionar(new NovaClinica(
                 pedido.cnpj(),
                 pedido.razaoSocial(),
@@ -63,7 +71,7 @@ public class OnboardingController {
                 Plano.de(pedido.plano() == null ? "solo" : pedido.plano()),
                 pedido.nomeAdmin(),
                 pedido.emailAdmin(),
-                pedido.senhaAdmin()));
+                subDoClerk));
 
         return Map.of("idClinica", criada.idClinica(),
                 "idUsuarioAdmin", criada.idUsuarioAdmin());
