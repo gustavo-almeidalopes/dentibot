@@ -6,6 +6,7 @@ import br.com.dentibot.TesteIntegracao;
 import br.com.dentibot.clinicas.application.OnboardingServico;
 import br.com.dentibot.clinicas.application.OnboardingServico.NovaClinica;
 import br.com.dentibot.clinicas.domain.Plano;
+import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.infrastructure.PessoaRepositorio;
 import br.com.dentibot.identidade.infrastructure.UsuarioRepositorio;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
@@ -190,7 +191,7 @@ class ResolucaoDeAcessoTest extends TesteIntegracao {
         ContextoAtual.definir(ContextoRequisicao.deClinica(
                 idClinica, idUsuarioAdmin, Papel.ADMIN, UUID.randomUUID()));
         transacao.executeWithoutResult(s ->
-                usuarios.inserir(pessoas.inserir(nome, null, null, email), email, papel, null));
+                usuarios.inserir(pessoas.inserir(DadosPessoais.basico(nome, email)), email, papel, null));
         ContextoAtual.definir(ContextoRequisicao.anonimo(UUID.randomUUID()));
     }
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
+import FichaPaciente from '../components/FichaPaciente.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { prontuarioDe } from '../rotas.js';
 import { Cabecalho, Estado } from './Layout.jsx';
@@ -68,56 +69,21 @@ export default function Pacientes() {
   );
 }
 
+/**
+ * O mesmo componente do auto-cadastro em /cadastro.
+ *
+ * <p>Antes eram quatro campos aqui — nome, CPF, celular, e-mail — e a ficha
+ * completa em lugar nenhum. Faltava tudo o que muda conduta: data de
+ * nascimento (dose de anestésico), alergia, condição sistêmica, gravidez.
+ */
 function NovoPaciente({ onCriado }) {
-  const [form, setForm] = useState({
-    nomeCompleto: '', cpf: '', telefoneCelular: '', email: '',
-  });
   const { executar, enviando, erro } = useAcao(onCriado);
 
-  const mudar = (campo) => (e) => setForm((f) => ({ ...f, [campo]: e.target.value }));
-
   return (
-    <form
-      className="form-bloco"
-      onSubmit={(e) => {
-        e.preventDefault();
-        /* Campos vazios viram null e não string vazia: o CHECK de CPF do banco
-           recusa '' e o e-mail vazio ocuparia o índice único à toa. */
-        executar(api.post('/pacientes', {
-          nomeCompleto: form.nomeCompleto.trim(),
-          cpf: form.cpf.replace(/\D/g, '') || null,
-          telefoneCelular: form.telefoneCelular.trim() || null,
-          email: form.email.trim() || null,
-        }));
-      }}
-    >
-      <div className="form-linha">
-        <label className="campo-app">
-          <span className="cap cap-ash">Nome completo</span>
-          <input required maxLength={150} value={form.nomeCompleto} onChange={mudar('nomeCompleto')} />
-        </label>
-        <label className="campo-app">
-          <span className="cap cap-ash">CPF</span>
-          <input inputMode="numeric" maxLength={14} value={form.cpf} onChange={mudar('cpf')}
-                 placeholder="somente dígitos" />
-        </label>
-      </div>
-      <div className="form-linha">
-        <label className="campo-app">
-          <span className="cap cap-ash">Celular</span>
-          <input maxLength={20} value={form.telefoneCelular} onChange={mudar('telefoneCelular')} />
-        </label>
-        <label className="campo-app">
-          <span className="cap cap-ash">E-mail</span>
-          <input type="email" maxLength={254} value={form.email} onChange={mudar('email')} />
-        </label>
-      </div>
-
-      {erro && <p className="pagamento-erro" role="alert">{erro.message}</p>}
-
-      <button type="submit" className="btn btn-fill" disabled={enviando}>
-        {enviando ? 'Cadastrando…' : 'Cadastrar'}
-      </button>
-    </form>
+    <FichaPaciente
+      enviando={enviando}
+      erro={erro}
+      onEnviar={(corpo) => executar(api.post('/pacientes', corpo))}
+    />
   );
 }

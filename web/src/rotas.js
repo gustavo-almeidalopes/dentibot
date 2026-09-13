@@ -4,6 +4,11 @@
 export const LOGIN = '/login';
 export const CRIAR = '/login?criar=1';
 
+/* Onde a conta recém-criada aterrissa. Não é decoração de fluxo: sem passar por
+   aqui não existe linha em `identidade.usuarios`, e o back-end responde 401 a
+   tudo — inclusive para quem entrou com Google, Microsoft ou Apple. */
+export const CADASTRO = '/cadastro';
+
 export const AGENDA = '/agenda';
 export const PACIENTES = '/pacientes';
 export const EQUIPE = '/equipe';

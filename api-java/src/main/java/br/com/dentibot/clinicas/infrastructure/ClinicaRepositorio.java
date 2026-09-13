@@ -27,7 +27,7 @@ public class ClinicaRepositorio {
                             ZoneId timezone, Plano plano) {
         return jdbc.sql("""
                         SELECT clinicas.provisionar(
-                            CAST(:cnpj AS CHAR(14)),
+                            CAST(:cnpj AS VARCHAR(14)),
                             CAST(:razao AS VARCHAR(144)),
                             CAST(:fantasia AS VARCHAR(60)),
                             :timezone,

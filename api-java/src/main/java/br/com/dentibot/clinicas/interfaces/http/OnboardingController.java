@@ -39,7 +39,12 @@ public class OnboardingController {
     }
 
     public record PedidoCadastro(
-            @NotBlank @Pattern(regexp = "^[0-9]{14}$", message = "CNPJ deve ter 14 dígitos, sem pontuação")
+            /* CNPJ da clínica ou CPF do dentista autônomo — os dois nascem
+               tenant, e o autônomo não tem CNPJ para dar. O CHECK da V20 repete
+               esta regra no banco, que é onde ela vale mesmo. */
+            @NotBlank
+            @Pattern(regexp = "^([0-9]{11}|[0-9]{14})$",
+                     message = "informe CPF (11 dígitos) ou CNPJ (14), sem pontuação")
             String cnpj,
             @NotBlank @Size(max = 144) String razaoSocial,
             @NotBlank @Size(max = 60) String nomeFantasia,

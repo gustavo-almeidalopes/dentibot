@@ -7,13 +7,14 @@ import App from './App.jsx';
 import Login from './components/Login.jsx';
 import Agenda from './paginas/Agenda.jsx';
 import Auditoria from './paginas/Auditoria.jsx';
+import Cadastro from './paginas/Cadastro.jsx';
 import Equipe from './paginas/Equipe.jsx';
 import Layout from './paginas/Layout.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
 import Pacientes from './paginas/Pacientes.jsx';
 import Prontuario from './paginas/Prontuario.jsx';
 import './style.css';
-import { AGENDA, AUDITORIA, CRIAR, EQUIPE, LOGIN, PACIENTES } from './rotas.js';
+import { AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, LOGIN, PACIENTES } from './rotas.js';
 
 /* Router de verdade, e não o mapa de `window.location.pathname` que estava
    aqui. O comentário anterior dizia "vale um router quando existir rota com
@@ -73,6 +74,9 @@ createRoot(document.getElementById('root')).render(
         <Routes>
           <Route path="/" element={<App />} />
           <Route path={LOGIN} element={<Login />} />
+          {/* Fora do Layout de propósito: quem chega aqui ainda não tem clínica,
+              e o menu do Layout só aponta para telas que responderiam 401. */}
+          <Route path={CADASTRO} element={<Cadastro />} />
 
           {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
           <Route element={<Layout />}>

@@ -1,6 +1,8 @@
 package br.com.dentibot.pacientes.infrastructure;
 
+import br.com.dentibot.pacientes.NovoPaciente;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
+import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -17,22 +19,27 @@ public class PacienteRepositorio {
     }
 
     private final JdbcClient jdbc;
+    private final ObjectMapper json;
 
-    public PacienteRepositorio(JdbcClient jdbc) {
+    public PacienteRepositorio(JdbcClient jdbc, ObjectMapper json) {
         this.jdbc = jdbc;
+        this.json = json;
     }
 
-    public long inserir(long idPessoa, Long idPlano, String numeroCarteirinha) {
+    public long inserir(long idPessoa, Long idPlano, String numeroCarteirinha,
+                        NovoPaciente.Anamnese anamnese) {
         return jdbc.sql("""
                         INSERT INTO pacientes.pacientes
-                            (id_clinica, id_pessoa, id_plano, num_carteirinha)
-                        VALUES (:clinica, :pessoa, :plano, :carteirinha)
+                            (id_clinica, id_pessoa, id_plano, num_carteirinha, anamnese)
+                        VALUES (:clinica, :pessoa, :plano, :carteirinha,
+                                CAST(:anamnese AS JSONB))
                         RETURNING id_paciente
                         """)
                 .param("clinica", ContextoAtual.clinicaObrigatoria())
                 .param("pessoa", idPessoa)
                 .param("plano", idPlano)
                 .param("carteirinha", numeroCarteirinha)
+                .param("anamnese", comoJson(anamnese))
                 .query(Long.class)
                 .single();
     }
@@ -90,5 +97,13 @@ public class PacienteRepositorio {
                 .query(Integer.class)
                 .optional().orElse(null);
         return achou != null;
+    }
+
+    /* Jackson 3 não declara exceção checada aqui, então não há try/catch a
+       escrever. O null explícito é que importa: sem ele o mapper devolveria a
+       string "null", que o JSONB aceita como valor JSON válido — uma anamnese
+       que existe e diz nada, em vez de coluna vazia. */
+    private String comoJson(Object valor) {
+        return valor == null ? null : json.writeValueAsString(valor);
     }
 }

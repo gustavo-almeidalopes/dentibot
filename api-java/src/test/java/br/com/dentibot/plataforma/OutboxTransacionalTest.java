@@ -68,8 +68,7 @@ class OutboxTransacionalTest extends TesteIntegracao {
                 "senha-de-teste-muito-longa")).idClinica();
 
         comoAdmin();
-        idPaciente = pacientes.criar(new NovoPaciente(
-                "Paciente Outbox", null, null, "11999990000", null, null, null));
+        idPaciente = pacientes.criar(NovoPaciente.basico("Paciente Outbox", "11999990000"));
         idDentista = criarDentista();
     }
 
