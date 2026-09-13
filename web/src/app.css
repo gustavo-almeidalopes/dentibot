@@ -149,3 +149,111 @@
   white-space: nowrap;
 }
 .tabela .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── SELO ─────────────────────────────────────────────────────────────────── */
+.selo {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border: 1px solid var(--hair);
+  white-space: nowrap;
+}
+.selo[data-tom="cheio"]   { background: var(--tinta); color: var(--fundo); border-color: var(--tinta); }
+.selo[data-tom="fraco"]   { color: var(--tinta-fraca); }
+.selo[data-tom="alarme"]  { color: var(--alarm); border-color: var(--alarm); border-left-width: 3px; }
+.selo[data-tom="riscado"] { color: var(--tinta-fraca); text-decoration: line-through; }
+
+/* ── ESQUELETO ────────────────────────────────────────────────────────────── */
+.esqueleto-linha {
+  display: flex;
+  gap: 40px;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--hair-fraca);
+}
+.esqueleto-celula {
+  height: 12px;
+  flex: 1;
+  background: var(--hair-fraca);
+}
+.esqueleto-celula:first-child { flex: 2; }
+@media (prefers-reduced-motion: no-preference) {
+  .esqueleto-celula { animation: esqueleto-pulsa 1.4s ease-in-out infinite; }
+  @keyframes esqueleto-pulsa { 50% { opacity: .45; } }
+}
+
+/* ── AVISO ────────────────────────────────────────────────────────────────── */
+.aviso {
+  margin: 0 0 var(--spacing-20, 20px);
+  padding: 12px 16px;
+  border: 1px solid var(--hair);
+  border-left-width: 4px;
+  font-size: 14px;
+}
+.aviso[data-tom="sucesso"] { border-left-color: var(--tinta); }
+.aviso[data-tom="erro"]    { border-left-color: var(--alarm); color: var(--alarm); }
+
+/* Erro de campo. Antes era `.pagamento-erro`, emprestado do formulário de
+   cartão de crédito por quatro telas que não têm nada com pagamento. */
+.erro-campo { margin: 0; font-size: 12px; color: var(--alarm); }
+
+/* ── TABELA EMPILHADA ─────────────────────────────────────────────────────── */
+/* Rolagem horizontal numa tabela de trabalho esconde a coluna de ação, que é a
+   da direita. No celular a linha vira bloco e cada célula diz o próprio nome. */
+@media (max-width: 620px) {
+  .tabela, .tabela tbody, .tabela tr, .tabela td { display: block; width: 100%; }
+  .tabela thead { display: none; }
+  .tabela tr {
+    padding-block: 14px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .tabela td { border: 0; padding: 3px 0; }
+  .tabela td[data-rotulo]::before {
+    content: attr(data-rotulo) " ";
+    display: inline-block;
+    min-width: 9ch;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--tinta-fraca);
+  }
+}
+
+/* ── TABELA, CABEÇALHO FIXO ───────────────────────────────────────────────── */
+@media (min-width: 621px) {
+  .tabela thead th {
+    position: sticky;
+    top: 56px;            /* abaixo do .app-topo, que também é sticky */
+    background: var(--fundo);
+    z-index: 1;
+  }
+}
+
+/* ── DIÁLOGO ──────────────────────────────────────────────────────────────── */
+.dialogo {
+  border: 1px solid var(--tinta);
+  background: var(--superficie);
+  color: var(--tinta);
+  padding: var(--spacing-30, 30px);
+  max-width: min(46ch, calc(100vw - 32px));
+}
+.dialogo::backdrop { background: rgba(0, 0, 0, .55); }
+.dialogo .sub { margin-top: 0; }
+.dialogo-acoes {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: var(--spacing-20, 20px);
+}
+
+.btn-perigo { border-color: var(--alarm); color: var(--alarm); }
+.btn-perigo::before { background: var(--alarm); }
+.btn-perigo:hover, .btn-perigo:focus-visible { color: var(--superficie); }
+
+/* ── BOTÃO NO APP ─────────────────────────────────────────────────────────── */
+/* O wipe do `.btn::before` fica na landing. Numa barra de navegação e numa
+   coluna de ações são oito varreduras simultâneas, e isso é ruído numa
+   ferramenta que a pessoa usa oito horas por dia. */
+:root:has(.app-main) .btn::before { transition: none; }
+.btn-sm { padding: 6px 12px; font-size: 12px; }
