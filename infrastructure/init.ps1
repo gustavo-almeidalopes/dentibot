@@ -90,7 +90,7 @@ if (-not $env:JAVA_HOME -or -not (Test-Path (Join-Path $env:JAVA_HOME 'bin/java.
     }
 }
 if (-not $env:JAVA_HOME) {
-    Falha 'JDK 21 não encontrado. Instale com: winget install EclipseAdoptium.Temurin.21.JDK'
+    Falha 'JDK 25 não encontrado. Instale com: winget install EclipseAdoptium.Temurin.25.JDK'
     exit 1
 }
 Ok "JDK em $env:JAVA_HOME"
