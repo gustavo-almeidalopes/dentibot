@@ -1,16 +1,24 @@
 import { ClerkLoaded, ClerkLoading, Show, SignIn, SignUp } from '@clerk/react';
 import { Lines, Reveal } from './Reveal.jsx';
-import { CRIAR, LOGIN } from '../rotas.js';
+import { AGENDA, CADASTRO, CRIAR, LOGIN } from '../rotas.js';
 
 /* Clerk cobre e-mail/senha, os três provedores OAuth e a verificação por
    código. Sumiram daqui: os SVGs das marcas, o <form>, o estado de envio e o
    redirect para /api/auth/:provedor — tudo isso agora é o widget, e o
    client_secret nunca chegou a passar por este lado mesmo. */
 
-/* routing="virtual": o app roteia por window.location.pathname num mapa em
-   main.jsx, sem router. Virtual mantém os passos do widget em memória, sem
-   mexer na URL — hash routing brigaria com os dois widgets na mesma tela. */
-const COMUM = { routing: 'virtual', forceRedirectUrl: '/agenda' };
+/* routing="virtual": os passos do widget ficam em memória, sem mexer na URL.
+   Path routing exigiria uma rota coringa /login/* só para o Clerk, e hash
+   routing brigaria com o `?criar=1` que decide qual widget aparece. */
+const COMUM = { routing: 'virtual' };
+
+/* Entrar vai para o sistema; criar conta vai para o cadastro, SEMPRE — é lá que
+   nasce a linha em `identidade.usuarios` sem a qual o back-end responde 401 a
+   tudo. `forceRedirectUrl` e não `fallbackRedirectUrl`: o Clerk devolve o OAuth
+   ao ponto de partida, e sem o "force" quem clicou em Google voltaria direto
+   para /agenda, pulando justamente o passo que faltava. */
+const ENTRAR = { ...COMUM, forceRedirectUrl: AGENDA };
+const CRIAR_CONTA = { ...COMUM, forceRedirectUrl: CADASTRO };
 
 /* Quais provedores aparecem NÃO se decide aqui — o widget mostra o que estiver
    habilitado no dashboard do Clerk (SSO connections). Este objeto só pinta o
@@ -145,14 +153,14 @@ export default function Login() {
           <Show when="signed-in">
             <p className="body">Você já está autenticado.</p>
             <p className="auth-swap">
-              <a href="/agenda" className="btn btn-lg btn-fill">Abrir o sistema</a>
+              <a href={AGENDA} className="btn btn-lg btn-fill">Abrir o sistema</a>
             </p>
           </Show>
 
           <Show when="signed-out">
             {criando ? (
               <SignUp
-                {...COMUM}
+                {...CRIAR_CONTA}
                 appearance={APARENCIA}
                 /* O widget decide sozinho entre senha e código conforme o que
                    o dashboard oferece; não passe `initialValues` aqui para não
@@ -160,7 +168,7 @@ export default function Login() {
               />
             ) : (
               <SignIn
-                {...COMUM}
+                {...ENTRAR}
                 appearance={APARENCIA}
                 /* Deixa o usuário alternar entre senha e código de e-mail
                    sem sair da mesma tela. O Clerk chama isso de "email code"

@@ -1,5 +1,6 @@
 package br.com.dentibot.pacientes.application;
 
+import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.identidade.PessoaResumo;
 import br.com.dentibot.pacientes.NovoPaciente;
@@ -72,9 +73,13 @@ public class PacienteServico implements PacientesApi {
     @Override
     @Transactional
     public long criar(NovoPaciente novo) {
-        long idPessoa = identidade.criarPessoa(
-                novo.nomeCompleto(), novo.cpf(), novo.telefoneCelular(), novo.email());
-        return pacientes.inserir(idPessoa, novo.idPlanoConvenio(), novo.numeroCarteirinha());
+        long idPessoa = identidade.criarPessoa(new DadosPessoais(
+                novo.nomeCompleto(), novo.cpf(), novo.rg(), novo.dataNascimento(),
+                novo.telefoneCelular(), novo.email(), novo.profissao(), novo.responsavelLegal(),
+                novo.cep(), novo.logradouro(), novo.numero(), novo.complemento(),
+                novo.bairro(), novo.cidade(), novo.uf()));
+        return pacientes.inserir(idPessoa, novo.idPlanoConvenio(), novo.numeroCarteirinha(),
+                novo.anamnese());
     }
 
     @Override

@@ -181,6 +181,6 @@ class IsolamentoDeTenantTest extends TesteIntegracao {
     }
 
     private NovoPaciente novoPaciente(String nome) {
-        return new NovoPaciente(nome, null, null, "11999990000", null, null, null);
+        return NovoPaciente.basico(nome, "11999990000");
     }
 }

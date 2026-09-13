@@ -30,7 +30,7 @@ public interface IdentidadeApi {
      * Cadastra uma pessoa física na clínica. Quem tem paciente, dentista ou
      * responsável para registrar chama isto — o dado pessoal mora num lugar só.
      */
-    long criarPessoa(String nomeCompleto, String cpf, String telefoneCelular, String email);
+    long criarPessoa(DadosPessoais dados);
 
     /**
      * Cria pessoa + usuário com acesso.
