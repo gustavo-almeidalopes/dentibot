@@ -53,6 +53,49 @@ não alcança dado clínico e que a aplicação não é dona das tabelas. A V1 d
 projeto pretendia 31 políticas de RLS, criou zero, e vazava dados entre
 clínicas sem um único teste vermelho.
 
+## Publicar o `web/` na Vercel
+
+O front-end não fica na raiz do repositório — está em `web/`. Na configuração
+padrão a Vercel constrói a raiz, onde não existe `package.json` nem
+`index.html`: ela publica um diretório vazio e responde `404: NOT_FOUND` em
+todo caminho, inclusive em `/`. É o 404 clássico deste repositório, e não tem
+nada a ver com o código do front.
+
+Por isso há **dois** `vercel.json`, um para cada valor possível de Root
+Directory. A Vercel lê só o que estiver no Root Directory configurado no
+projeto e ignora o outro — eles nunca valem ao mesmo tempo:
+
+| Root Directory | Arquivo que vale | O que ele faz |
+| --- | --- | --- |
+| `web` (recomendado) | `web/vercel.json` | Deixa a Vercel detectar o Vite sozinha; só fixa o preset e os rewrites. |
+| `./` (padrão) | `vercel.json` | Compila `web/` a partir da raiz e publica `web/dist`. |
+
+Mexeu nos rewrites de um, mexa no outro: são a mesma lista repetida, porque a
+Vercel não tem como herdar entre os dois.
+
+### Rewrites
+
+As duas telas fora da landing (`/login` e `/clientes`) são a mesma
+`index.html`: o `main.jsx` escolhe o componente por `window.location.pathname`,
+sem router. Em servidor estático isso só funciona com rewrite — abrir `/login`
+direto procuraria um arquivo `/login`, que não existe, e daria o mesmo 404.
+
+Rota nova em `web/src/main.jsx` pede rewrite novo nos dois arquivos. O
+catch-all `/(.*)` ficou de fora de propósito: com ele, URL inexistente
+devolveria a landing com 200 em vez de um 404 de verdade.
+
+### Variáveis de ambiente
+
+Em **Settings > Environment Variables** do projeto:
+
+| Variável | Quando | Para quê |
+| --- | --- | --- |
+| `VITE_CLERK_PUBLISHABLE_KEY` | sempre | Chave pública do Clerk. O `ClerkProvider` não recebe `publishableKey` por prop — o `@clerk/react` cai em `import.meta.env`. O Vite resolve isso **no build**, então quem precisa da variável é a Vercel, não o browser. Sem ela a landing sobe normal e `/login` aparece sem o widget: some o formulário, não a página. |
+| `VITE_API_BASE` | se a API estiver em outro domínio | Precisa incluir o `/api`. Vazio = `/api` do mesmo host, o que só serve se algo estiver fazendo proxy. |
+
+`VITE_*` entra no bundle, que é público. Nenhum segredo aqui — a chave do
+Clerk é publicável por definição e a secret key é do back-end.
+
 ## Arquitetura
 
 - **[docs/architecture/tenancy.md](docs/architecture/tenancy.md)** — como uma
