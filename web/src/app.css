@@ -289,3 +289,40 @@
 :root:has(.app-main) { font-size: 15px; }
 :root:has(.app-main) .body { line-height: 1.45; }
 :root:has(.app-main) .cap { font-size: 12px; }
+
+/* ── AGENDA ───────────────────────────────────────────────────────────────── */
+/* A agenda não é tabela: o eixo é o tempo, e a hora é a coluna que o olho
+   procura primeiro. */
+.dia-degrau {
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
+  gap: 20px;
+  padding-block: 14px;
+  border-top: 1px solid var(--hair-fraca);
+}
+.dia-hora {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta-fraca);
+  font-size: 13px;
+  padding-top: 14px;
+}
+/* Duas cadeiras atendendo às 14h é o caso normal de uma clínica. */
+.dia-blocos { display: flex; flex-wrap: wrap; gap: 12px; }
+.consulta {
+  flex: 1 1 22rem;
+  border: 1px solid var(--hair);
+  background: var(--superficie);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.consulta-faixa { margin: 0; font-variant-numeric: tabular-nums; font-size: 13px; }
+.consulta-tel { color: var(--tinta); font-size: 13px; text-decoration: underline; }
+.consulta .acoes { margin-top: 8px; }
+@media (max-width: 620px) {
+  .dia-degrau { grid-template-columns: 1fr; gap: 6px; }
+  .dia-hora { padding-top: 0; }
+}
