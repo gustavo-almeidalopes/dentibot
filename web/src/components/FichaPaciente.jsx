@@ -108,7 +108,9 @@ export default function FichaPaciente({
       <div className="form-linha">
         <label className="campo-app" style={{ flex: '2 1 320px' }}>
           <span className="cap cap-ash">Nome completo *</span>
-          <input required maxLength={150} autoComplete="name"
+          {/* O formulário abre abaixo da dobra e empurra a lista. O autoFocus
+              traz o foco e rola até ele sem nenhum useRef. */}
+          <input required maxLength={150} autoComplete="name" autoFocus
                  value={f.nomeCompleto} onChange={mudar('nomeCompleto')} />
         </label>
         <label className="campo-app">
@@ -141,7 +143,7 @@ export default function FichaPaciente({
       </div>
 
       {cpfErrado && (
-        <p className="pagamento-erro" role="alert">
+        <p className="erro-campo" role="alert">
           CPF inválido — confira os dígitos.
         </p>
       )}
@@ -275,7 +277,7 @@ export default function FichaPaciente({
 
       {children}
 
-      {erro && <p className="pagamento-erro" role="alert">{erro.message}</p>}
+      {erro && <p className="erro-campo" role="alert">{erro.message}</p>}
 
       <button type="submit" className="btn btn-fill btn-lg" disabled={enviando}>
         {enviando ? 'Enviando…' : rotuloEnviar}
