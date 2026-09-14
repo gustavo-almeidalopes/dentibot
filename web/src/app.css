@@ -375,3 +375,22 @@
   }
   .odonto-area .form-bloco { margin-bottom: 0; }
 }
+
+/* ── INDICADORES ──────────────────────────────────────────────────────────── */
+/* Cinco números em <li class="row"> era uma lista de linhas para o que é um
+   painel. O gap de 1px sobre o fundo hairline desenha a grade sem borda dupla. */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+  margin-bottom: var(--spacing-20, 20px);
+}
+.indicador { background: var(--superficie); padding: 16px 18px; }
+.indicador-valor {
+  margin: 6px 0;
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  font-variant-numeric: tabular-nums;
+}
+.indicador[data-alarme="sim"] .indicador-valor { color: var(--alarm); }
