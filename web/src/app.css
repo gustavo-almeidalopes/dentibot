@@ -90,16 +90,7 @@
 
 .lista { list-style: none; margin: 0; padding: 0; }
 .acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.row-membro { align-items: center; }
 
-.aviso-plano {
-  border: 1px solid var(--alarm);
-  border-left-width: 4px;
-  padding: 14px 18px;
-  margin-bottom: var(--spacing-20, 20px);
-  font-size: 14px;
-}
-[data-vinculado="nao"] { color: var(--alarm); }
 .selo-staff { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--alarm); }
 
 .abas { display: flex; gap: 8px; margin-bottom: var(--spacing-20, 20px); }
