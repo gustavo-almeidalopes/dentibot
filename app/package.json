@@ -11,7 +11,7 @@
     "test": "node --test src/*.test.mjs"
   },
   "dependencies": {
-    "@clerk/expo": "^4.6.6",
+    "@clerk/expo": "^4.6.8",
     "expo": "~57.0.21",
     "expo-constants": "~57.0.17",
     "expo-crypto": "~57.0.2",
