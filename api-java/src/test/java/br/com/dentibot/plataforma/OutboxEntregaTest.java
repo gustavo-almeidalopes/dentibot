@@ -43,6 +43,7 @@ class OutboxEntregaTest extends TesteIntegracao {
     private static final String QUEBRA = "teste.quebra-no-banco";
     private static final String PROMOVE = "teste.promove-clinica";
     private static final String ESPIA = "teste.espia-clinica";
+    private static final String FALHA_COM_CPF = "teste.falha-com-cpf";
 
     /** O que o consumidor espião leu em app.clinica, por evento. */
     private static final Map<UUID, String> CLINICA_VISTA = new ConcurrentHashMap<>();
@@ -55,6 +56,14 @@ class OutboxEntregaTest extends TesteIntegracao {
         @Bean
         ConsumidorDeEvento quebraNoBanco(JdbcClient jdbc) {
             return consumidor(QUEBRA, e -> jdbc.sql("SELECT 1 / 0").query(Integer.class).single());
+        }
+
+        /** A mensagem de uma violação de unicidade do Postgres traz o valor duplicado. */
+        @Bean
+        ConsumidorDeEvento falhaComCpf() {
+            return consumidor(FALHA_COM_CPF, e -> {
+                throw new IllegalStateException("Key (id_clinica, cpf)=(42, 12345678901) already exists");
+            });
         }
 
         /** Faz o que o consumidor de orçamento aprovado faz: promove o tenant do evento. */
@@ -155,6 +164,21 @@ class OutboxEntregaTest extends TesteIntegracao {
                     app.clinica é is_local: dura até o fim da TRANSAÇÃO. Com o lote numa \
                     transação só, o consumidor seguinte roda com o tenant do evento anterior.""")
                 .isEmpty();
+    }
+
+    @Test
+    @DisplayName("o erro gravado no outbox sai sem CPF")
+    void ultimoErroSemPii() {
+        UUID evento = gravar(FALHA_COM_CPF);
+
+        worker.processarAgora();
+
+        comoWorker();
+        String erro = transacao.execute(s -> jdbc.sql(
+                        "SELECT ultimo_erro FROM plataforma.outbox WHERE event_id = CAST(:id AS UUID)")
+                .param("id", evento.toString())
+                .query(String.class).single());
+        assertThat(erro).contains("already exists").doesNotContain("12345678901");
     }
 
     // ─── auxiliares ──────────────────────────────────────────────────────────

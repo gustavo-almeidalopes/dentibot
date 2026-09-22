@@ -100,4 +100,7 @@ logging:
   pattern:
     # correlacaoId no padrão de log é o que permite responder "sumiu a agenda de
     # ontem" com log em vez de chute.
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlacaoId:-}] %logger{36} - %msg%n"
+    # %wEx explícito: é a palavra que o logback-spring.xml troca pelo conversor
+    # que tira CPF e e-mail da exceção. Sem ela no padrão, o Logback anexa o
+    # próprio conversor de exceção, sem limpeza.
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlacaoId:-}] %logger{36} - %msg%n%wEx"

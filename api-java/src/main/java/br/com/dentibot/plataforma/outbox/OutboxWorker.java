@@ -2,6 +2,7 @@ package br.com.dentibot.plataforma.outbox;
 
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.contexto.ContextoRequisicao;
+import br.com.dentibot.plataforma.telemetria.ScrubberDePii;
 import tools.jackson.databind.ObjectMapper;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class OutboxWorker {
     private static final Logger log = LoggerFactory.getLogger(OutboxWorker.class);
     private static final int LOTE = 50;
     private static final int MAX_TENTATIVAS = 10;
+    private static final ScrubberDePii SCRUBBER = new ScrubberDePii();
 
     private final JdbcClient jdbc;
     private final TransactionTemplate transacao;
@@ -112,7 +114,9 @@ public class OutboxWorker {
             marcarPublicado(evento.eventId());
         } catch (RuntimeException e) {
             log.warn("Evento {} ({}) falhou; reagendando", evento.eventId(), evento.eventType(), e);
-            reagendar(evento.eventId(), e.getMessage());
+            // A coluna é lida por quem opera a fila e não sai no log limpo: a
+            // mensagem de unicidade do Postgres traz o CPF duplicado.
+            reagendar(evento.eventId(), SCRUBBER.limparTexto(e.getMessage()));
         }
     }
 
