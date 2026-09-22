@@ -66,17 +66,29 @@ server:
   error:
     include-message: never
     include-stacktrace: never
-  forward-headers-strategy: framework
+  # native, e não framework: o ForwardedHeaderFilter do modo framework aceita
+  # X-Forwarded-For de QUALQUER origem. Quem chamasse a origem direto escolheria
+  # o próprio IP, e com ele o balde do rate limit de /auth e o ipOrigem da
+  # auditoria. No native, o Tomcat só lê o cabeçalho quando a conexão vem de um
+  # proxy conhecido: faixas privadas e loopback por padrão, que cobrem o
+  # balanceador de uma plataforma. Com Cloudflare direto na origem, liste as
+  # faixas dele em SERVER_TOMCAT_REMOTEIP_TRUSTED_PROXIES (regex) — e feche a
+  # origem para quem não é Cloudflare, senão o IP da borda vira o do atacante.
+  forward-headers-strategy: native
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        # Só health. prometheus estava listado sem a dependência do registry
+        # (o endpoint nem existia), e info não tem conteúdo.
+        include: health
   endpoint:
     health:
-      # Detalhe de health revela topologia interna para quem não precisa.
-      show-details: when-authorized
+      # never, e não when-authorized: sem papel configurado, "autorizado" é
+      # qualquer usuário autenticado — a recepcionista de qualquer clínica via
+      # banco, Redis e disco. Diagnóstico é pelo log, não pela API pública.
+      show-details: never
   health:
     redis:
       enabled: true
