@@ -160,6 +160,7 @@ public class IdentidadeServico implements IdentidadeApi {
     @Transactional
     public long admitirMembro(NovoMembro novo) {
         permissoes.exigir(Recurso.EQUIPE, Acao.CRIAR);
+        usuarios.travarEquipe();
 
         if (novo.papel() == Papel.DENTISTA && (vazio(novo.croNumero()) || vazio(novo.croUf()))) {
             // CRO é o registro profissional que autoriza o ato clínico. Um
@@ -198,6 +199,7 @@ public class IdentidadeServico implements IdentidadeApi {
     @Transactional
     public void atualizarMembro(long idUsuario, Papel papel, String status) {
         permissoes.exigir(Recurso.EQUIPE, Acao.ALTERAR);
+        usuarios.travarEquipe();
 
         if (!STATUS_VALIDOS.contains(status)) {
             throw new IllegalArgumentException("Status inválido: " + status);
