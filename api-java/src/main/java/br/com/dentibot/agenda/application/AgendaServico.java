@@ -9,11 +9,13 @@ import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.pacientes.PacienteResumo;
 import br.com.dentibot.pacientes.PacientesApi;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
+import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
 import br.com.dentibot.plataforma.outbox.Outbox;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
 import br.com.dentibot.plataforma.seguranca.Acao;
 import br.com.dentibot.plataforma.seguranca.Alcance;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
+import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao.AcessoNegadoException;
 import br.com.dentibot.plataforma.seguranca.Recurso;
 import java.time.Instant;
 import java.util.List;
@@ -58,7 +60,12 @@ public class AgendaServico implements AgendaApi {
     @Override
     @Transactional
     public long agendar(NovaConsulta nova) {
-        permissao.exigir(Recurso.AGENDA, Acao.CRIAR);
+        Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.CRIAR);
+        // idDentista vem do corpo. Com PROPRIOS, aceitá-lo sem conferir deixaria
+        // um dentista encher a agenda de um colega.
+        if (alcance == Alcance.PROPRIOS && dentistaCorrente() != nova.idDentista()) {
+            throw new AcessoNegadoException(Recurso.AGENDA, Acao.CRIAR);
+        }
 
         long id = consultas.inserir(
                 nova.idPaciente(), nova.idDentista(), nova.idProcedimento(),
@@ -85,16 +92,38 @@ public class AgendaServico implements AgendaApi {
         // id_usuario != id_dentista. Traduzir um pelo outro é obrigatório: sem
         // a tradução, o filtro casaria por coincidência numérica e mostraria a
         // agenda de outro profissional.
-        Long filtro = idDentista;
-        if (alcance == Alcance.PROPRIOS) {
-            Long idUsuario = ContextoAtual.obter().usuarioId();
-            filtro = identidade.dentistaDoUsuario(idUsuario)
-                    // Usuário com alcance "próprios" que não é dentista não tem
-                    // agenda própria: zero linhas, não a agenda inteira.
-                    .orElse(-1L);
-        }
+        Long filtro = alcance == Alcance.PROPRIOS ? dentistaCorrente() : idDentista;
 
         return montar(consultas.listar(de, ate, filtro));
+    }
+
+    /**
+     * O id_dentista de quem está falando, vindo do contexto e nunca da
+     * requisição. Usuário com alcance "próprios" que não é dentista não tem
+     * agenda própria: -1 não casa com linha nenhuma — zero linhas, não a agenda
+     * inteira.
+     */
+    private long dentistaCorrente() {
+        Long idUsuario = ContextoAtual.obter().usuarioId();
+        return idUsuario == null ? -1L : identidade.dentistaDoUsuario(idUsuario).orElse(-1L);
+    }
+
+    /**
+     * Toda transição passa por aqui antes de mudar status. {@code exigir()}
+     * devolve PROPRIOS para o dentista e PROPRIOS satisfaz {@code permite()} —
+     * descartar o retorno deixava um dentista cancelar ou marcar falta na
+     * consulta de um colega da mesma clínica, e o RLS não pega: os dois estão
+     * no mesmo tenant. Mesmo defeito que o orçamento teve; ver
+     * {@code OrcamentoServico.carregar}.
+     */
+    private void exigirAlcance(long idConsulta, Alcance alcance) {
+        if (alcance == Alcance.PROPRIOS
+                && consultas.buscar(idConsulta)
+                        .filter(c -> c.idDentista() == dentistaCorrente()).isEmpty()) {
+            // 404 e não 403: confirmar que a consulta existe já diz algo sobre o
+            // paciente de outra pessoa.
+            throw new RecursoNaoEncontradoException("consulta", idConsulta);
+        }
     }
 
     /**
@@ -134,7 +163,7 @@ public class AgendaServico implements AgendaApi {
     @Override
     @Transactional
     public void cancelar(long idConsulta, String motivo) {
-        permissao.exigir(Recurso.AGENDA, Acao.ALTERAR);
+        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
         int linhas = consultas.transicionarDeQualquerUm(
                 idConsulta, List.of("agendada", "confirmada"), "cancelada", motivo);
         if (linhas == 0) {
@@ -148,7 +177,7 @@ public class AgendaServico implements AgendaApi {
     @Override
     @Transactional
     public void registrarFalta(long idConsulta) {
-        permissao.exigir(Recurso.AGENDA, Acao.ALTERAR);
+        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
         int linhas = consultas.transicionarDeQualquerUm(
                 idConsulta, List.of("agendada", "confirmada"), "faltou", null);
         if (linhas == 0) {
@@ -162,7 +191,7 @@ public class AgendaServico implements AgendaApi {
     @Override
     @Transactional
     public void concluir(long idConsulta) {
-        permissao.exigir(Recurso.AGENDA, Acao.ALTERAR);
+        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
         int linhas = consultas.transicionarDeQualquerUm(
                 idConsulta, List.of("confirmada", "em_atendimento", "agendada"),
                 "realizada", null);
@@ -174,7 +203,7 @@ public class AgendaServico implements AgendaApi {
 
     private void transicionar(long idConsulta, String de, String para, String motivo,
                               String evento) {
-        permissao.exigir(Recurso.AGENDA, Acao.ALTERAR);
+        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
         int linhas = consultas.transicionar(idConsulta, de, para, motivo);
         if (linhas == 0) {
             // Zero linhas é ambíguo entre "não existe" e "está noutro estado".
