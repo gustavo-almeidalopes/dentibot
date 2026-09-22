@@ -172,7 +172,7 @@ class IsolamentoDeTenantTest extends TesteIntegracao {
                 Plano.SOLO,
                 "Admin " + nome,
                 "admin" + n + "@teste.local",
-                "senha-de-teste-muito-longa"));
+                "user_teste_" + n));
     }
 
     private void comoAdminDe(long clinica) {
