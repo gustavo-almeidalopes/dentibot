@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
@@ -20,6 +21,15 @@ import org.springframework.transaction.support.TransactionTemplate;
  * API sem coordenação: cada uma trava as linhas que pegou e as outras
  * simplesmente pulam, em vez de esperar. Sem {@code SKIP LOCKED}, duas
  * instâncias serializam no mesmo lote e a fila anda na velocidade de uma só.
+ *
+ * <p>Cada evento é consumido na PRÓPRIA transação ({@code REQUIRES_NEW}, noutra
+ * conexão), e a do lote só trava as linhas e marca ou reagenda. Com tudo numa
+ * transação só, um erro de SQL num consumidor abortava a transação no
+ * Postgres: o {@code reagendar()} falhava junto, o lote voltava atrás,
+ * {@code tentativas} nunca subia e o evento quebrado voltava ao topo a cada
+ * ciclo, travando a fila atrás dele. E o {@code app.clinica} que um consumidor
+ * promovia — {@code is_local}, dura até o fim da transação — vazava para o
+ * consumidor do evento seguinte.
  *
  * <p>Backoff exponencial no erro. Sem ele, um consumidor quebrado vira um laço
  * quente que consome a conexão de banco da aplicação inteira tentando o mesmo
@@ -34,6 +44,7 @@ public class OutboxWorker {
 
     private final JdbcClient jdbc;
     private final TransactionTemplate transacao;
+    private final TransactionTemplate transacaoDoEvento;
     private final ObjectMapper json;
     private final List<ConsumidorDeEvento> consumidores;
 
@@ -41,6 +52,8 @@ public class OutboxWorker {
                         List<ConsumidorDeEvento> consumidores) {
         this.jdbc = jdbc;
         this.transacao = transacao;
+        this.transacaoDoEvento = new TransactionTemplate(transacao.getTransactionManager());
+        this.transacaoDoEvento.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.json = json;
         this.consumidores = consumidores;
     }
@@ -92,29 +105,36 @@ public class OutboxWorker {
 
     private void entregar(EventoDominio evento) {
         try {
-            for (ConsumidorDeEvento consumidor : consumidores) {
-                if (!consumidor.interessadoEm(evento.eventType())) {
-                    continue;
-                }
-                // Deduplicação: at-least-once do outbox vira exactly-once-por-
-                // consumidor aqui. Sem esta linha, um crash entre entregar e
-                // marcar como publicado manda o mesmo e-mail de novo.
-                int novo = jdbc.sql("""
-                                INSERT INTO plataforma.eventos_processados (event_id, consumidor)
-                                VALUES (CAST(:id AS UUID), :consumidor)
-                                ON CONFLICT DO NOTHING
-                                """)
-                        .param("id", evento.eventId().toString())
-                        .param("consumidor", consumidor.nome())
-                        .update();
-                if (novo == 1) {
-                    consumidor.consumir(evento);
-                }
-            }
+            // O que o consumidor escreveu e a linha de deduplicação commitam ou
+            // voltam JUNTOS. Se o lote cair depois deste commit, o evento é
+            // reentregue e eventos_processados pula quem já consumiu.
+            transacaoDoEvento.executeWithoutResult(s -> consumir(evento));
             marcarPublicado(evento.eventId());
         } catch (RuntimeException e) {
             log.warn("Evento {} ({}) falhou; reagendando", evento.eventId(), evento.eventType(), e);
             reagendar(evento.eventId(), e.getMessage());
+        }
+    }
+
+    private void consumir(EventoDominio evento) {
+        for (ConsumidorDeEvento consumidor : consumidores) {
+            if (!consumidor.interessadoEm(evento.eventType())) {
+                continue;
+            }
+            // Deduplicação: at-least-once do outbox vira exactly-once-por-
+            // consumidor aqui. Sem esta linha, um crash entre entregar e
+            // marcar como publicado manda o mesmo e-mail de novo.
+            int novo = jdbc.sql("""
+                            INSERT INTO plataforma.eventos_processados (event_id, consumidor)
+                            VALUES (CAST(:id AS UUID), :consumidor)
+                            ON CONFLICT DO NOTHING
+                            """)
+                    .param("id", evento.eventId().toString())
+                    .param("consumidor", consumidor.nome())
+                    .update();
+            if (novo == 1) {
+                consumidor.consumir(evento);
+            }
         }
     }
 

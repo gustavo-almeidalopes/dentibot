@@ -8,6 +8,11 @@ dentibot:
     emissor: https://teste.clerk.local
   cors:
     origens: http://localhost:5173
+  outbox:
+    # Cada contexto Spring em cache tem o próprio agendador. A cada 2 s, o de
+    # outra classe entregaria os eventos de um teste do outbox sem os
+    # consumidores dele. Os testes chamam OutboxWorker.processarAgora().
+    intervalo: 3600000
   ratelimit:
     # Teste roda dezenas de logins em segundos; o limite de produção
     # transformaria isso em 429 intermitente e num teste instável.
