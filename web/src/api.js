@@ -33,9 +33,10 @@ const BASE = import.meta.env?.VITE_API_BASE || '/api/v1';
  */
 export const EXIGEM_IDEMPOTENCIA = [
   '/consultas',
-  '/cobrancas',
-  '/mensagens',
+  '/estoque',
+  '/financeiro',
   '/orcamentos',
+  '/pacientes',
 ];
 
 export class ApiError extends Error {

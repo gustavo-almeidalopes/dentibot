@@ -33,12 +33,17 @@ public class FiltroIdempotencia extends OncePerRequestFilter {
 
     public static final String CABECALHO = "Idempotency-Key";
 
-    /** Caminhos onde a chave é OBRIGATÓRIA. */
+    /**
+     * Caminhos onde a chave é OBRIGATÓRIA. Espelhado em {@code web/src/api.js}
+     * e {@code app/src/api.ts}, e conferido contra este arquivo pelos testes de
+     * contrato dos dois — mudar aqui sem mudar lá faz o cliente tomar 400.
+     */
     private static final Set<String> PREFIXOS_OBRIGATORIOS = Set.of(
             "/api/v1/consultas",
-            "/api/v1/cobrancas",
-            "/api/v1/mensagens",
-            "/api/v1/orcamentos");
+            "/api/v1/estoque",
+            "/api/v1/financeiro",
+            "/api/v1/orcamentos",
+            "/api/v1/pacientes");
 
     private final ArmazemDeIdempotencia armazem;
 

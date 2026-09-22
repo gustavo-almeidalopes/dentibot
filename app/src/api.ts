@@ -30,9 +30,10 @@ const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080';
  */
 const EXIGEM_IDEMPOTENCIA = [
   '/api/v1/consultas',
-  '/api/v1/cobrancas',
-  '/api/v1/mensagens',
+  '/api/v1/estoque',
+  '/api/v1/financeiro',
   '/api/v1/orcamentos',
+  '/api/v1/pacientes',
 ];
 
 // ─── Sessão ──────────────────────────────────────────────────────────────────
