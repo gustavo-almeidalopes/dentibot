@@ -11,6 +11,7 @@ import br.com.dentibot.clinicas.application.OnboardingServico.NovaClinica;
 import br.com.dentibot.clinicas.domain.Plano;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.contexto.ContextoRequisicao;
+import br.com.dentibot.plataforma.contexto.Papel;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -27,10 +28,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.servlet.function.RouterFunction;
 import org.springframework.web.servlet.function.RouterFunctions;
 import org.springframework.web.servlet.function.ServerResponse;
@@ -77,6 +80,10 @@ class BordaPublicaTest extends TesteIntegracao {
     private JwtDecoder decoder;
     @Autowired
     private OnboardingServico onboarding;
+    @Autowired
+    private JdbcClient jdbc;
+    @Autowired
+    private TransactionTemplate transacao;
 
     @Value("${local.server.port}")
     private int porta;
@@ -145,6 +152,62 @@ class BordaPublicaTest extends TesteIntegracao {
         assertThat(r.headers().firstValue("Content-Security-Policy"))
                 .hasValue("default-src 'none'; frame-ancestors 'none'");
         assertThat(r.headers().firstValue("Referrer-Policy")).hasValue("no-referrer");
+    }
+
+    @Test
+    @DisplayName("o e-mail do admin cadastrado é o verificado no Clerk, não o do corpo")
+    void emailDoAdminVemDoToken() throws Exception {
+        long n = SEQ.incrementAndGet();
+        String token = "token-cadastro-" + n;
+        willReturn(Jwt.withTokenValue(token).header("alg", "RS256")
+                .subject("user_novo_" + n)
+                .claim("email", "dono" + n + "@clinica.local")
+                .claim("email_verified", true)
+                .build()).given(decoder).decode(token);
+
+        HttpResponse<String> r = cadastrar(token, n, "dra.fulana" + n + "@clinicareal.com.br");
+
+        assertThat(r.statusCode()).isEqualTo(201);
+        assertThat(emailDoAdmin(r.body()))
+                .as("""
+                    Com o e-mail vindo do corpo, qualquer conta do Clerk ocupa o endereço de \
+                    outra pessoa: o UNIQUE é global, e a dona verdadeira toma 409 depois.""")
+                .isEqualTo("dono" + n + "@clinica.local");
+    }
+
+    @Test
+    @DisplayName("sem e-mail verificado no token, não há cadastro")
+    void cadastroExigeEmailVerificado() throws Exception {
+        long n = SEQ.incrementAndGet();
+        String token = "token-sem-email-" + n;
+        willReturn(Jwt.withTokenValue(token).header("alg", "RS256")
+                .subject("user_sem_email_" + n)
+                .claim("email", "nao.verificado" + n + "@clinica.local")
+                .claim("email_verified", false)
+                .build()).given(decoder).decode(token);
+
+        HttpResponse<String> r = cadastrar(token, n, "qualquer" + n + "@clinica.local");
+
+        assertThat(r.statusCode()).isEqualTo(400);
+    }
+
+    private HttpResponse<String> cadastrar(String token, long n, String emailNoCorpo) throws Exception {
+        String corpo = """
+                {"cnpj":"%014d","razaoSocial":"Clinica Nova LTDA","nomeFantasia":"Clinica Nova",
+                 "nomeAdmin":"Dona","emailAdmin":"%s"}""".formatted(n, emailNoCorpo);
+        return http.send(HttpRequest.newBuilder(url("/api/v1/auth/cadastro"))
+                        .header("Authorization", "Bearer " + token)
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString(corpo)).build(),
+                HttpResponse.BodyHandlers.ofString());
+    }
+
+    private String emailDoAdmin(String respostaDoCadastro) {
+        long idClinica = Long.parseLong(respostaDoCadastro.replaceAll(".*\"idClinica\":(\\d+).*", "$1"));
+        long idUsuario = Long.parseLong(respostaDoCadastro.replaceAll(".*\"idUsuarioAdmin\":(\\d+).*", "$1"));
+        ContextoAtual.definir(ContextoRequisicao.deClinica(idClinica, idUsuario, Papel.ADMIN, UUID.randomUUID()));
+        return transacao.execute(s -> jdbc.sql("SELECT email FROM identidade.usuarios WHERE id_usuario = :id")
+                .param("id", idUsuario).query(String.class).single());
     }
 
     private URI url(String caminho) {

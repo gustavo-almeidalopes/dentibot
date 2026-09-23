@@ -40,6 +40,12 @@ spring:
       enabled: true
 
 dentibot:
+  # O token de sessão do Clerk precisa trazer o e-mail verificado. Sem isso o
+  # cadastro de clínica responde 400 e o membro admitido pela equipe nunca é
+  # vinculado no primeiro login. No painel (Sessions > Customize session token),
+  # ou por `clerk config patch`, em session.claims:
+  #   { "email": "{{user.primary_email_address}}",
+  #     "email_verified": "{{user.email_verified}}" }
   clerk:
     # A Frontend API da instância, exatamente como vem no claim `iss` do token.
     # É daqui que sai a URL do JWKS; sem ela nenhuma rota autenticada funciona.

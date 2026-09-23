@@ -26,6 +26,9 @@ import java.util.UUID;
  *                        a conta no Clerk e o cadastro da clínica existe um
  *                        intervalo legítimo em que a primeira tem resposta e a
  *                        segunda não. É esse intervalo que o onboarding ocupa.
+ * @param emailVerificado o e-mail do token, só quando o Clerk o marcou como
+ *                        verificado. Preenchido apenas no contexto sem conta:
+ *                        é o e-mail que o cadastro de clínica dá ao admin.
  */
 public record ContextoRequisicao(
         Long clinicaId,
@@ -35,7 +38,8 @@ public record ContextoRequisicao(
         Long staffId,
         UUID correlacaoId,
         boolean modoWorker,
-        String sujeitoExterno) {
+        String sujeitoExterno,
+        String emailVerificado) {
 
     public ContextoRequisicao {
         boolean temClinica = clinicaId != null;
@@ -56,7 +60,7 @@ public record ContextoRequisicao(
     public static ContextoRequisicao deClinica(long clinicaId, long usuarioId, Papel papel,
                                                UUID correlacaoId, String sujeitoExterno) {
         return new ContextoRequisicao(clinicaId, usuarioId, papel, null, null, correlacaoId,
-                false, sujeitoExterno);
+                false, sujeitoExterno, null);
     }
 
     public static ContextoRequisicao deClinica(long clinicaId, long usuarioId, Papel papel,
@@ -67,7 +71,7 @@ public record ContextoRequisicao(
     public static ContextoRequisicao deStaff(long staffId, StaffPapel staffPapel,
                                              UUID correlacaoId, String sujeitoExterno) {
         return new ContextoRequisicao(null, null, null, staffPapel, staffId, correlacaoId,
-                false, sujeitoExterno);
+                false, sujeitoExterno, null);
     }
 
     public static ContextoRequisicao deStaff(long staffId, StaffPapel staffPapel,
@@ -76,7 +80,7 @@ public record ContextoRequisicao(
     }
 
     public static ContextoRequisicao deWorker(UUID correlacaoId) {
-        return new ContextoRequisicao(null, null, null, null, null, correlacaoId, true, null);
+        return new ContextoRequisicao(null, null, null, null, null, correlacaoId, true, null, null);
     }
 
     /**
@@ -86,7 +90,7 @@ public record ContextoRequisicao(
      * o contexto.
      */
     public static ContextoRequisicao anonimo(UUID correlacaoId) {
-        return new ContextoRequisicao(null, null, null, null, null, correlacaoId, false, null);
+        return new ContextoRequisicao(null, null, null, null, null, correlacaoId, false, null, null);
     }
 
     /**
@@ -97,9 +101,14 @@ public record ContextoRequisicao(
      * única coisa que este contexto habilita é o cadastro de clínica, que
      * precisa saber a qual conta do Clerk vincular o admin que vai nascer.
      */
-    public static ContextoRequisicao semConta(String sujeitoExterno, UUID correlacaoId) {
+    public static ContextoRequisicao semConta(String sujeitoExterno, String emailVerificado,
+                                              UUID correlacaoId) {
         return new ContextoRequisicao(null, null, null, null, null, correlacaoId, false,
-                sujeitoExterno);
+                sujeitoExterno, emailVerificado);
+    }
+
+    public static ContextoRequisicao semConta(String sujeitoExterno, UUID correlacaoId) {
+        return semConta(sujeitoExterno, null, correlacaoId);
     }
 
     public boolean autenticado() {

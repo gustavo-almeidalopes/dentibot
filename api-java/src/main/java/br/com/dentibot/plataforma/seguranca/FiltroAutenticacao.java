@@ -82,8 +82,9 @@ public class FiltroAutenticacao extends OncePerRequestFilter {
             // portanto sem acesso a linha nenhuma. O sujeito é preservado só
             // para o cadastro de clínica, que é o fluxo que existe justamente
             // para criar essa conta.
-            return identidades.resolver(sujeito, emailVerificado(jwt), correlacao)
-                    .orElseGet(() -> ContextoRequisicao.semConta(sujeito, correlacao));
+            String email = emailVerificado(jwt);
+            return identidades.resolver(sujeito, email, correlacao)
+                    .orElseGet(() -> ContextoRequisicao.semConta(sujeito, email, correlacao));
         } catch (Exception e) {
             // Largo de propósito, e a versão anterior só pegava JwtException: um
             // token com claim de forma inesperada estourava NumberFormatException

@@ -182,7 +182,7 @@ class MatrizDePermissaoTest {
     void eixosSaoExclusivos() {
         assertThatThrownBy(() -> new ContextoRequisicao(
                 1L, 10L, Papel.ADMIN, StaffPapel.ENGENHARIA, 99L, UUID.randomUUID(),
-                false, null))
+                false, null, null))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("camada 5");
     }
