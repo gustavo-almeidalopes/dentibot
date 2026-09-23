@@ -13,15 +13,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
  * @param partesAutorizadas  origens que o claim {@code azp} pode conter. O Clerk
  *                           põe nele a origem que pediu o token; conferir isso
  *                           impede que um token emitido para outro site seja
- *                           replayado contra esta API. Lista vazia desliga a
- *                           checagem — aceitável só em teste, onde não há
- *                           browser nenhum do outro lado.
+ *                           replayado contra esta API. Obrigatória: lista vazia
+ *                           derruba a subida, em vez de desligar a checagem.
  */
 @ConfigurationProperties(prefix = "dentibot.clerk")
 public record PropriedadesClerk(String emissor, List<String> partesAutorizadas) {
 
     public PropriedadesClerk {
-        partesAutorizadas = partesAutorizadas == null ? List.of() : List.copyOf(partesAutorizadas);
+        partesAutorizadas = partesAutorizadas == null ? List.of()
+                : partesAutorizadas.stream().filter(p -> !p.isBlank()).toList();
+        if (partesAutorizadas.isEmpty()) {
+            // DENTIBOT_CLERK_ORIGINS="" desligava a checagem do azp em silêncio:
+            // o validador aceita qualquer origem quando a lista vem vazia, e um
+            // token emitido para outro site da mesma instância passava.
+            throw new IllegalStateException(
+                    "DENTIBOT_CLERK_ORIGINS vazia: sem origens autorizadas, a checagem do azp "
+                            + "aceitaria token emitido para qualquer site.");
+        }
     }
 
     /**

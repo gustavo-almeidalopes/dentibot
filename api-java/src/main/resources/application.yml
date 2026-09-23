@@ -52,8 +52,8 @@ dentibot:
     # Não é segredo (é público e vai no bundle do front), mas continua vindo de
     # variável porque muda entre ambientes.
     emissor: ${DENTIBOT_CLERK_ISSUER:}
-    # Origens que o claim `azp` pode conter. Lista vazia desliga a checagem —
-    # só faz sentido em teste, onde não há browser do outro lado.
+    # Origens que o claim `azp` pode conter. Obrigatória: vazia, a aplicação não
+    # sobe, em vez de aceitar token emitido para qualquer site.
     partes-autorizadas: ${DENTIBOT_CLERK_ORIGINS:http://localhost:5173}
   cors:
     origens: ${DENTIBOT_CORS_ORIGINS:http://localhost:5173}
