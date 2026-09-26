@@ -109,3 +109,52 @@ test('campo de digitação se distingue do fundo a 3:1', () => {
     assert.ok(r >= 3, `${nome}: ${seletor} tem borda ${valor} a ${r.toFixed(2)}:1`);
   }
 });
+
+/*
+ * As telas claras e os componentes que elas montam. O 404 fica de fora: ele é
+ * da landing, e é preto.
+ */
+const CLARAS = [
+  ...readdirSync(new URL('./paginas', import.meta.url))
+    .filter((f) => f.endsWith('.jsx') && f !== 'NaoEncontrada.jsx')
+    .map((f) => `paginas/${f}`),
+  'components/FichaPaciente.jsx',
+  'components/Confirmar.jsx',
+  'components/primitivos.jsx',
+];
+
+/** As regras de CSS cujas classes aparecem todas em alguma tela clara. */
+function regrasDasTelasClaras() {
+  const corpus = CLARAS.map(ler).join('\n');
+  const usada = (classe) => new RegExp(`(?<![\w-])${classe}(?![\w-])`).test(corpus);
+  const achadas = [];
+  for (const arquivo of ['style.css', 'app.css']) {
+    for (const { seletor, decls } of regras(ler(arquivo))) {
+      if (seletor.startsWith('@') || seletor.startsWith(':root')) continue;
+      // `.on-red .btn` não vale no papel: `.on-red` não existe nas telas claras.
+      const partes = seletor.split(',').map((p) => p.trim()).filter((p) => {
+        const classes = [...p.matchAll(/\.([\w-]+)/g)].map((m) => m[1]);
+        return classes.length > 0 && classes.every(usada);
+      });
+      if (partes.length) achadas.push({ onde: `${arquivo}: ${partes.join(', ')}`, decls });
+    }
+  }
+  return achadas;
+}
+
+/** A regra pinta texto com algum destes tokens? */
+const pintaTexto = (decls, tokens) => [...decls.matchAll(/(?:^|;)\s*color\s*:\s*([^;]+)/g)]
+  .some((m) => tokens.some((t) => m[1].includes(`var(${t})`)));
+
+test('vermelho é marca, não tinta, nas telas claras', () => {
+  // #ed1c24 dá 4,16:1 no papel e 4,38:1 no branco: reprova como texto. No
+  // tema claro ele vira filete, e o texto fica em --tinta.
+  const ruins = regrasDasTelasClaras()
+    .filter(({ decls }) => pintaTexto(decls, ['--alarm']))
+    .map(({ onde }) => onde);
+  assert.deepEqual(ruins, []);
+
+  for (const f of CLARAS) {
+    assert.ok(!/color:\s*['"`]var\(--alarm\)/.test(ler(f)), `${f} pinta texto de vermelho em style inline`);
+  }
+});

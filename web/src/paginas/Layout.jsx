@@ -161,7 +161,7 @@ export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNov
   if (status === 'erro') {
     return (
       <div aria-live="assertive">
-        <p className="body" style={{ color: 'var(--alarm)' }}>
+        <p className="aviso" data-tom="erro">
           {erro?.message || 'Não foi possível carregar.'}
         </p>
         {/* O correlacaoId vem do ProblemDetail do back-end e é o que o suporte
