@@ -132,6 +132,22 @@ moldura, cabeçalho escondido, botões com `.btn`) e deixa cor e raio com o
 valer ("fundo preto e cantos vivos"). O campo do widget segue a regra acima:
 obsidiana, borda #838383, canto vivo.
 
+**Os botões e o skip link, medidos num `.app-main`.** O `.btn` da landing é
+`border: 2px solid var(--bone)` com o `::before` em `--bone`, e o `.btn-fill` é
+fundo `--bone`. No tema claro isso vira borda branca de 2px sobre o papel e bloco
+branco sobre o papel: os botões do sistema parecem texto solto, e o hover some. O
+`.skip-link` tem o mesmo defeito. É a raiz do `.cap-ash` de novo, e a correção é
+a mesma: o `.btn`, o `.btn-fill`, os `::before`, os hovers e o `.skip-link` trocam
+`--bone` e `--obsidian` por `--tinta` e `--fundo`. No escuro esses tokens valem
+exatamente osso e obsidiana — a landing não muda —, e no claro o botão vira a
+caixa preta de canto vivo que o "papel clínico" do desenho de UX já pedia.
+
+**Mais três vermelhos e contornos, na mesma regra:** o `Estado` do `Layout.jsx`
+pinta a mensagem de erro com `style={{ color: 'var(--alarm)' }}` inline — passa
+a usar `.erro-campo`; o `UserButton` usa `colorBorder: 'rgba(0, 0, 0, .22)'`
+(1,69:1 nos campos do perfil) — passa a #5c5c5c; e o hover do dente é branco a 7%
+sobre o papel, invisível — passa a `--hair-fraca`.
+
 **O que fica como está, porque passa:** o foco vermelho do dente (4,16:1 contra
 3:1 de contorno), o sublinhado vermelho da aba ativa (vem com negrito), a marca de
 margem da evolução retificada e toda a landing escura — vermelho sobre preto
@@ -157,16 +173,25 @@ por máquina é o que apodrece calado.
    `--foco` ≥ 3:1; e a borda declarada em toda regra de `input`, `select` e
    `textarea` resolve para ≥ 3:1 contra o `--fundo` do tema daquele arquivo.
    Trocar um token por valor que reprova quebra o teste, não a produção.
-2. **Literal da marca como texto nas telas claras.** Toda classe usada em
-   `paginas/` (menos o 404, que é escuro) e nos componentes que elas montam —
+2. **Literal da marca nas telas claras.** Toda regra cujas classes aparecem todas
+   em `paginas/` (menos o 404, que é escuro) e nos componentes que elas montam —
    `FichaPaciente`, `Confirmar` e `primitivos` — reprova se pintar texto com
-   `--ash`, `--bone` ou `--alarm`. É o teste que teria pegado o `.cap-ash`.
-   `--obsidian` como texto é permitido: dá 20:1 no papel e 4,79:1 no vermelho —
-   é ele o texto do `.btn-perigo` no hover.
+   `--ash`, `--bone` ou `--alarm`, ou fundo e borda com `--bone`; e nenhum
+   `style` inline dessas telas pinta texto com esses três. É o teste que teria
+   pegado o `.cap-ash` e o `.btn`. `--obsidian` como texto é permitido: dá 20:1 no
+   papel e 4,79:1 no vermelho — é ele o texto do `.btn-perigo` no hover. E, para a
+   troca por token semântico ser segura, o teste trava os valores do escuro:
+   `--fundo` e `--superficie` obsidiana, `--tinta` osso, `--tinta-fraca` cinza.
 3. **Estrutura:** `lang="pt-BR"` no `index.html`; viewport sem `user-scalable=no`
    nem `maximum-scale` (zoom a 200%, 1.4.4); nenhum `outline: none` ou
    `outline: 0` sem substituto; nenhum `tabIndex` positivo; todo arquivo de
    `paginas/`, menos a casca `Layout.jsx`, com `h1` ou `Cabecalho`.
+4. **Token do JSX existe no CSS.** Todo `var(--x)` escrito em `.jsx` ou `.js`
+   precisa estar definido no CSS — é o teste que teria pegado a `APARENCIA` do
+   Login com `--brand`, `--ink`, `--surface` e `--line`.
+5. **Rede modesta:** o grafo de imports estáticos a partir do `main.jsx` não
+   alcança `@clerk/*`; o `index.html` não chama o Google Fonts; o `Outlet` do
+   `Layout` está dentro de um `Suspense`.
 
 `app/src/acessibilidade.test.mjs`: os mesmos pares de contraste, lidos do
 `theme.ts` como texto — o mesmo idioma do `contrato.test.mjs`, que roda sem
@@ -200,6 +225,10 @@ isso nas rotas públicas e o roteiro manual nas internas.
   Depois da seção 4, a landing e o 404 deixam de depender da chave.
 - **Exclusão única:** o selo "Development mode" do Clerk, que é da instância de
   teste e não existe em produção.
+- **Dois testes a mais, que o axe não faz,** no mesmo script e no mesmo
+  navegador: reflow — cada rota a 320px de largura sem rolagem horizontal
+  (critério 1.4.10) —; e carga que falha — com o chunk do `ComClerk` bloqueado, o
+  `/login` mostra a mensagem de recuperação, não uma tela branca.
 
 ## 4. Peso na rede modesta
 
@@ -219,7 +248,14 @@ Google, que recebe o IP de cada visitante.
   `/login` já trata sessão ativa com "Abrir o sistema".
 - **Divisão por rota** com `React.lazy` e `Suspense`: cada tela do sistema vira
   chunk próprio. O `fallback` é o texto "Carregando…" com `role="status"`, na
-  tipografia da casa.
+  tipografia da casa. Há um `Suspense` dentro do `ComClerk` e outro em volta do
+  `Outlet` do `Layout`: trocar de tela não desmonta o `ClerkProvider` nem faz a
+  casca clara piscar para o escuro.
+- **Carga que falha.** Dividir em chunks cria uma falha que o bundle único não
+  tinha: o 3G cai no meio da navegação, o `import()` rejeita e o React desmonta
+  tudo — tela branca. Um limite de erro (`RecuperaCarga`) em volta das rotas troca
+  a tela branca por uma frase e "Tentar de novo". É o público do ODS-18 que mais
+  encontra isso.
 - **Fontes do próprio domínio,** pelos pacotes `@fontsource` de Antonio,
   Cormorant SC e Inter (licença OFL), importados no `main.jsx`. Saem do
   `index.html` o `<link>` do Google Fonts e os dois `preconnect`: duas
@@ -241,9 +277,12 @@ do Clerk é tradução do fornecedor. Os rótulos e perguntas da ficha, hoje
 espalhados no JSX de `FichaPaciente.jsx`, passam a morar numa constante
 exportada, revisados em linguagem simples. O teste calcula o índice de Flesch
 adaptado ao português (Martins et al., 1996:
-`248,835 − 1,015 × palavras/frase − 84,6 × sílabas/palavra`) sobre esse texto e
-reprova abaixo de 50 (a faixa "fácil" começa ali). O método é heurístico — sílaba
-contada por grupo vocálico —, e o documento de acessibilidade diz isso.
+`248,835 − 1,015 × palavras/frase − 84,6 × sílabas/palavra`) sobre a triagem de
+saúde — o aviso e as oito perguntas — e reprova abaixo de 75, onde começa a faixa
+"muito fácil". Medido: o texto de hoje dá 58,1 e passaria num piso de 50 com
+"cardíacos", "hipertensão" e "uso contínuo"; a revisão ("pressão alta", "remédio
+todo dia") dá 89,4. O método é heurístico — sílaba contada por grupo vocálico —,
+e o documento de acessibilidade diz isso.
 
 **Roteiro manual** para as telas autenticadas, a cada release: só teclado (ordem
 de tabulação, `Esc` no diálogo, setas nas abas), NVDA (aviso, erro e selo
