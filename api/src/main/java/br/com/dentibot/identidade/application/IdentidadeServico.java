@@ -60,6 +60,13 @@ public class IdentidadeServico implements IdentidadeApi {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<DadosPessoais> dadosPessoais(long idPessoa) {
+        permissoes.exigir(Recurso.LGPD, Acao.LER);
+        return pessoas.dadosPessoais(idPessoa);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Map<Long, PessoaResumo> mapaDeResumos(Collection<Long> idsPessoa) {
         return pessoas.buscarResumos(idsPessoa).stream()
                 .collect(Collectors.toMap(PessoaResumo::idPessoa, Function.identity()));

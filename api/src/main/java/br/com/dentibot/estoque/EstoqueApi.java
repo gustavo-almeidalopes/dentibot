@@ -14,6 +14,8 @@ public interface EstoqueApi {
 
     List<PosicaoProduto> posicao(boolean somenteAbaixoDoPontoPedido);
 
+    List<SugestaoCompra> sugestaoDeCompra(int coberturaDias);
+
     List<ProdutoResumo> listarProdutos();
 
     long criarProduto(NovoProduto novo);

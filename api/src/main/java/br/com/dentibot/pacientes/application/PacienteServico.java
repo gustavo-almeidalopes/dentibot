@@ -14,6 +14,7 @@ import br.com.dentibot.plataforma.seguranca.Recurso;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,13 @@ public class PacienteServico implements PacientesApi {
                 novo.bairro(), novo.cidade(), novo.uf()));
         return pacientes.inserir(idPessoa, novo.idPlanoConvenio(), novo.numeroCarteirinha(),
                 novo.anamnese());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<NovoPaciente.Anamnese> anamnese(long idPaciente) {
+        permissoes.exigir(Recurso.PRONTUARIO, Acao.LER);
+        return pacientes.anamnese(idPaciente);
     }
 
     @Override

@@ -14,6 +14,8 @@ export const PACIENTES = '/pacientes';
 export const EQUIPE = '/equipe';
 export const AUDITORIA = '/auditoria';
 export const FINANCEIRO = '/financeiro';
+export const ACOMPANHAMENTO = '/acompanhamento';
+export const ESTOQUE = '/estoque';
 
 /** O prontuário é a única rota com parâmetro — e o motivo de haver um router. */
 export const PRONTUARIO = '/pacientes/:idPaciente/prontuario';
@@ -30,7 +32,11 @@ export const prontuarioDe = (idPaciente) => PRONTUARIO.replace(':idPaciente', id
 export const MENU = [
   { href: AGENDA, label: 'Agenda', recurso: 'AGENDA' },
   { href: PACIENTES, label: 'Pacientes', recurso: 'PACIENTE' },
+  // ORCAMENTO porque o radar é sobre plano aprovado; a parte clínica da tela
+  // (registro pendente) pergunta PRONTUARIO por conta própria.
+  { href: ACOMPANHAMENTO, label: 'Acompanhamento', recurso: 'ORCAMENTO' },
   { href: FINANCEIRO, label: 'Financeiro', recurso: 'FINANCEIRO' },
+  { href: ESTOQUE, label: 'Estoque', recurso: 'ESTOQUE' },
   { href: EQUIPE, label: 'Equipe', recurso: 'EQUIPE' },
   { href: AUDITORIA, label: 'Auditoria', recurso: 'AUDITORIA' },
 ];

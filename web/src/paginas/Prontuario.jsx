@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { api } from '../api.js';
+import { api, baixar } from '../api.js';
+import ResumoPaciente from '../components/ResumoPaciente.jsx';
 import { Aviso } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { PACIENTES } from '../rotas.js';
-import { Cabecalho, Estado } from './Layout.jsx';
+import { Cabecalho, Estado, usePode } from './Layout.jsx';
 
 const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'short',
@@ -34,7 +35,12 @@ export default function Prontuario() {
       <Cabecalho
         titulo={nomePaciente}
         detalhe="Prontuário"
-        acao={<Link className="btn btn-sm" to={PACIENTES}>Voltar aos pacientes</Link>}
+        acao={(
+          <div className="acoes">
+            <Exportar idPaciente={idPaciente} />
+            <Link className="btn btn-sm" to={PACIENTES}>Voltar aos pacientes</Link>
+          </div>
+        )}
       />
 
       {/* Não é decoração: toda abertura desta tela grava uma linha de auditoria
@@ -43,6 +49,8 @@ export default function Prontuario() {
       <p className="faixa-auditoria">
         Abrir este prontuário grava uma linha na trilha de auditoria, com o seu nome.
       </p>
+
+      <ResumoPaciente idPaciente={idPaciente} />
 
       <div className="abas" role="tablist" aria-label="Seções do prontuário">
         {[['evolucoes', 'Evolução'], ['odontograma', 'Odontograma']].map(([id, rotulo]) => (
@@ -287,5 +295,43 @@ function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
         {enviando ? 'Lançando…' : 'Lançar'}
       </button>
     </form>
+  );
+}
+
+/**
+ * Portabilidade (IA-47, LGPD art. 18): o arquivo com tudo o que a clínica tem
+ * sobre o paciente. Só aparece para quem o back-end deixa exportar — hoje, o
+ * admin —, e o hash que ele calculou fica na tela para ser passado ao paciente
+ * junto com o arquivo.
+ */
+function Exportar({ idPaciente }) {
+  const pode = usePode();
+  const [estado, setEstado] = useState({ enviando: false, sha256: null, erro: null });
+  if (!pode('LGPD', 'CRIAR')) return null;
+
+  const exportar = async () => {
+    setEstado({ enviando: true, sha256: null, erro: null });
+    try {
+      const { blob, nomeArquivo, sha256 } = await baixar(`/pacientes/${idPaciente}/exportacao`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nomeArquivo;
+      a.click();
+      URL.revokeObjectURL(url);
+      setEstado({ enviando: false, sha256, erro: null });
+    } catch (e) {
+      setEstado({ enviando: false, sha256: null, erro: e.message });
+    }
+  };
+
+  return (
+    <>
+      <button type="button" className="btn btn-sm" disabled={estado.enviando} onClick={exportar}>
+        {estado.enviando ? 'Exportando…' : 'Exportar dados (LGPD)'}
+      </button>
+      <Aviso texto={estado.sha256 && `Arquivo exportado. SHA-256: ${estado.sha256}`} />
+      <Aviso texto={estado.erro} tom="erro" />
+    </>
   );
 }

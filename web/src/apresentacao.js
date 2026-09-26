@@ -128,3 +128,16 @@ export function contagem(n, limite, singular, plural) {
   if (n >= limite) return `${n} primeiros`;
   return `${n} ${n === 1 ? singular : plural}`;
 }
+
+const REAIS = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const QUANTIDADE = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 });
+const DATA_CURTA = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
+
+/** Dinheiro que chega como número do back-end (BigDecimal serializado). */
+export const reais = (valor) => REAIS.format(Number(valor ?? 0));
+
+/** Quantidade de estoque: até três casas, sem zero à direita. */
+export const quantidade = (valor) => QUANTIDADE.format(Number(valor ?? 0));
+
+/** Instante ISO como data curta; ausente vira travessão, não "Invalid Date". */
+export const dataCurta = (instante) => (instante ? DATA_CURTA.format(new Date(instante)) : '—');

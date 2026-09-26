@@ -8,6 +8,7 @@ import br.com.dentibot.estoque.NovaMovimentacao;
 import br.com.dentibot.estoque.NovoFornecedor;
 import br.com.dentibot.estoque.NovoProduto;
 import br.com.dentibot.estoque.PosicaoProduto;
+import br.com.dentibot.estoque.SugestaoCompra;
 import br.com.dentibot.estoque.ProdutoResumo;
 import jakarta.validation.Valid;
 import java.net.URI;
@@ -37,6 +38,12 @@ public class EstoqueController {
     public List<PosicaoProduto> posicao(
             @RequestParam(defaultValue = "false") boolean somenteAbaixoDoPontoPedido) {
         return estoque.posicao(somenteAbaixoDoPontoPedido);
+    }
+
+    /** IA-43: o que comprar para durar {@code cobertura} dias. */
+    @GetMapping("/sugestao-compra")
+    public List<SugestaoCompra> sugestaoDeCompra(@RequestParam(defaultValue = "30") int cobertura) {
+        return estoque.sugestaoDeCompra(cobertura);
     }
 
     @GetMapping("/produtos")

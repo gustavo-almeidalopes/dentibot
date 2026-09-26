@@ -1,6 +1,8 @@
 package br.com.dentibot.prontuario;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Porta pública do módulo prontuário — o núcleo regulado (CFO-226/2020, LGPD
@@ -22,4 +24,13 @@ public interface ProntuarioApi {
     List<LancamentoOdontograma> odontograma(long idPaciente);
 
     long lancarOdontograma(NovoLancamentoOdontograma lancamento);
+
+    /** Alergia, anticoagulante, gestação: o que falar antes de chamar o paciente. */
+    AlertasClinicos alertas(long idPaciente);
+
+    /**
+     * Das consultas informadas, quais têm evolução registrada. Só ids — nenhum
+     * conteúdo clínico sai daqui —, para achar atendimento sem registro (IA-05).
+     */
+    Set<Long> consultasComEvolucao(Collection<Long> idsConsulta);
 }

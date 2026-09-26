@@ -22,7 +22,7 @@
 		<archunit.version>1.5.0</archunit.version>
 		<sentry.version>8.58.0</sentry.version>
 		<jacoco.version>0.8.15</jacoco.version>
-		<cobertura.minima>0.43</cobertura.minima>
+		<cobertura.minima>0.60</cobertura.minima>
 	</properties>
 
 	<dependencies>

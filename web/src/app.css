@@ -385,3 +385,28 @@
   font-variant-numeric: tabular-nums;
 }
 .indicador[data-alarme="sim"] .indicador-valor { color: var(--alarm); }
+
+/* ── COPILOTO (Doc 03-A) ──────────────────────────────────────────────────── */
+/* O resumo abre dentro do bloco da consulta: mesma superfície, fio acima. */
+.resumo {
+  border-top: 1px solid var(--hair);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+/* Alerta clínico é o caso "alarmante" do brutalismo: o único vermelho da tela,
+   em barra e texto — nunca só cor, a palavra "Alertas" vai junto. */
+.resumo-alertas {
+  border-left: 3px solid var(--alarm);
+  padding: 8px 0 8px 14px;
+  margin-bottom: var(--spacing-20, 20px);
+}
+.resumo-alertas .cap { color: var(--alarm); margin: 0 0 6px; }
+.resumo-alertas ul { margin: 0 0 10px; padding-left: 18px; font-weight: 700; }
+/* Faltas recentes: aviso de operação, não de saúde — tinta, não vermelho. */
+.consulta-faltas {
+  margin: 4px 0 0;
+  border-left: 3px solid var(--tinta);
+  padding-left: 8px;
+  font-weight: 700;
+}
+.secao-titulo { margin: var(--spacing-30, 30px) 0 12px; }

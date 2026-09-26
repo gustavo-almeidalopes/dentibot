@@ -9,6 +9,7 @@ import {
   type Consulta,
 } from '../../api';
 import { cor, corDoStatus, espaco, rotuloDoStatus, tipo } from '../../theme';
+import { ResumoPaciente } from '../../resumo';
 import { Botao, Campo, Carregando, Divisoria, Erro, Rotulo, Titulo, Vazio } from '../../ui';
 
 const ROTULO_DA_ACAO: Record<Acao, string> = {
@@ -215,6 +216,7 @@ function Linha({
   onAgir,
 }: LinhaProps) {
   const acoes = ACOES_POR_STATUS[consulta.status];
+  const [resumoAberto, setResumoAberto] = useState(false);
 
   return (
     <View style={{ padding: espaco.lg, gap: espaco.md }}>
@@ -227,6 +229,17 @@ function Linha({
           <Text style={{ ...tipo.rotulo, color: corDoStatus[consulta.status] ?? cor.cinza }}>
             {rotuloDoStatus[consulta.status] ?? consulta.status.toUpperCase()}
           </Text>
+          {/* IA-15: contagem, não probabilidade. Aviso de operação: osso, não vermelho. */}
+          {consulta.faltasRecentes > 0 && (
+            <Text style={{ ...tipo.rotulo, color: cor.osso, fontWeight: '700' }}>
+              {`FALTOU ${consulta.faltasRecentes} DE ${consulta.consultasRecentes}`}
+            </Text>
+          )}
+          {consulta.faltasRecentes > 0 && (
+            <Text style={{ ...tipo.rotulo, color: cor.osso, fontWeight: '700' }}>
+              {}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -276,6 +289,13 @@ function Linha({
       )}
 
       {!cancelando && acoes.length === 0 && <Rotulo>Sem ações</Rotulo>}
+
+      <View style={{ alignSelf: 'flex-start' }}>
+        <Botao variante="contorno" onPress={() => setResumoAberto((a) => !a)}>
+          {resumoAberto ? 'Fechar resumo' : 'Resumo'}
+        </Botao>
+      </View>
+      {resumoAberto && <ResumoPaciente idPaciente={consulta.idPaciente} />}
     </View>
   );
 }

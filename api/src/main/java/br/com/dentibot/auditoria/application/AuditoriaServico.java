@@ -38,6 +38,12 @@ public class AuditoriaServico implements AuditoriaApi {
 
     @Override
     @Transactional
+    public void registrarExportacao(String recurso, String idRecurso, Object resumo) {
+        gravar("exportacao", recurso, idRecurso, null, serializar(resumo));
+    }
+
+    @Override
+    @Transactional
     public void registrarCriacao(String recurso, String idRecurso, Object dadosPosteriores) {
         gravar("criacao", recurso, idRecurso, null, serializar(dadosPosteriores));
     }

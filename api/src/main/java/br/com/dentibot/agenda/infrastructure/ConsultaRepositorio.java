@@ -1,9 +1,13 @@
 package br.com.dentibot.agenda.infrastructure;
 
+import br.com.dentibot.agenda.SituacaoNaAgenda;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
@@ -138,6 +142,84 @@ public class ConsultaRepositorio {
                 .param("para", para)
                 .param("motivo", motivo)
                 .update();
+    }
+
+    /**
+     * IA-15. Das últimas dez consultas encerradas de cada paciente — realizada
+     * ou falta; cancelada fica fora, porque avisou —, quantas foram falta.
+     * Devolve {faltas, total} por paciente.
+     */
+    public Map<Long, int[]> historicoDeFaltas(Collection<Long> idsPaciente) {
+        Map<Long, int[]> mapa = new HashMap<>();
+        jdbc.sql("""
+                        SELECT id_paciente,
+                               count(*) FILTER (WHERE status = 'faltou') AS faltas,
+                               count(*) AS total
+                        FROM (SELECT id_paciente, status,
+                                     row_number() OVER (PARTITION BY id_paciente
+                                                        ORDER BY inicio_em DESC) AS n
+                              FROM agenda.consultas
+                              WHERE id_paciente IN (:ids)
+                                AND status IN ('realizada', 'faltou')
+                                AND inicio_em < now()) h
+                        WHERE n <= 10
+                        GROUP BY id_paciente
+                        """)
+                .param("ids", List.copyOf(idsPaciente))
+                .query(rs -> {
+                    mapa.put(rs.getLong("id_paciente"),
+                            new int[] {rs.getInt("faltas"), rs.getInt("total")});
+                });
+        return mapa;
+    }
+
+    public Map<Long, SituacaoNaAgenda> situacao(Collection<Long> idsPaciente, Long idDentista) {
+        Map<Long, SituacaoNaAgenda> mapa = new HashMap<>();
+        jdbc.sql("""
+                        SELECT id_paciente,
+                               max(inicio_em) FILTER (WHERE status = 'realizada'
+                                                        AND inicio_em < now()) AS ultima,
+                               min(inicio_em) FILTER (WHERE status IN ('agendada', 'confirmada')
+                                                        AND inicio_em >= now()) AS proxima
+                        FROM agenda.consultas
+                        WHERE id_paciente IN (:ids)
+                          AND (CAST(:dentista AS BIGINT) IS NULL OR id_dentista = :dentista)
+                        GROUP BY id_paciente
+                        """)
+                .param("ids", List.copyOf(idsPaciente))
+                .param("dentista", idDentista)
+                .query(rs -> {
+                    Timestamp ultima = rs.getTimestamp("ultima");
+                    Timestamp proxima = rs.getTimestamp("proxima");
+                    if (ultima != null || proxima != null) {
+                        long id = rs.getLong("id_paciente");
+                        mapa.put(id, new SituacaoNaAgenda(id,
+                                ultima == null ? null : ultima.toInstant(),
+                                proxima == null ? null : proxima.toInstant()));
+                    }
+                });
+        return mapa;
+    }
+
+    public List<LinhaConsulta> doPaciente(long idPaciente, Long idDentista) {
+        return jdbc.sql("""
+                        SELECT id_consulta, id_paciente, id_dentista,
+                               inicio_em, termino_em, status
+                        FROM agenda.consultas
+                        WHERE id_paciente = :paciente
+                          AND (CAST(:dentista AS BIGINT) IS NULL OR id_dentista = :dentista)
+                        ORDER BY inicio_em DESC
+                        """)
+                .param("paciente", idPaciente)
+                .param("dentista", idDentista)
+                .query((rs, n) -> new LinhaConsulta(
+                        rs.getLong("id_consulta"),
+                        rs.getLong("id_paciente"),
+                        rs.getLong("id_dentista"),
+                        rs.getTimestamp("inicio_em").toInstant(),
+                        rs.getTimestamp("termino_em").toInstant(),
+                        rs.getString("status")))
+                .list();
     }
 
     public boolean existeConsultaEntre(long idPaciente, long idDentista) {

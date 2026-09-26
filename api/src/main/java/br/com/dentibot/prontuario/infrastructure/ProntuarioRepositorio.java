@@ -3,7 +3,10 @@ package br.com.dentibot.prontuario.infrastructure;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.prontuario.EvolucaoResumo;
 import br.com.dentibot.prontuario.LancamentoOdontograma;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -111,6 +114,16 @@ public class ProntuarioRepositorio {
     }
 
     /** O dentista responsável por uma evolução — usado para checar o alcance PROPRIOS. */
+    public Set<Long> consultasComEvolucao(Collection<Long> idsConsulta) {
+        return new HashSet<>(jdbc.sql("""
+                        SELECT DISTINCT id_consulta FROM prontuario.evolucoes
+                        WHERE id_consulta IN (:ids)
+                        """)
+                .param("ids", List.copyOf(idsConsulta))
+                .query(Long.class)
+                .list());
+    }
+
     public java.util.Optional<Long> dentistaDaEvolucao(long idEvolucao) {
         return jdbc.sql("SELECT id_dentista FROM prontuario.evolucoes WHERE id_evolucao = :id")
                 .param("id", idEvolucao)

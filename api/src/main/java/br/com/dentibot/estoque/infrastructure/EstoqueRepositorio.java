@@ -4,6 +4,7 @@ import br.com.dentibot.estoque.FornecedorResumo;
 import br.com.dentibot.estoque.LoteVencendo;
 import br.com.dentibot.estoque.MovimentacaoResumo;
 import br.com.dentibot.estoque.PosicaoProduto;
+import br.com.dentibot.estoque.SugestaoCompra;
 import br.com.dentibot.estoque.ProdutoResumo;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import java.math.BigDecimal;
@@ -45,6 +46,37 @@ public class EstoqueRepositorio {
                         rs.getBigDecimal("ponto_pedido"),
                         rs.getBigDecimal("quantidade_atual"),
                         rs.getBoolean("abaixo_do_ponto_pedido")))
+                .list();
+    }
+
+    /** IA-43. Ver {@link SugestaoCompra}: consumo médio de 90 dias × cobertura. */
+    public List<SugestaoCompra> sugestaoDeCompra(int coberturaDias) {
+        return jdbc.sql("""
+                        WITH consumo AS (
+                            SELECT id_produto, -sum(quantidade) / 90.0 AS diario
+                            FROM estoque.movimentacoes
+                            WHERE tipo = 'saida' AND movimentado_em >= now() - INTERVAL '90 days'
+                            GROUP BY id_produto)
+                        SELECT p.id_produto, p.nome_produto, p.unidade_medida,
+                               p.quantidade_atual, p.ponto_pedido,
+                               round(COALESCE(c.diario, 0), 3) AS consumo_diario,
+                               ceil(COALESCE(c.diario, 0) * :cobertura
+                                    + p.ponto_pedido - p.quantidade_atual) AS sugerida
+                        FROM estoque.vw_posicao p
+                        LEFT JOIN consumo c ON c.id_produto = p.id_produto
+                        WHERE COALESCE(c.diario, 0) * :cobertura
+                              + p.ponto_pedido - p.quantidade_atual > 0
+                        ORDER BY p.quantidade_atual - p.ponto_pedido, p.nome_produto
+                        """)
+                .param("cobertura", coberturaDias)
+                .query((rs, n) -> new SugestaoCompra(
+                        rs.getLong("id_produto"),
+                        rs.getString("nome_produto"),
+                        rs.getString("unidade_medida"),
+                        rs.getBigDecimal("quantidade_atual"),
+                        rs.getBigDecimal("ponto_pedido"),
+                        rs.getBigDecimal("consumo_diario"),
+                        rs.getBigDecimal("sugerida")))
                 .list();
     }
 

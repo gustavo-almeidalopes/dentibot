@@ -5,6 +5,7 @@ import {
   somarDias, telHref,
 } from '../apresentacao.js';
 import Confirmar from '../components/Confirmar.jsx';
+import ResumoPaciente from '../components/ResumoPaciente.jsx';
 import { Aviso, Selo } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { Cabecalho, Estado } from './Layout.jsx';
@@ -18,6 +19,8 @@ const fimDoDia = (dia) => new Date(`${dia}T23:59:59.999`).toISOString();
 export default function Agenda() {
   const [dia, setDia] = useState(hoje);
   const [idDentista, setIdDentista] = useState('');
+  // Um resumo aberto por vez: dois falando ao mesmo tempo seria ruído.
+  const [resumoDe, setResumoDe] = useState(null);
 
   const caminho = useMemo(
     () => `/consultas${query({ de: inicioDoDia(dia), ate: fimDoDia(dia), idDentista })}`,
@@ -105,8 +108,20 @@ export default function Agenda() {
                         {c.telefonePaciente}
                       </a>
                     )}
+                    {/* IA-15: contagem, não probabilidade — a recepção confere e explica. */}
+                    {c.faltasRecentes > 0 && (
+                      <p className="cap consulta-faltas">
+                        Faltou {c.faltasRecentes} de {c.consultasRecentes}
+                      </p>
+                    )}
                     <Selo mapa={STATUS_CONSULTA} valor={c.status} />
                     <div className="acoes">
+                      <button type="button" className="btn btn-sm"
+                              aria-expanded={resumoDe === c.idConsulta}
+                              onClick={() => setResumoDe((atual) =>
+                                (atual === c.idConsulta ? null : c.idConsulta))}>
+                        Resumo
+                      </button>
                       {/* Só as transições que o estado atual permite. Mostrar
                           um botão que o back-end recusa com 409 é ensinar o
                           usuário a ignorar mensagem de erro. */}
@@ -125,6 +140,9 @@ export default function Agenda() {
                         </>
                       )}
                     </div>
+                    {resumoDe === c.idConsulta && (
+                      <ResumoPaciente idPaciente={c.idPaciente} falarAoAbrir />
+                    )}
                   </article>
                 ))}
               </div>

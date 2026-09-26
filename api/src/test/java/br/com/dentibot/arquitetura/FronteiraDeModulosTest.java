@@ -32,7 +32,7 @@ class FronteiraDeModulosTest {
 
     private static final Set<String> MODULOS = Set.of(
             "clinicas", "identidade", "pacientes", "agenda", "prontuario",
-            "orcamento", "financeiro", "billing", "estoque", "lgpd", "auditoria");
+            "orcamento", "financeiro", "billing", "estoque", "lgpd", "auditoria", "copiloto");
 
     private static final Set<String> CAMADAS_INTERNAS = Set.of(
             "domain", "application", "infrastructure", "interfaces");

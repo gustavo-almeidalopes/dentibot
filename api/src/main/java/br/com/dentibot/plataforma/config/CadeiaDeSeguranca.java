@@ -140,7 +140,8 @@ public class CadeiaDeSeguranca {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of(
                 "Authorization", "Content-Type", "X-Correlation-Id", "Idempotency-Key"));
-        config.setExposedHeaders(List.of("X-Correlation-Id", "Retry-After"));
+        config.setExposedHeaders(List.of("X-Correlation-Id", "Retry-After",
+                "Content-Disposition", "X-Conteudo-Sha256"));
         // O refresh viaja em cookie HttpOnly.
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);

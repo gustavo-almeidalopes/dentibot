@@ -5,10 +5,12 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';
 import Login from './components/Login.jsx';
+import Acompanhamento from './paginas/Acompanhamento.jsx';
 import Agenda from './paginas/Agenda.jsx';
 import Auditoria from './paginas/Auditoria.jsx';
 import Cadastro from './paginas/Cadastro.jsx';
 import Equipe from './paginas/Equipe.jsx';
+import Estoque from './paginas/Estoque.jsx';
 import Financeiro from './paginas/Financeiro.jsx';
 import Layout from './paginas/Layout.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
@@ -18,7 +20,8 @@ import './style.css';
 import './app.css';
 import { ligarErros } from './erros.js';
 import {
-  AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES, PRONTUARIO,
+  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, ESTOQUE, FINANCEIRO, LOGIN,
+  PACIENTES, PRONTUARIO,
 } from './rotas.js';
 
 /* Router de verdade, e não o mapa de `window.location.pathname` que estava
@@ -90,7 +93,9 @@ createRoot(document.getElementById('root')).render(
             <Route path={AGENDA} element={<Agenda />} />
             <Route path={PACIENTES} element={<Pacientes />} />
             <Route path={PRONTUARIO} element={<Prontuario />} />
+            <Route path={ACOMPANHAMENTO} element={<Acompanhamento />} />
             <Route path={FINANCEIRO} element={<Financeiro />} />
+            <Route path={ESTOQUE} element={<Estoque />} />
             <Route path={EQUIPE} element={<Equipe />} />
             <Route path={AUDITORIA} element={<Auditoria />} />
           </Route>

@@ -20,6 +20,12 @@ public interface AuditoriaApi {
      */
     void registrarLeitura(String recurso, String idRecurso);
 
+    /**
+     * Dado que saiu do sistema — portabilidade (LGPD art. 18) e afins. A trilha
+     * guarda o resumo do que saiu (o hash, o tamanho), nunca o conteúdo.
+     */
+    void registrarExportacao(String recurso, String idRecurso, Object resumo);
+
     void registrarCriacao(String recurso, String idRecurso, Object dadosPosteriores);
 
     void registrarAlteracao(String recurso, String idRecurso,

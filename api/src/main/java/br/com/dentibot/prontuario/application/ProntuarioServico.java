@@ -13,14 +13,17 @@ import br.com.dentibot.plataforma.seguranca.Alcance;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao.AcessoNegadoException;
 import br.com.dentibot.plataforma.seguranca.Recurso;
+import br.com.dentibot.prontuario.AlertasClinicos;
 import br.com.dentibot.prontuario.EvolucaoResumo;
 import br.com.dentibot.prontuario.LancamentoOdontograma;
 import br.com.dentibot.prontuario.NovaEvolucao;
 import br.com.dentibot.prontuario.NovoLancamentoOdontograma;
 import br.com.dentibot.prontuario.ProntuarioApi;
 import br.com.dentibot.prontuario.infrastructure.ProntuarioRepositorio;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -155,6 +158,26 @@ public class ProntuarioServico implements ProntuarioApi {
     }
 
     // ─── autorização ─────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public AlertasClinicos alertas(long idPaciente) {
+        exigirAcessoAoPaciente(idPaciente, Acao.LER);
+        AlertasClinicos alertas = pacientes.anamnese(idPaciente)
+                .map(a -> AlertasClinicos.de(a.alergia(), a.medicamentoContinuo(),
+                        a.condicaoSistemica(), a.gravidez(), a.emTratamentoMedico()))
+                .orElseGet(AlertasClinicos::nenhum);
+        // Alergia e medicação são dado de saúde: ler deixa rastro, como o resto.
+        auditoria.registrarLeitura("prontuario.alertas", String.valueOf(idPaciente));
+        return alertas;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<Long> consultasComEvolucao(Collection<Long> idsConsulta) {
+        permissao.exigir(Recurso.PRONTUARIO, Acao.LER);
+        return idsConsulta.isEmpty() ? Set.of() : prontuario.consultasComEvolucao(idsConsulta);
+    }
 
     /**
      * Traduz {@code Alcance.PROPRIOS} para prontuário: "os SEUS pacientes" é
