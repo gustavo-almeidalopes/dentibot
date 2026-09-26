@@ -73,6 +73,15 @@ if ($naoSaudaveis.Count -gt 0) {
 }
 Ok 'postgres, redis e minio saudáveis'
 
+Etapa 'Extensões de observabilidade'
+# Aqui e não em postgres/init: aquele diretório só roda em volume novo, e o
+# banco de quem já desenvolvia nunca ganharia a extensão. IF NOT EXISTS torna
+# isto repetível a cada init.
+docker exec dentibot-postgres psql -U postgres -d dentibot -qtA `
+    -c 'CREATE EXTENSION IF NOT EXISTS pg_stat_statements' | Out-Null
+if ($LASTEXITCODE -ne 0) { Falha 'pg_stat_statements não pôde ser criada'; exit 1 }
+Ok 'pg_stat_statements (consultas mais caras: SELECT * FROM pg_stat_statements)'
+
 Etapa 'Aplicando migrations (Flyway, como dentibot_migrador)'
 
 # JAVA_HOME costuma estar definido na máquina mas ausente NESTE processo, quando

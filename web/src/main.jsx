@@ -16,6 +16,7 @@ import Pacientes from './paginas/Pacientes.jsx';
 import Prontuario from './paginas/Prontuario.jsx';
 import './style.css';
 import './app.css';
+import { ligarErros } from './erros.js';
 import {
   AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES, PRONTUARIO,
 } from './rotas.js';
@@ -53,6 +54,8 @@ const aparencia = {
    sintoma sem nenhuma mensagem em lugar nenhum; agora a falta da variável no
    build aparece na tela em vez de virar depuração de página vazia. */
 const chaveClerk = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+ligarErros(import.meta.env.VITE_SENTRY_DSN);
 
 createRoot(document.getElementById('root')).render(
   !chaveClerk ? (

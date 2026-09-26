@@ -65,6 +65,17 @@ não alcança dado clínico e que a aplicação não é dona das tabelas. A V1 d
 projeto pretendia 31 políticas de RLS, criou zero, e vazava dados entre
 clínicas sem um único teste vermelho.
 
+## Operar
+
+| Onde | O quê | Variável |
+| --- | --- | --- |
+| `GET /actuator/health/liveness` | O processo está vivo? Não toca em nada externo. | — |
+| `GET /actuator/health/readiness` | Pode receber tráfego? Inclui o banco; Redis não, porque o rate limit falha aberto. | — |
+| `GET /actuator/prometheus` | Métricas, com Basic `prometheus:<senha>`. Sem a variável, fechado para todos. | `DENTIBOT_METRICAS_SENHA` |
+| Sentry (API) | Só erro 500, depois do `ScrubberDePii`, com ids de clínica e usuário — nunca nome. | `SENTRY_DSN`, `DENTIBOT_AMBIENTE` |
+| Sentry (web) | O SDK só baixa se houver DSN. O host exato do projeto entra em `connect-src` nos dois `vercel.json`. | `VITE_SENTRY_DSN` |
+| `pg_stat_statements` | Consultas mais caras no total; `auto_explain` grava o plano das que passam de 500 ms. O `init.ps1` cria a extensão. | — |
+
 ## Publicar o `web/` na Vercel
 
 O front-end não fica na raiz do repositório — está em `web/`. Na configuração

@@ -5,11 +5,18 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -33,6 +40,48 @@ public class CadeiaDeSeguranca {
 
     public CadeiaDeSeguranca(@Value("${dentibot.cors.origens}") String origens) {
         this.origensPermitidas = List.of(origens.split("\\s*,\\s*"));
+    }
+
+    /**
+     * {@code /actuator/prometheus} (ST-25) tem cadeia própria, antes da principal:
+     * quem raspa é o Prometheus, que não tem token do Clerk — tem uma credencial
+     * Basic que só serve para isto.
+     *
+     * <p>Sem {@code dentibot.metricas.senha} o endpoint nega todo mundo. Uma
+     * senha padrão no código seria a senha de todas as instâncias que esquecerem
+     * de configurar a variável.
+     */
+    @Bean
+    @Order(1)
+    public SecurityFilterChain metricas(HttpSecurity http,
+                                        @Value("${dentibot.metricas.senha:}") String senha)
+            throws Exception {
+        http.securityMatcher("/actuator/prometheus")
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .formLogin(f -> f.disable())
+                .logout(l -> l.disable());
+        if (senha.isBlank()) {
+            return http.authorizeHttpRequests(a -> a.anyRequest().denyAll())
+                    .httpBasic(b -> b.disable())
+                    .build();
+        }
+        PasswordEncoder codificador = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        // setStatus e não sendError, que é o que o BasicAuthenticationEntryPoint
+        // faz: sendError dispara um error dispatch para /error, que não é desta
+        // cadeia — cai na principal, que exige Bearer e troca o 401 por 403.
+        AuthenticationEntryPoint desafio = (req, res, e) -> {
+            res.setHeader("WWW-Authenticate", "Basic realm=\"metricas\", charset=\"UTF-8\"");
+            res.setStatus(HttpStatus.UNAUTHORIZED.value());
+        };
+        return http.authorizeHttpRequests(a -> a.anyRequest().hasRole("METRICAS"))
+                .httpBasic(b -> b.authenticationEntryPoint(desafio))
+                .exceptionHandling(e -> e.authenticationEntryPoint(desafio))
+                .userDetailsService(new InMemoryUserDetailsManager(User.withUsername("prometheus")
+                        .password(codificador.encode(senha))
+                        .roles("METRICAS")
+                        .build()))
+                .build();
     }
 
     @Bean

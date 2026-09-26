@@ -57,6 +57,14 @@ dentibot:
     partes-autorizadas: ${DENTIBOT_CLERK_ORIGINS:http://localhost:5173}
   cors:
     origens: ${DENTIBOT_CORS_ORIGINS:http://localhost:5173}
+  # Credencial do Prometheus em /actuator/prometheus (usuário "prometheus").
+  # Vazia = endpoint fechado para todos: não existe senha padrão.
+  metricas:
+    senha: ${DENTIBOT_METRICAS_SENHA:}
+  # Vazio = Sentry desligado. O DSN não é segredo forte, mas muda por ambiente.
+  sentry:
+    dsn: ${SENTRY_DSN:}
+    ambiente: ${DENTIBOT_AMBIENTE:local}
   # Camada de DENTRO do rate limit. A camada de borda (Cloudflare) barra volume
   # antes de consumir thread da aplicação — as duas existem e fazem coisas
   # diferentes (camada 12).
@@ -86,15 +94,24 @@ management:
   endpoints:
     web:
       exposure:
-        # Só health. prometheus estava listado sem a dependência do registry
-        # (o endpoint nem existia), e info não tem conteúdo.
-        include: health
+        # prometheus agora com o registry no pom (ST-25) e atrás de credencial
+        # própria — ver CadeiaDeSeguranca.metricas. info não tem conteúdo.
+        include: health,prometheus
   endpoint:
     health:
       # never, e não when-authorized: sem papel configurado, "autorizado" é
       # qualquer usuário autenticado — a recepcionista de qualquer clínica via
       # banco, Redis e disco. Diagnóstico é pelo log, não pela API pública.
       show-details: never
+      # ST-26: /health/liveness pergunta "o processo está vivo?" e não toca em
+      # nada externo — senão um banco lento faz o orquestrador matar instância
+      # sadia. /health/readiness pergunta "pode receber tráfego?" e aí o banco
+      # entra. Redis fica fora das duas: o rate limit falha aberto sem ele.
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
   health:
     redis:
       enabled: true
