@@ -1,7 +1,6 @@
-import { Show, UserButton } from '@clerk/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { NAV_LINKS } from '../content.js';
-import { AGENDA, LOGIN } from '../rotas.js';
+import { LOGIN } from '../rotas.js';
 
 export default function Nav() {
   const [open, setOpen] = useState(false);
@@ -64,27 +63,16 @@ export default function Nav() {
 
         <div className="menu-foot edge">
           <a href={LOGIN} className="btn btn-fill btn-lg">Entrar</a>
-          <Show when="signed-in">
-            <a href={AGENDA} className="btn btn-fill btn-lg">Abrir o sistema</a>
-            <UserButton />
-          </Show>
           <p className="credit">Agenda · Prontuário · Cobrança · Estoque · LGPD</p>
         </div>
       </div>
 
       <nav className="nav edge" aria-label="Navegação principal">
         {NAV_LINKS.map((l) => <a key={l.href} href={l.href} className="btn">{l.label}</a>)}
-        {/* Fora do <Show>: /login é href estático, não precisa do Clerk para
-            existir. <Show> devolve null ENQUANTO o Clerk carrega — e para
-            sempre se ele não carregar (chave ausente no build, script
-            bloqueado, offline). O `fallback` não cobre isso: ele só entra
-            quando a condição é falsa, nunca durante a carga. Era esse o
-            motivo de a landing subir sem botão de entrar. */}
+        {/* /login é href estático: a landing não carrega o Clerk (ver
+            ComClerk.jsx), e quem já tem sessão encontra "Abrir o sistema" no
+            próprio /login. */}
         <a href={LOGIN} className="btn btn-fill">Entrar</a>
-        <Show when="signed-in">
-          <a href={AGENDA} className="btn">Sistema</a>
-          <UserButton />
-        </Show>
       </nav>
     </>
   );

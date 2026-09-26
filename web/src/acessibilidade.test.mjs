@@ -224,3 +224,46 @@ test('a marca de condição do dente se lê a 3:1', () => {
     assert.ok(!/opacity\s*:/.test(decls), `${nome} apaga o dente com opacidade`);
   }
 });
+
+/** Imports estáticos alcançáveis a partir de um arquivo: os locais e os de pacote. */
+function grafoEstatico(inicio) {
+  const arquivos = new Set();
+  const pacotes = new Set();
+  const visitar = (arquivo) => {
+    if (arquivos.has(arquivo)) return;
+    arquivos.add(arquivo);
+    // `import x from '…'` e `import '…'`. Nunca `import('…')`: esse é o que
+    // carrega sob demanda, e fica fora da landing de propósito.
+    for (const m of ler(arquivo).matchAll(/^import\s+(?:[^'"]*?\s+from\s+)?['"]([^'"]+)['"]/gm)) {
+      const alvo = m[1];
+      if (!alvo.startsWith('.')) pacotes.add(alvo);
+      else if (/\.jsx?$/.test(alvo)) {
+        const pasta = arquivo.includes('/') ? arquivo.slice(0, arquivo.lastIndexOf('/') + 1) : '';
+        visitar(new URL(alvo, `file:///r/${pasta}`).pathname.slice('/r/'.length));
+      }
+    }
+  };
+  visitar(inicio);
+  return { arquivos, pacotes };
+}
+
+test('a landing e o 404 não carregam o Clerk', () => {
+  // O ClerkProvider envolvia o site inteiro: quem abria a landing num 3G baixava
+  // clerk-js e @clerk/ui para ler o preço. O Clerk vive sob o ComClerk, que
+  // entra por import(), e este teste segue só o que entra de cara.
+  const { arquivos, pacotes } = grafoEstatico('main.jsx');
+  assert.ok(arquivos.has('App.jsx') && arquivos.has('paginas/NaoEncontrada.jsx'), 'o grafo não chegou à landing');
+  const doClerk = [...pacotes].filter((p) => p.startsWith('@clerk/'));
+  assert.deepEqual(doClerk, []);
+});
+
+test('trocar de tela não desmonta a casca clara', () => {
+  // Cada tela é um chunk. Sem Suspense em volta do Outlet, a espera sobe até o
+  // de fora, que desmonta a casca, e o tema claro pisca para o preto.
+  assert.match(ler('paginas/Layout.jsx'), /<Suspense\b[\s\S]*?>\s*<Outlet\s*\/>\s*<\/Suspense>/);
+});
+
+test('a landing mantém Entrar sem depender de sessão', () => {
+  // No menu e na barra: é o caminho de quem já tem conta, logado ou não.
+  assert.equal((ler('components/Nav.jsx').match(/href=\{LOGIN\}/g) ?? []).length, 2);
+});

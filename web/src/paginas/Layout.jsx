@@ -1,5 +1,5 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
-import { createContext, useContext } from 'react';
+import { createContext, Suspense, useContext } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Esqueleto } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
@@ -128,8 +128,15 @@ function Autenticado() {
         {/* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
             viraria uma tela de erro técnica. Isto responde a mesma negativa em
             português, sem nunca ser a razão pela qual o acesso foi negado. */}
+        {/* A tela é um chunk à parte. O Suspense é daqui, e não o de fora: o de
+            fora desmontaria a casca, e o tema claro piscaria para o preto a
+            cada troca de aba. */}
         {recurso === null || pode(recurso)
-          ? <Outlet />
+          ? (
+            <Suspense fallback={<Estado status="carregando" />}>
+              <Outlet />
+            </Suspense>
+          )
           : <SemAcesso papel={eu.dados.papel} />}
       </main>
     </Permissoes.Provider>
