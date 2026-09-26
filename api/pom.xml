@@ -21,6 +21,8 @@
 		<java.version>25</java.version>
 		<archunit.version>1.5.0</archunit.version>
 		<sentry.version>8.58.0</sentry.version>
+		<jacoco.version>0.8.15</jacoco.version>
+		<cobertura.minima>0.43</cobertura.minima>
 	</properties>
 
 	<dependencies>
@@ -159,6 +161,66 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- ST-44: cobertura medida em todo `verify` — e o CI roda verify.
+			     O piso é o que a suíte cobre hoje, arredondado para baixo: ele só
+			     sobe. Quem baixar a cobertura num PR vê o build quebrar ali, e não
+			     descobre meses depois que metade do módulo novo não tem teste. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>agente</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>relatorio</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>piso</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>${cobertura.minima}</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- ST-45: aviso do javac é bug que ainda não aconteceu (cast não
+			     checado, fallthrough, serialVersionUID). -Werror faz dele erro de
+			     build, no main e no PR. `processing` fica de fora: é o aviso do
+			     configuration-processor sobre anotação sem processador. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<showWarnings>true</showWarnings>
+					<compilerArgs>
+						<arg>-Xlint:all,-processing</arg>
+						<arg>-Werror</arg>
+					</compilerArgs>
+				</configuration>
 			</plugin>
 			<!-- Aplica migrations sem subir a aplicação: usado pelo
 			     infrastructure/init.ps1 e pelo job de deploy, onde migrar e

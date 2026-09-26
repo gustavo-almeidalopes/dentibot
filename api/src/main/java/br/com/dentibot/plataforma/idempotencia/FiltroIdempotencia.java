@@ -87,7 +87,7 @@ public class FiltroIdempotencia extends OncePerRequestFilter {
         if (existente.isPresent()) {
             ArmazemDeIdempotencia.Registro reg = existente.get();
             if (!reg.requestHash().equals(hash)) {
-                responder(res, HttpStatus.UNPROCESSABLE_ENTITY, """
+                responder(res, HttpStatus.UNPROCESSABLE_CONTENT, """
                         {"type":"https://dentibot.com.br/erros/idempotency-key-reutilizada",\
                         "title":"Unprocessable Entity","status":422,\
                         "detail":"Esta Idempotency-Key já foi usada com outro conteúdo."}""");

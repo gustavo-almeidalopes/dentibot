@@ -48,6 +48,16 @@ test('todo script inline do index.html tem o sha256 no script-src', () => {
   }
 });
 
+test('security.txt tem contato e não está para vencer (RFC 9116, ST-36)', () => {
+  const txt = readFileSync(join(WEB, 'public', '.well-known', 'security.txt'), 'utf8');
+  assert.match(txt, /^Contact: https:\/\//m);
+  const expira = new Date(txt.match(/^Expires: (.+)$/m)?.[1]);
+  const trintaDias = 30 * 24 * 3600 * 1000;
+  // Vencido, o arquivo é tratado como abandonado por quem reporta. Renove o
+  // Expires por mais um ano quando este teste avisar.
+  assert.ok(expira - Date.now() > trintaDias, `security.txt vence em ${expira.toISOString()}`);
+});
+
 test('script-src não abre mão do que a CSP existe para impedir', () => {
   assert.doesNotMatch(diretiva('script-src'), /'unsafe-(inline|eval)'/);
   assert.match(csp(), /frame-ancestors 'none'/);

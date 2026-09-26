@@ -1,0 +1,84 @@
+# Imagem da API (ST-48, ST-35, ST-36): o CI verifica; este workflow constrói,
+# varre, publica, assina e atesta. Só no main — PR não publica nada.
+#
+# Tag por SHA, nunca "latest" sozinha: o rollback é apontar o deploy para o SHA
+# anterior, um comando, e a imagem daquele commit continua lá, assinada.
+#
+#   cosign verify ghcr.io/<dono>/dentibot/api:<sha> \
+#     --certificate-identity-regexp 'https://github.com/<dono>/dentibot/' \
+#     --certificate-oidc-issuer https://token.actions.githubusercontent.com
+#
+# Deploy em homologação/produção fica fora até existir onde publicar: o passo
+# certo depende da plataforma (Fly, Render, Kubernetes), e um deploy genérico
+# aqui seria um deploy que não roda.
+name: imagem
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: imagem-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # Assinatura keyless do cosign e atestado de proveniência: a identidade é o
+      # token OIDC deste workflow, não uma chave privada guardada em segredo.
+      id-token: write
+      attestations: write
+    env:
+      IMAGEM: ghcr.io/${{ github.repository }}/api
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Constrói e carrega localmente primeiro: a varredura acontece ANTES de
+      # publicar. Imagem com CVE crítica não chega ao registry.
+      - uses: docker/build-push-action@v7
+        with:
+          context: api
+          load: true
+          tags: ${{ env.IMAGEM }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.IMAGEM }}:${{ github.sha }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
+      - uses: docker/build-push-action@v7
+        id: publicar
+        with:
+          context: api
+          push: true
+          tags: |
+            ${{ env.IMAGEM }}:${{ github.sha }}
+            ${{ env.IMAGEM }}:main
+          cache-from: type=gha
+          # SBOM e proveniência do BuildKit vão junto da imagem no registry.
+          sbom: true
+          provenance: mode=max
+
+      - uses: sigstore/cosign-installer@v4
+      - name: Assinar por digest
+        run: cosign sign --yes "${IMAGEM}@${{ steps.publicar.outputs.digest }}"
+
+      - uses: actions/attest-build-provenance@v4
+        with:
+          subject-name: ${{ env.IMAGEM }}
+          subject-digest: ${{ steps.publicar.outputs.digest }}
+          push-to-registry: true

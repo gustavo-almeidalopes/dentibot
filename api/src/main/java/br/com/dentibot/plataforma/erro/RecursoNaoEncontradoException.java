@@ -10,6 +10,8 @@ package br.com.dentibot.plataforma.erro;
  */
 public class RecursoNaoEncontradoException extends RuntimeException {
 
+    private static final long serialVersionUID = 1L;
+
     public RecursoNaoEncontradoException(String recurso, Object id) {
         super("%s %s não encontrado.".formatted(recurso, id));
     }
