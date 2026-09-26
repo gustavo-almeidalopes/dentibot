@@ -75,6 +75,7 @@ clínicas sem um único teste vermelho.
 | Sentry (API) | Só erro 500, depois do `ScrubberDePii`, com ids de clínica e usuário — nunca nome. | `SENTRY_DSN`, `DENTIBOT_AMBIENTE` |
 | Sentry (web) | O SDK só baixa se houver DSN. O host exato do projeto entra em `connect-src` nos dois `vercel.json`. | `VITE_SENTRY_DSN` |
 | `pg_stat_statements` | Consultas mais caras no total; `auto_explain` grava o plano das que passam de 500 ms. O `init.ps1` cria a extensão. | — |
+| Anexos (ST-41) | Bucket S3-compatível; o arquivo vai do navegador direto a ele, com SHA-256 amarrado na URL assinada. Sem as variáveis, anexo responde 503 e o resto sobe. O bucket precisa de CORS para PUT da origem do web. | `DENTIBOT_S3_ENDPOINT`, `DENTIBOT_S3_REGIAO`, `DENTIBOT_S3_BUCKET`, `DENTIBOT_S3_CHAVE`, `DENTIBOT_S3_SEGREDO` |
 
 ## Publicar o `web/` na Vercel
 
@@ -121,6 +122,9 @@ arquivos:
 - **Clerk de produção** — `clerk.<domínio>` troca `subtle-tick-4973.clerk.accounts.dev`
   em `script-src` e `connect-src`;
 - **API em outro domínio** — a origem entra em `connect-src`.
+- **Bucket de anexos (R2)** — o navegador faz PUT direto nele: a origem do
+  bucket (`https://<conta>.r2.cloudflarestorage.com`) entra em `connect-src`.
+  "Abrir" usa `window.open`, que é navegação, e não depende de `img-src`.
 
 ### Variáveis de ambiente
 

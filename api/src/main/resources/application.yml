@@ -61,6 +61,15 @@ dentibot:
   # Vazia = endpoint fechado para todos: não existe senha padrão.
   metricas:
     senha: ${DENTIBOT_METRICAS_SENHA:}
+  # ST-41: anexos clínicos num bucket S3-compatível — R2 em produção (região
+  # "auto"), MinIO em dev. Sem endpoint ou credencial, anexo responde 503 e o
+  # resto sobe normal. O bucket precisa aceitar CORS de PUT da origem do web.
+  anexos:
+    endpoint: ${DENTIBOT_S3_ENDPOINT:}
+    regiao: ${DENTIBOT_S3_REGIAO:auto}
+    bucket: ${DENTIBOT_S3_BUCKET:dentibot-anexos}
+    chave-acesso: ${DENTIBOT_S3_CHAVE:}
+    segredo: ${DENTIBOT_S3_SEGREDO:}
   # Vazio = Sentry desligado. O DSN não é segredo forte, mas muda por ambiente.
   sentry:
     dsn: ${SENTRY_DSN:}

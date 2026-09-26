@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, baixar } from '../api.js';
+import { enviarAnexo } from '../anexos.js';
 import ResumoPaciente from '../components/ResumoPaciente.jsx';
-import { Aviso } from '../components/primitivos.jsx';
+import { Aviso, Celula, Tabela } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { PACIENTES } from '../rotas.js';
 import { Cabecalho, Estado, usePode } from './Layout.jsx';
@@ -14,6 +15,13 @@ const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
 /* Arcadas em notação FDI (ISO 3950), na ordem em que o dentista as vê. */
 const SUPERIOR = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
 const INFERIOR = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
+
+const ABAS = [['evolucoes', 'Evolução'], ['odontograma', 'Odontograma'], ['anexos', 'Anexos']];
+
+const TIPOS_DE_ANEXO = [
+  ['radiografia', 'Radiografia'], ['foto_intraoral', 'Foto intraoral'],
+  ['documento', 'Documento'], ['laudo', 'Laudo'], ['modelo_3d', 'Modelo 3D'],
+];
 
 const CONDICOES = ['hígido', 'cárie', 'restaurado', 'ausente', 'implante', 'coroa', 'fraturado'];
 const FACES = ['V', 'L', 'M', 'D', 'O', 'I', 'P'];
@@ -53,7 +61,7 @@ export default function Prontuario() {
       <ResumoPaciente idPaciente={idPaciente} />
 
       <div className="abas" role="tablist" aria-label="Seções do prontuário">
-        {[['evolucoes', 'Evolução'], ['odontograma', 'Odontograma']].map(([id, rotulo]) => (
+        {ABAS.map(([id, rotulo]) => (
           <button
             key={id}
             type="button"
@@ -69,7 +77,9 @@ export default function Prontuario() {
             tabIndex={aba === id ? 0 : -1}
             onKeyDown={(e) => {
               if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-              const outra = aba === 'evolucoes' ? 'odontograma' : 'evolucoes';
+              const i = ABAS.findIndex(([a]) => a === aba);
+              const passo = e.key === 'ArrowRight' ? 1 : ABAS.length - 1;
+              const outra = ABAS[(i + passo) % ABAS.length][0];
               setAba(outra);
               document.getElementById(`aba-${outra}`)?.focus();
             }}
@@ -82,9 +92,9 @@ export default function Prontuario() {
       </div>
 
       <div role="tabpanel" id={`painel-${aba}`} aria-labelledby={`aba-${aba}`}>
-        {aba === 'evolucoes'
-          ? <Evolucoes idPaciente={idPaciente} recurso={evolucoes} />
-          : <Odontograma idPaciente={idPaciente} recurso={odontograma} />}
+        {aba === 'evolucoes' && <Evolucoes idPaciente={idPaciente} recurso={evolucoes} />}
+        {aba === 'odontograma' && <Odontograma idPaciente={idPaciente} recurso={odontograma} />}
+        {aba === 'anexos' && <Anexos idPaciente={idPaciente} />}
       </div>
     </>
   );
@@ -332,6 +342,87 @@ function Exportar({ idPaciente }) {
       </button>
       <Aviso texto={estado.sha256 && `Arquivo exportado. SHA-256: ${estado.sha256}`} />
       <Aviso texto={estado.erro} tom="erro" />
+    </>
+  );
+}
+
+/**
+ * Anexos clínicos (ST-41). O arquivo vai do navegador direto ao bucket; a tela
+ * só pede a URL assinada e depois a confirmação. "Abrir" pede uma URL de cinco
+ * minutos a cada clique — e cada clique fica na trilha de auditoria.
+ */
+function Anexos({ idPaciente }) {
+  const anexos = useRecurso(`/pacientes/${idPaciente}/prontuario/anexos`);
+  const [tipo, setTipo] = useState('radiografia');
+  const [arquivo, setArquivo] = useState(null);
+  const { executar, enviando, erro, sucesso } = useAcao(() => {
+    setArquivo(null);
+    anexos.recarregar();
+  });
+  const [erroAbrir, setErroAbrir] = useState(null);
+  const lista = anexos.dados ?? [];
+
+  const abrir = async (idAnexo) => {
+    setErroAbrir(null);
+    try {
+      const { url } = await api.get(`/pacientes/${idPaciente}/prontuario/anexos/${idAnexo}/url`);
+      window.open(url, '_blank', 'noopener');
+    } catch (e) {
+      setErroAbrir(e.message);
+    }
+  };
+
+  return (
+    <>
+      <form className="filtros" onSubmit={(e) => {
+        e.preventDefault();
+        if (arquivo) executar(enviarAnexo(idPaciente, tipo, arquivo), 'Anexo enviado e conferido.');
+      }}>
+        <label className="campo-app">
+          <span className="cap cap-ash">Tipo</span>
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            {TIPOS_DE_ANEXO.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+          </select>
+        </label>
+        <label className="campo-app">
+          <span className="cap cap-ash">Arquivo (até 50 MB)</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.dcm,.stl,.obj"
+                 onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
+        </label>
+        <button type="submit" className="btn btn-sm" disabled={!arquivo || enviando}>
+          {enviando ? 'Enviando…' : 'Anexar'}
+        </button>
+      </form>
+      <Aviso texto={sucesso} />
+      <Aviso texto={erro?.message ?? erroAbrir} tom="erro" />
+
+      <Estado status={anexos.status} erro={anexos.erro} onTentarDeNovo={anexos.recarregar}
+              esqueleto={{ linhas: 3, colunas: 3 }}
+              vazio={lista.length === 0 ? 'Nenhum anexo neste prontuário.' : null}>
+        <Tabela colunas={[
+          { chave: 'quando', rotulo: 'Enviado' },
+          { chave: 'tipo', rotulo: 'Tipo' },
+          { chave: 'nome', rotulo: 'Arquivo' },
+          { chave: 'tamanho', rotulo: 'Tamanho', num: true },
+          { chave: 'acao', rotulo: '' },
+        ]}>
+          {lista.map((a) => (
+            <tr key={a.idAnexo}>
+              <Celula rotulo="Enviado">{DATA_HORA.format(new Date(a.enviadoEm))}</Celula>
+              <Celula rotulo="Tipo">
+                {TIPOS_DE_ANEXO.find(([v]) => v === a.tipo)?.[1] ?? a.tipo}
+              </Celula>
+              <Celula rotulo="Arquivo">{a.nomeArquivo}</Celula>
+              <Celula rotulo="Tamanho" num>{(a.tamanhoBytes / 1024).toFixed(0)} KB</Celula>
+              <Celula rotulo="">
+                <button type="button" className="btn btn-sm" onClick={() => abrir(a.idAnexo)}>
+                  Abrir
+                </button>
+              </Celula>
+            </tr>
+          ))}
+        </Tabela>
+      </Estado>
     </>
   );
 }

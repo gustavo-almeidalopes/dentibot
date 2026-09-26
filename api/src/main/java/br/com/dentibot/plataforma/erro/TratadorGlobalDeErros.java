@@ -47,6 +47,13 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
                 "Seu perfil não permite esta operação.");
     }
 
+    @ExceptionHandler(ServicoIndisponivelException.class)
+    public ProblemDetail indisponivel(ServicoIndisponivelException e) {
+        // A frase diz qual variável falta — é para quem opera, e não cita dado de ninguém.
+        log.warn("Serviço indisponível: {}", e.getMessage());
+        return problema(HttpStatus.SERVICE_UNAVAILABLE, "servico-indisponivel", e.getMessage());
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ProblemDetail naoEncontrado(RecursoNaoEncontradoException e) {
         return problema(HttpStatus.NOT_FOUND, "nao-encontrado", "Recurso não encontrado.");

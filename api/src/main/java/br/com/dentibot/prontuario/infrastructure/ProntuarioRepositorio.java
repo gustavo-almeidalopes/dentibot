@@ -1,6 +1,7 @@
 package br.com.dentibot.prontuario.infrastructure;
 
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
+import br.com.dentibot.prontuario.AnexoResumo;
 import br.com.dentibot.prontuario.EvolucaoResumo;
 import br.com.dentibot.prontuario.LancamentoOdontograma;
 import java.util.Collection;
@@ -113,7 +114,69 @@ public class ProntuarioRepositorio {
                 .single();
     }
 
-    /** O dentista responsável por uma evolução — usado para checar o alcance PROPRIOS. */
+    // ─── Anexos (ST-41) ──────────────────────────────────────────────────────
+
+    public long inserirAnexo(long idPaciente, Long idConsulta, String tipo, String chave,
+                             String nomeArquivo, String contentType, long tamanho,
+                             String sha256, Long enviadoPor) {
+        return jdbc.sql("""
+                        INSERT INTO prontuario.anexos
+                            (id_clinica, id_paciente, id_consulta, tipo, chave_objeto,
+                             nome_arquivo, content_type, tamanho_bytes, hash_sha256, enviado_por)
+                        VALUES (:clinica, :paciente, :consulta, :tipo, :chave,
+                                :nome, :contentType, :tamanho, :hash, :enviadoPor)
+                        RETURNING id_anexo
+                        """)
+                .param("clinica", ContextoAtual.clinicaObrigatoria())
+                .param("paciente", idPaciente)
+                .param("consulta", idConsulta)
+                .param("tipo", tipo)
+                .param("chave", chave)
+                .param("nome", nomeArquivo)
+                .param("contentType", contentType)
+                .param("tamanho", tamanho)
+                .param("hash", sha256)
+                .param("enviadoPor", enviadoPor)
+                .query(Long.class)
+                .single();
+    }
+
+    public List<AnexoResumo> anexos(long idPaciente) {
+        return jdbc.sql("""
+                        SELECT id_anexo, id_consulta, tipo, nome_arquivo, content_type,
+                               tamanho_bytes, hash_sha256, created_at
+                        FROM prontuario.anexos
+                        WHERE id_paciente = :paciente AND deleted_at IS NULL
+                        ORDER BY created_at DESC
+                        """)
+                .param("paciente", idPaciente)
+                .query((rs, n) -> {
+                    long consulta = rs.getLong("id_consulta");
+                    return new AnexoResumo(
+                            rs.getLong("id_anexo"),
+                            rs.wasNull() ? null : consulta,
+                            rs.getString("tipo"),
+                            rs.getString("nome_arquivo"),
+                            rs.getString("content_type"),
+                            rs.getLong("tamanho_bytes"),
+                            rs.getString("hash_sha256"),
+                            rs.getTimestamp("created_at").toInstant());
+                })
+                .list();
+    }
+
+    /** Chave e nome do anexo — só se ele for deste paciente. */
+    public java.util.Optional<String[]> chaveDoAnexo(long idPaciente, long idAnexo) {
+        return jdbc.sql("""
+                        SELECT chave_objeto, nome_arquivo FROM prontuario.anexos
+                        WHERE id_anexo = :anexo AND id_paciente = :paciente AND deleted_at IS NULL
+                        """)
+                .param("anexo", idAnexo)
+                .param("paciente", idPaciente)
+                .query((rs, n) -> new String[] {rs.getString("chave_objeto"), rs.getString("nome_arquivo")})
+                .optional();
+    }
+
     public Set<Long> consultasComEvolucao(Collection<Long> idsConsulta) {
         return new HashSet<>(jdbc.sql("""
                         SELECT DISTINCT id_consulta FROM prontuario.evolucoes
@@ -124,6 +187,7 @@ public class ProntuarioRepositorio {
                 .list());
     }
 
+    /** O dentista responsável por uma evolução — usado para checar o alcance PROPRIOS. */
     public java.util.Optional<Long> dentistaDaEvolucao(long idEvolucao) {
         return jdbc.sql("SELECT id_dentista FROM prontuario.evolucoes WHERE id_evolucao = :id")
                 .param("id", idEvolucao)

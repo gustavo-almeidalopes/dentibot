@@ -33,4 +33,15 @@ public interface ProntuarioApi {
      * conteúdo clínico sai daqui —, para achar atendimento sem registro (IA-05).
      */
     Set<Long> consultasComEvolucao(Collection<Long> idsConsulta);
+
+    /** ST-41, passo 1: URL pré-assinada para o navegador enviar direto ao bucket. */
+    EnvioDeAnexo iniciarAnexo(long idPaciente, NovoAnexo novo);
+
+    /** ST-41, passo 2: confere tamanho e hash no bucket e só então registra. */
+    long confirmarAnexo(long idPaciente, String chave, NovoAnexo novo);
+
+    List<AnexoResumo> anexos(long idPaciente);
+
+    /** URL de leitura de cinco minutos. Cada pedido deixa rastro na auditoria. */
+    String urlDoAnexo(long idPaciente, long idAnexo);
 }

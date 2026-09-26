@@ -82,6 +82,16 @@ docker exec dentibot-postgres psql -U postgres -d dentibot -qtA `
 if ($LASTEXITCODE -ne 0) { Falha 'pg_stat_statements não pôde ser criada'; exit 1 }
 Ok 'pg_stat_statements (consultas mais caras: SELECT * FROM pg_stat_statements)'
 
+Etapa 'Bucket de anexos no MinIO'
+# O mc já vem na imagem, mas o alias "local" dela é anônimo (serve ao healthcheck,
+# não cria bucket): as credenciais do compose vão por MC_HOST_dev, sem gravar
+# alias no contêiner. O MinIO responde CORS para qualquer origem por padrão, que
+# é o que o PUT do navegador em dev precisa; no R2 o CORS é do bucket.
+docker exec -e MC_HOST_dev=http://dentibot_local:dentibot_local_apenas@127.0.0.1:9000 `
+    dentibot-minio mc mb --ignore-existing dev/dentibot-anexos | Out-Null
+if ($LASTEXITCODE -ne 0) { Falha 'não foi possível criar o bucket dentibot-anexos'; exit 1 }
+Ok 'bucket dentibot-anexos'
+
 Etapa 'Aplicando migrations (Flyway, como dentibot_migrador)'
 
 # JAVA_HOME costuma estar definido na máquina mas ausente NESTE processo, quando

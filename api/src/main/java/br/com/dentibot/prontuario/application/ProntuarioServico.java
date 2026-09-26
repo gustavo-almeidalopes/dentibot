@@ -14,16 +14,24 @@ import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao.AcessoNegadoException;
 import br.com.dentibot.plataforma.seguranca.Recurso;
 import br.com.dentibot.prontuario.AlertasClinicos;
+import br.com.dentibot.prontuario.AnexoResumo;
+import br.com.dentibot.prontuario.EnvioDeAnexo;
 import br.com.dentibot.prontuario.EvolucaoResumo;
 import br.com.dentibot.prontuario.LancamentoOdontograma;
 import br.com.dentibot.prontuario.NovaEvolucao;
+import br.com.dentibot.prontuario.NovoAnexo;
 import br.com.dentibot.prontuario.NovoLancamentoOdontograma;
 import br.com.dentibot.prontuario.ProntuarioApi;
+import br.com.dentibot.prontuario.infrastructure.ArmazemDeAnexos;
 import br.com.dentibot.prontuario.infrastructure.ProntuarioRepositorio;
+import java.time.Duration;
+import java.util.Base64;
 import java.util.Collection;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -37,11 +45,13 @@ public class ProntuarioServico implements ProntuarioApi {
     private final PacientesApi pacientes;
     private final AvaliadorDePermissao permissao;
     private final Outbox outbox;
+    private final ArmazemDeAnexos armazem;
 
     public ProntuarioServico(ProntuarioRepositorio prontuario, AuditoriaApi auditoria,
                              IdentidadeApi identidade, AgendaApi agenda,
                              PacientesApi pacientes, AvaliadorDePermissao permissao,
-                             Outbox outbox) {
+                             Outbox outbox, ArmazemDeAnexos armazem) {
+        this.armazem = armazem;
         this.prontuario = prontuario;
         this.auditoria = auditoria;
         this.identidade = identidade;
@@ -157,7 +167,92 @@ public class ProntuarioServico implements ProntuarioApi {
         return id;
     }
 
-    // ─── autorização ─────────────────────────────────────────────────────────
+    // ─── anexos (ST-41) ──────────────────────────────────────────────────────
+
+    /** O que um anexo clínico pode ser. Executável e HTML ficam de fora: seriam servidos pelo bucket. */
+    private static final Set<String> TIPOS_DE_ARQUIVO = Set.of(
+            "image/jpeg", "image/png", "image/webp", "application/pdf",
+            "application/dicom", "model/stl", "model/obj", "application/sla");
+
+    private static final Duration VALIDADE_ENVIO = Duration.ofMinutes(10);
+    private static final Duration VALIDADE_LEITURA = Duration.ofMinutes(5);
+
+    @Override
+    @Transactional(readOnly = true)
+    public EnvioDeAnexo iniciarAnexo(long idPaciente, NovoAnexo novo) {
+        exigirAcessoAoPaciente(idPaciente, Acao.CRIAR);
+        exigirTipoDeArquivo(novo.contentType());
+        String chave = prefixoDoPaciente(idPaciente) + UUID.randomUUID();
+        ArmazemDeAnexos.EnvioPreAssinado envio = armazem.urlDeEnvio(chave, novo.contentType(),
+                novo.tamanhoBytes(), base64(novo.sha256()), VALIDADE_ENVIO);
+        return new EnvioDeAnexo(chave, envio.url(), envio.cabecalhos(), envio.expiraEm());
+    }
+
+    /**
+     * Só registra o que está no bucket e é o que foi declarado. A chave precisa
+     * começar pelo prefixo deste paciente nesta clínica: sem isso, alguém com
+     * acesso a um paciente registraria no prontuário dele o arquivo de outro.
+     */
+    @Override
+    @Transactional
+    public long confirmarAnexo(long idPaciente, String chave, NovoAnexo novo) {
+        exigirAcessoAoPaciente(idPaciente, Acao.CRIAR);
+        exigirTipoDeArquivo(novo.contentType());
+        if (chave == null || !chave.startsWith(prefixoDoPaciente(idPaciente))) {
+            throw new IllegalArgumentException("A chave não pertence a este paciente.");
+        }
+        ArmazemDeAnexos.Objeto objeto = armazem.cabeca(chave)
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "O arquivo não chegou ao armazenamento. Envie de novo."));
+        if (objeto.tamanho() != novo.tamanhoBytes() || !base64(novo.sha256()).equals(objeto.sha256Base64())) {
+            throw new IllegalArgumentException(
+                    "O arquivo armazenado não é o declarado (tamanho ou SHA-256 diferente).");
+        }
+        long id = prontuario.inserirAnexo(idPaciente, novo.idConsulta(), novo.tipo(), chave,
+                novo.nomeArquivo(), novo.contentType(), novo.tamanhoBytes(), novo.sha256(),
+                ContextoAtual.obter().usuarioId());
+        auditoria.registrarCriacao("prontuario.anexo", String.valueOf(id),
+                Map.of("paciente_id", idPaciente, "tipo", novo.tipo(),
+                        "tamanho_bytes", novo.tamanhoBytes(), "sha256", novo.sha256()));
+        return id;
+    }
+
+    @Override
+    @Transactional
+    public List<AnexoResumo> anexos(long idPaciente) {
+        exigirAcessoAoPaciente(idPaciente, Acao.LER);
+        List<AnexoResumo> anexos = prontuario.anexos(idPaciente);
+        auditoria.registrarLeitura("prontuario.anexo", String.valueOf(idPaciente));
+        return anexos;
+    }
+
+    @Override
+    @Transactional
+    public String urlDoAnexo(long idPaciente, long idAnexo) {
+        exigirAcessoAoPaciente(idPaciente, Acao.LER);
+        String[] chaveENome = prontuario.chaveDoAnexo(idPaciente, idAnexo)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("anexo", idAnexo));
+        // Uma linha por abertura, com o id do anexo: "quem viu a radiografia".
+        auditoria.registrarLeitura("prontuario.anexo", idPaciente + ":" + idAnexo);
+        return armazem.urlDeLeitura(chaveENome[0], chaveENome[1], VALIDADE_LEITURA);
+    }
+
+    private static String prefixoDoPaciente(long idPaciente) {
+        return "clinica/" + ContextoAtual.clinicaObrigatoria() + "/paciente/" + idPaciente + "/";
+    }
+
+    private static void exigirTipoDeArquivo(String contentType) {
+        if (!TIPOS_DE_ARQUIVO.contains(contentType)) {
+            throw new IllegalArgumentException("Tipo de arquivo não aceito como anexo clínico.");
+        }
+    }
+
+    /** O S3 compara o SHA-256 em base64; o cliente e a trilha usam hex. */
+    private static String base64(String sha256Hex) {
+        return Base64.getEncoder().encodeToString(HexFormat.of().parseHex(sha256Hex));
+    }
+
+    // ─── consultas de apoio ao copiloto ──────────────────────────────────────
 
     @Override
     @Transactional
@@ -178,6 +273,8 @@ public class ProntuarioServico implements ProntuarioApi {
         permissao.exigir(Recurso.PRONTUARIO, Acao.LER);
         return idsConsulta.isEmpty() ? Set.of() : prontuario.consultasComEvolucao(idsConsulta);
     }
+
+    // ─── autorização ─────────────────────────────────────────────────────────
 
     /**
      * Traduz {@code Alcance.PROPRIOS} para prontuário: "os SEUS pacientes" é

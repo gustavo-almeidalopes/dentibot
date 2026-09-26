@@ -12,6 +12,11 @@ rem de propósito. Variável já definida no ambiente ganha.
 if not defined DENTIBOT_DB_URL set "DENTIBOT_DB_URL=jdbc:postgresql://localhost:5433/dentibot"
 if not defined DENTIBOT_DB_PASSWORD set "DENTIBOT_DB_PASSWORD=app_local_apenas"
 if not defined DENTIBOT_DB_MIGRADOR_PASSWORD set "DENTIBOT_DB_MIGRADOR_PASSWORD=migrador_local_apenas"
+rem Anexos no MinIO do compose (o init.ps1 cria o bucket).
+if not defined DENTIBOT_S3_ENDPOINT set "DENTIBOT_S3_ENDPOINT=http://localhost:9000"
+if not defined DENTIBOT_S3_REGIAO set "DENTIBOT_S3_REGIAO=us-east-1"
+if not defined DENTIBOT_S3_CHAVE set "DENTIBOT_S3_CHAVE=dentibot_local"
+if not defined DENTIBOT_S3_SEGREDO set "DENTIBOT_S3_SEGREDO=dentibot_local_apenas"
 
 rem O issuer tem de ser o par da publishable key do web, senão é 401 em tudo sem
 rem pista de qual das duas está errada. O host está dentro da própria chave: o
