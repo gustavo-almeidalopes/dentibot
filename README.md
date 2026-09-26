@@ -38,6 +38,18 @@ cd app      && npm install && npm start   # depois 'a' (Android) ou 'i' (iOS)
 O Postgres local escuta na **5433**, não na 5432: é comum já haver um
 PostgreSQL nativo na máquina, e o certo é o projeto se desviar.
 
+No Windows, o mesmo está em `.bat` na raiz, para abrir com dois cliques:
+
+| Arquivo | Faz |
+| --- | --- |
+| `iniciar.bat` | `init.ps1` e, se ele passar, API e web cada um na sua janela. `-Recriar` é repassado. |
+| `api.bat` | A API com as variáveis locais já definidas. O issuer do Clerk sai da chave em `web/.env.local` — nada para colar. |
+| `web.bat`, `app.bat` | `npm ci` na primeira vez, depois o servidor de dev. |
+| `testar.bat` | O "Verificar" abaixo, parando na primeira falha. |
+| `parar.bat` | Derruba a infraestrutura; os volumes ficam. |
+
+Variável já definida no ambiente ganha da local.
+
 ## Verificar
 
 ```bash
