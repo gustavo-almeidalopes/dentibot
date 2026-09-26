@@ -40,7 +40,7 @@ updates:
           - '@clerk/*'
 
   - package-ecosystem: maven
-    directory: /api-java
+    directory: /api
     schedule:
       interval: weekly
     open-pull-requests-limit: 5

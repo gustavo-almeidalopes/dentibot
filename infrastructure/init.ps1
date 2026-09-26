@@ -95,7 +95,7 @@ if (-not $env:JAVA_HOME) {
 }
 Ok "JDK em $env:JAVA_HOME"
 
-Push-Location (Join-Path $raiz 'api-java')
+Push-Location (Join-Path $raiz 'api')
 try {
     $env:DENTIBOT_DB_URL = 'jdbc:postgresql://localhost:5433/dentibot'
     $env:DENTIBOT_DB_MIGRADOR_USER = 'dentibot_migrador'
@@ -162,7 +162,7 @@ Write-Host '  $env:DENTIBOT_CLERK_ISSUER = "https://SUA-INSTANCIA.clerk.accounts
 # base64 de "<host>$".
 Write-Host "  (o host é o base64 dentro da VITE_CLERK_PUBLISHABLE_KEY)" -ForegroundColor DarkGray
 
-Write-Host "`n  API:      cd api-java; ./mvnw spring-boot:run"
-Write-Host "  Landing:  cd web; npm run dev"
-Write-Host "  SPA:      cd app; npm run dev"
+Write-Host "`n  API:      cd api; ./mvnw spring-boot:run     (ou api.bat, sem colar nada)"
+Write-Host "  Web:      cd web; npm run dev"
+Write-Host "  App:      cd app; npm start"
 Write-Host "  MinIO:    http://localhost:9001  (dentibot_local / dentibot_local_apenas)"

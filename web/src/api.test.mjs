@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { EXIGEM_IDEMPOTENCIA } from './api.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
-const FILTRO = join(AQUI, '..', '..', 'api-java', 'src', 'main', 'java', 'br', 'com',
+const FILTRO = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com',
   'dentibot', 'plataforma', 'idempotencia', 'FiltroIdempotencia.java');
 
 test('a lista de rotas idempotentes do front é a do FiltroIdempotencia', () => {

@@ -14,7 +14,7 @@
 * text=auto
 
 # Scripts POSIX: LF sempre, inclusive no Windows. É o executável, não o fonte.
-api-java/mvnw    text eol=lf
+api/mvnw         text eol=lf
 *.sh             text eol=lf
 
 # Scripts do Windows: CRLF sempre. cmd.exe e o PowerShell 5.1 são sensíveis.

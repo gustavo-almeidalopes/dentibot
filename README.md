@@ -6,7 +6,7 @@ um tenant, e o isolamento é imposto pelo Postgres, não pelo código da aplica�
 ```text
 web/            landing page + telas web — React 19 (Vite)
 app/            app Android e iOS — um projeto Expo / React Native
-api-java/       API — Spring Boot 3, Java 25, PostgreSQL, Redis
+api/            API — Spring Boot 4, Java 25, PostgreSQL, Redis
 infrastructure/ compose local (Postgres, Redis, MinIO) e provisionamento
 docs/           decisões de arquitetura
 ```
@@ -30,7 +30,7 @@ saudável por fora. `-Recriar` apaga os volumes e começa do zero.
 Depois, cada peça:
 
 ```bash
-cd api-java && ./mvnw spring-boot:run     # http://localhost:8080
+cd api      && ./mvnw spring-boot:run     # http://localhost:8080
 cd web      && npm install && npm run dev # http://localhost:5173
 cd app      && npm install && npm start   # depois 'a' (Android) ou 'i' (iOS)
 ```
@@ -53,12 +53,12 @@ Variável já definida no ambiente ganha da local.
 ## Verificar
 
 ```bash
-cd api-java && ./mvnw test    # inclui os testes de isolamento e de schema
+cd api && ./mvnw test         # inclui os testes de isolamento e de schema
 cd app && npm run typecheck && npm test
 cd web && npm run build
 ```
 
-Os testes de `api-java` que mais importam não testam regra de negócio: eles
+Os testes de `api` que mais importam não testam regra de negócio: eles
 consultam o catálogo do Postgres para provar que toda tabela com `id_clinica`
 tem RLS com `FORCE`, que partição tem política própria, que staff da plataforma
 não alcança dado clínico e que a aplicação não é dona das tabelas. A V1 deste
@@ -132,7 +132,7 @@ Pontos fixos do desenho:
 
 ## Estado
 
-`api-java/` é a parte viva: agenda, pacientes, prontuário, identidade,
+`api/` é a parte viva: agenda, pacientes, prontuário, identidade,
 onboarding, auditoria, outbox, idempotência e rate limit, sobre 17 migrations.
 
 `app/` cobre login, agenda do dia com as transições de consulta, lista de

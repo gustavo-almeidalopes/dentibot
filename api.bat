@@ -5,9 +5,7 @@ title DENTIBOT - API
 color 0F
 cd /d "%~dp0"
 
-rem Antes e depois do rename api-java\ -> api\.
 set "API=api"
-if not exist "api\pom.xml" set "API=api-java"
 
 rem Os mesmos valores do infrastructure\init.ps1 e do compose: locais, em claro
 rem de propósito. Variável já definida no ambiente ganha.

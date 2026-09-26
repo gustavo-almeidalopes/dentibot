@@ -6,7 +6,6 @@ color 0F
 cd /d "%~dp0"
 
 set "API=api"
-if not exist "api\pom.xml" set "API=api-java"
 
 rem O mesmo "Verificar" do README, parando na primeira falha.
 echo === API  %API%  (Testcontainers: precisa do Docker) ===

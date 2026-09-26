@@ -17,7 +17,7 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
-const JAVA = join(AQUI, '..', '..', 'api-java', 'src', 'main', 'java', 'br', 'com', 'dentibot');
+const JAVA = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com', 'dentibot');
 
 const ler = (...p) => readFileSync(join(...p), 'utf8');
 const citadas = (texto) => [...texto.matchAll(/"([a-z_/0-9.]+)"/g)].map((m) => m[1]);

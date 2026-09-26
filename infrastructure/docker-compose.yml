@@ -5,7 +5,7 @@
 # a API em dev troca segundos de rebuild por minutos de imagem.
 #
 #   docker compose -f infrastructure/docker-compose.yml up -d
-#   cd api-java && ./mvnw spring-boot:run
+#   cd api && ./mvnw spring-boot:run
 #
 # As senhas abaixo são LOCAIS e estão em claro de propósito: é preciso que fique
 # óbvio, para o gitleaks e para quem lê, que não são segredo de produção. Em
