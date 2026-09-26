@@ -96,6 +96,21 @@ Rota nova em `web/src/main.jsx` pede rewrite novo nos dois arquivos. O
 catch-all `/(.*)` ficou de fora de propósito: com ele, URL inexistente
 devolveria a landing com 200 em vez de um 404 de verdade.
 
+### Cabeçalhos de segurança
+
+Os dois arquivos declaram os mesmos `headers` (ST-32): CSP, HSTS,
+`nosniff`, `X-Frame-Options`, `Referrer-Policy` e `Permissions-Policy`. O
+`web/src/borda.test.mjs` reprova se os dois divergirem ou se o script inline do
+`index.html` mudar sem o `sha256` correspondente na CSP.
+
+CSP errada não dá erro na tela: fonte bloqueada vira Helvetica e o Clerk perde
+o estilo, e a página continua "funcionando". Toda origem nova entra nos **dois**
+arquivos:
+
+- **Clerk de produção** — `clerk.<domínio>` troca `subtle-tick-4973.clerk.accounts.dev`
+  em `script-src` e `connect-src`;
+- **API em outro domínio** — a origem entra em `connect-src`.
+
 ### Variáveis de ambiente
 
 Em **Settings > Environment Variables** do projeto:
