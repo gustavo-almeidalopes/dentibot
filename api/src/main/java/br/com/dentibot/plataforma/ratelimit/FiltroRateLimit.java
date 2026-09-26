@@ -82,11 +82,11 @@ public class FiltroRateLimit extends OncePerRequestFilter {
     }
 
     /**
-     * Atrás do Cloudflare, {@code getRemoteAddr()} devolveria o IP do proxy. O
-     * {@code forward-headers-strategy: framework} do application.yml faz o Spring
-     * tratar X-Forwarded-For, e só então getRemoteAddr é o IP do cliente. Ler o
-     * cabeçalho na mão aqui seria confiar em algo que qualquer cliente forja
-     * quando a requisição NÃO vem do proxy.
+     * Atrás de proxy, {@code getRemoteAddr()} devolveria o IP do proxy. O
+     * {@code forward-headers-strategy: native} do application.yml faz o Tomcat
+     * trocá-lo pelo X-Forwarded-For — mas só quando a conexão vem de um proxy
+     * confiável. Ler o cabeçalho na mão aqui seria confiar em algo que qualquer
+     * cliente forja quando a requisição NÃO vem do proxy.
      */
     private String ipDe(HttpServletRequest req) {
         return req.getRemoteAddr();

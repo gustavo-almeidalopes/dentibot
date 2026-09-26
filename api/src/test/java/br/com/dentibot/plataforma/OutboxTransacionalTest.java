@@ -65,7 +65,7 @@ class OutboxTransacionalTest extends TesteIntegracao {
                 String.format("%014d", n), "Clinica Outbox LTDA", "Clinica Outbox",
                 ZoneId.of("America/Sao_Paulo"), Plano.SOLO,
                 "Admin", "admin.outbox" + n + "@teste.local",
-                "senha-de-teste-muito-longa")).idClinica();
+                "user_teste_" + n)).idClinica();
 
         comoAdmin();
         idPaciente = pacientes.criar(NovoPaciente.basico("Paciente Outbox", "11999990000"));

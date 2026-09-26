@@ -10,6 +10,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -54,9 +55,11 @@ public class CadeiaDeSeguranca {
                         // mais JWKS: o emissor é o Clerk.
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                        // Webhook de PSP não tem token: a autenticidade vem da
-                        // assinatura HMAC do provedor, verificada ANTES do parse.
-                        .requestMatchers("/api/v1/webhooks/**").permitAll()
+                        // Sem regra para /api/v1/webhooks/** enquanto não existir
+                        // webhook: liberada de antemão, o primeiro controller
+                        // criado ali nasceria público. Quem implementar libera a
+                        // rota junto com a verificação da assinatura HMAC, antes
+                        // do parse.
                         // Deny by default: o que não foi liberado acima exige
                         // autenticação, inclusive rota que ainda não existe.
                         .anyRequest().authenticated())
@@ -67,6 +70,11 @@ public class CadeiaDeSeguranca {
                 .headers(h -> h
                         .frameOptions(f -> f.deny())
                         .contentTypeOptions(c -> {})
+                        // A API só devolve JSON: nenhum recurso a carregar, nenhuma
+                        // página que possa ser embutida, nenhum referer a vazar.
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'none'; frame-ancestors 'none'"))
+                        .referrerPolicy(r -> r.policy(ReferrerPolicy.NO_REFERRER))
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .includeSubDomains(true)
                                 .maxAgeInSeconds(31_536_000)))

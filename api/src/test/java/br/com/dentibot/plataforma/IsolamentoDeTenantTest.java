@@ -108,10 +108,15 @@ class IsolamentoDeTenantTest extends TesteIntegracao {
     void semTenantNaoEnxergaNada() {
         // Prova de que existem linhas para serem vistas, se o tenant permitisse.
         comoAdminDe(clinicaA);
-        assertThat(pacientes.listarResumos(100, 0)).isNotEmpty();
+        Integer comTenant = transacao.execute(s -> pacienteRepositorio.contar());
+        assertThat(comTenant).isPositive();
 
+        // Direto no repositório: pelo serviço, o anônimo já é barrado pela
+        // matriz antes da consulta. O que se prova aqui é a camada de baixo —
+        // se a de cima falhar, o banco ainda não entrega nada.
         ContextoAtual.definir(ContextoRequisicao.anonimo(UUID.randomUUID()));
-        assertThat(pacientes.listarResumos(100, 0)).isEmpty();
+        Integer semTenant = transacao.execute(s -> pacienteRepositorio.contar());
+        assertThat(semTenant).isZero();
     }
 
     @Test
@@ -131,7 +136,11 @@ class IsolamentoDeTenantTest extends TesteIntegracao {
         // NEGAÇÃO: mesma transação, mesmo tenant ativo, id_clinica da outra.
         assertThatThrownBy(() -> transacao.executeWithoutResult(s ->
                 inserirPessoaEm(clinicaB, "Invasor")))
-                .hasStackTraceContaining("row-level security");
+                .hasStackTraceContaining("row-level security")
+                // BadSqlGrammarException, e não DataIntegrityViolationException:
+                // o Spring classifica o SQLState 42501 pela classe "42". O
+                // TratadorGlobalDeErros depende disto para responder 404.
+                .isInstanceOf(org.springframework.jdbc.BadSqlGrammarException.class);
     }
 
     @Test
@@ -172,7 +181,7 @@ class IsolamentoDeTenantTest extends TesteIntegracao {
                 Plano.SOLO,
                 "Admin " + nome,
                 "admin" + n + "@teste.local",
-                "senha-de-teste-muito-longa"));
+                "user_teste_" + n));
     }
 
     private void comoAdminDe(long clinica) {

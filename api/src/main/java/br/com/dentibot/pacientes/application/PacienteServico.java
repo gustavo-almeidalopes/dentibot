@@ -8,6 +8,9 @@ import br.com.dentibot.pacientes.PacienteResumo;
 import br.com.dentibot.pacientes.PacientesApi;
 import br.com.dentibot.pacientes.infrastructure.PacienteRepositorio;
 import br.com.dentibot.pacientes.infrastructure.PacienteRepositorio.LinhaPaciente;
+import br.com.dentibot.plataforma.seguranca.Acao;
+import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
+import br.com.dentibot.plataforma.seguranca.Recurso;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -21,15 +24,19 @@ public class PacienteServico implements PacientesApi {
 
     private final PacienteRepositorio pacientes;
     private final IdentidadeApi identidade;
+    private final AvaliadorDePermissao permissoes;
 
-    public PacienteServico(PacienteRepositorio pacientes, IdentidadeApi identidade) {
+    public PacienteServico(PacienteRepositorio pacientes, IdentidadeApi identidade,
+                           AvaliadorDePermissao permissoes) {
         this.pacientes = pacientes;
         this.identidade = identidade;
+        this.permissoes = permissoes;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<PacienteResumo> listarResumos(int limite, long apos) {
+        permissoes.exigir(Recurso.PACIENTE, Acao.LER);
         List<LinhaPaciente> linhas = pacientes.listar(limite, apos);
         return montar(linhas);
     }
@@ -73,6 +80,9 @@ public class PacienteServico implements PacientesApi {
     @Override
     @Transactional
     public long criar(NovoPaciente novo) {
+        // Financeiro e auxiliar leem paciente e não cadastram: sem esta linha a
+        // matriz dizia uma coisa e o POST fazia outra.
+        permissoes.exigir(Recurso.PACIENTE, Acao.CRIAR);
         long idPessoa = identidade.criarPessoa(new DadosPessoais(
                 novo.nomeCompleto(), novo.cpf(), novo.rg(), novo.dataNascimento(),
                 novo.telefoneCelular(), novo.email(), novo.profissao(), novo.responsavelLegal(),

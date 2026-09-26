@@ -6,7 +6,6 @@ import br.com.dentibot.clinicas.application.OnboardingServico.NovaClinica;
 import br.com.dentibot.clinicas.domain.Plano;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -50,8 +49,12 @@ public class OnboardingController {
             @NotBlank @Size(max = 60) String nomeFantasia,
             String timezone,
             String plano,
-            @NotBlank @Size(max = 150) String nomeAdmin,
-            @NotBlank @Email @Size(max = 254) String emailAdmin) {
+            @NotBlank @Size(max = 150) String nomeAdmin) {
+        // Sem emailAdmin: o e-mail do admin é o que o Clerk verificou, lido do
+        // token. Vindo do corpo, qualquer conta ocupava o endereço de outra
+        // pessoa — identidade.usuarios.email é UNIQUE global, e a dona de
+        // verdade tomava 409 ao se cadastrar ou ser convidada. Cliente que
+        // ainda manda o campo não quebra: propriedade desconhecida é ignorada.
     }
 
     /**
@@ -67,6 +70,13 @@ public class OnboardingController {
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Long> cadastrar(@Valid @RequestBody PedidoCadastro pedido) {
         String subDoClerk = ContextoAtual.sujeitoExternoObrigatorio();
+        String email = ContextoAtual.obter().emailVerificado();
+        if (email == null) {
+            // Os claims email e email_verified vêm da customização do token de
+            // sessão no Clerk; ver dentibot.clerk no application.yml.
+            throw new IllegalArgumentException(
+                    "Confirme o e-mail da sua conta antes de cadastrar a clínica.");
+        }
 
         ClinicaCriada criada = onboarding.provisionar(new NovaClinica(
                 pedido.cnpj(),
@@ -75,7 +85,7 @@ public class OnboardingController {
                 ZoneId.of(pedido.timezone() == null ? "America/Sao_Paulo" : pedido.timezone()),
                 Plano.de(pedido.plano() == null ? "solo" : pedido.plano()),
                 pedido.nomeAdmin(),
-                pedido.emailAdmin(),
+                email,
                 subDoClerk));
 
         return Map.of("idClinica", criada.idClinica(),

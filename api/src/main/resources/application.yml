@@ -40,14 +40,20 @@ spring:
       enabled: true
 
 dentibot:
+  # O token de sessão do Clerk precisa trazer o e-mail verificado. Sem isso o
+  # cadastro de clínica responde 400 e o membro admitido pela equipe nunca é
+  # vinculado no primeiro login. No painel (Sessions > Customize session token),
+  # ou por `clerk config patch`, em session.claims:
+  #   { "email": "{{user.primary_email_address}}",
+  #     "email_verified": "{{user.email_verified}}" }
   clerk:
     # A Frontend API da instância, exatamente como vem no claim `iss` do token.
     # É daqui que sai a URL do JWKS; sem ela nenhuma rota autenticada funciona.
     # Não é segredo (é público e vai no bundle do front), mas continua vindo de
     # variável porque muda entre ambientes.
     emissor: ${DENTIBOT_CLERK_ISSUER:}
-    # Origens que o claim `azp` pode conter. Lista vazia desliga a checagem —
-    # só faz sentido em teste, onde não há browser do outro lado.
+    # Origens que o claim `azp` pode conter. Obrigatória: vazia, a aplicação não
+    # sobe, em vez de aceitar token emitido para qualquer site.
     partes-autorizadas: ${DENTIBOT_CLERK_ORIGINS:http://localhost:5173}
   cors:
     origens: ${DENTIBOT_CORS_ORIGINS:http://localhost:5173}
@@ -66,17 +72,29 @@ server:
   error:
     include-message: never
     include-stacktrace: never
-  forward-headers-strategy: framework
+  # native, e não framework: o ForwardedHeaderFilter do modo framework aceita
+  # X-Forwarded-For de QUALQUER origem. Quem chamasse a origem direto escolheria
+  # o próprio IP, e com ele o balde do rate limit de /auth e o ipOrigem da
+  # auditoria. No native, o Tomcat só lê o cabeçalho quando a conexão vem de um
+  # proxy conhecido: faixas privadas e loopback por padrão, que cobrem o
+  # balanceador de uma plataforma. Com Cloudflare direto na origem, liste as
+  # faixas dele em SERVER_TOMCAT_REMOTEIP_TRUSTED_PROXIES (regex) — e feche a
+  # origem para quem não é Cloudflare, senão o IP da borda vira o do atacante.
+  forward-headers-strategy: native
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus
+        # Só health. prometheus estava listado sem a dependência do registry
+        # (o endpoint nem existia), e info não tem conteúdo.
+        include: health
   endpoint:
     health:
-      # Detalhe de health revela topologia interna para quem não precisa.
-      show-details: when-authorized
+      # never, e não when-authorized: sem papel configurado, "autorizado" é
+      # qualquer usuário autenticado — a recepcionista de qualquer clínica via
+      # banco, Redis e disco. Diagnóstico é pelo log, não pela API pública.
+      show-details: never
   health:
     redis:
       enabled: true
@@ -88,4 +106,7 @@ logging:
   pattern:
     # correlacaoId no padrão de log é o que permite responder "sumiu a agenda de
     # ontem" com log em vez de chute.
-    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlacaoId:-}] %logger{36} - %msg%n"
+    # %wEx explícito: é a palavra que o logback-spring.xml troca pelo conversor
+    # que tira CPF e e-mail da exceção. Sem ela no padrão, o Logback anexa o
+    # próprio conversor de exceção, sem limpeza.
+    console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlacaoId:-}] %logger{36} - %msg%n%wEx"

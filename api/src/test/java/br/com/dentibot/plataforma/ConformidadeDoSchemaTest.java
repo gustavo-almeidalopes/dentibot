@@ -75,6 +75,31 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
 
     @Test
     @Transactional(readOnly = true)
+    @DisplayName("toda view roda com os privilégios de quem consulta (security_invoker)")
+    void viewsRespeitamORlsDeQuemConsulta() {
+        List<String> semInvoker = jdbc.sql("""
+                        SELECT n.nspname || '.' || c.relname
+                        FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                        WHERE c.relkind = 'v' AND n.nspname IN (%s)
+                          AND COALESCE(array_to_string(c.reloptions, ','), '')
+                              !~ 'security_invoker=(true|on|1)'
+                        ORDER BY 1
+                        """.formatted(SCHEMAS_DE_DOMINIO))
+                .query(String.class)
+                .list();
+
+        assertThat(semInvoker)
+                .as("""
+                    View sem security_invoker roda como o DONO dela, o migrador. As \
+                    políticas só nomeiam dentibot_app e as tabelas têm FORCE ROW LEVEL \
+                    SECURITY, então o dono enxerga zero linhas: a view devolve vazio para \
+                    todo mundo, sem erro. Foi assim que vw_saldo_recebivel escondeu todo \
+                    recebível — e registrar recebimento respondia 404.""")
+                .isEmpty();
+    }
+
+    @Test
+    @Transactional(readOnly = true)
     @DisplayName("partição de tabela particionada tem política própria — RLS do pai não desce")
     void particoesTambemTemPolitica() {
         List<String> semPolitica = jdbc.sql("""

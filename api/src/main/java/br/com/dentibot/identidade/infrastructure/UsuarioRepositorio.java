@@ -179,6 +179,24 @@ public class UsuarioRepositorio {
                 .update();
     }
 
+    /**
+     * Serializa as mudanças de equipe da clínica até o fim da transação.
+     *
+     * <p>"Contar e depois gravar" não protege nada em READ COMMITTED: dois admins
+     * se rebaixando ao mesmo tempo contam dois, os dois passam e a clínica fica
+     * sem admin; duas admissões com uma vaga no plano entram as duas. Com a
+     * trava, a segunda espera o commit da primeira e conta de novo.
+     *
+     * <p>Advisory lock e não {@code FOR UPDATE} na clínica: a linha da clínica é
+     * de outro módulo, e trancá-la daqui atravessaria a fronteira de schema.
+     */
+    public void travarEquipe() {
+        jdbc.sql("SELECT 1 FROM pg_advisory_xact_lock(hashtextextended('identidade.equipe', :clinica))")
+                .param("clinica", ContextoAtual.clinicaObrigatoria())
+                .query(Integer.class)
+                .single();
+    }
+
     /** Quantos admins ativos restam. Guarda contra a clínica ficar sem dono. */
     public int contarAdminsAtivos() {
         return jdbc.sql("""
