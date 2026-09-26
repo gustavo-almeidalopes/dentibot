@@ -40,7 +40,7 @@ class FronteiraDeSchemaTest {
     /** Schemas de domínio: cada um pertence a exatamente um módulo. */
     private static final Set<String> SCHEMAS_DE_DOMINIO = Set.of(
             "clinicas", "identidade", "pacientes", "agenda", "prontuario",
-            "orcamento", "financeiro", "billing", "estoque", "lgpd");
+            "orcamento", "financeiro", "billing", "estoque", "lgpd", "ia");
 
     /** Infraestrutura compartilhada: qualquer módulo pode escrever. */
     private static final Set<String> SCHEMAS_COMPARTILHADOS = Set.of("plataforma", "auditoria");

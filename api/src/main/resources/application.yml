@@ -70,6 +70,16 @@ dentibot:
     bucket: ${DENTIBOT_S3_BUCKET:dentibot-anexos}
     chave-acesso: ${DENTIBOT_S3_CHAVE:}
     segredo: ${DENTIBOT_S3_SEGREDO:}
+  # Doc 03-B: gateway de IA (ST-61). Sem chave, todo recurso de IA responde 503
+  # e o resto do sistema não percebe. Ver docs/ia/politica.md.
+  ia:
+    chave: ${DENTIBOT_IA_CHAVE:}
+    modelo: ${DENTIBOT_IA_MODELO:claude-sonnet-5}
+    url: ${DENTIBOT_IA_URL:https://api.anthropic.com}
+    # US$ por milhão de tokens. Confira com a tabela vigente do provedor: é daqui
+    # que sai o custo que a clínica vê (IA-59) e o que a cota mensal consome.
+    preco-entrada-usd-mtok: ${DENTIBOT_IA_PRECO_ENTRADA:3.00}
+    preco-saida-usd-mtok: ${DENTIBOT_IA_PRECO_SAIDA:15.00}
   # Vazio = Sentry desligado. O DSN não é segredo forte, mas muda por ambiente.
   sentry:
     dsn: ${SENTRY_DSN:}

@@ -145,7 +145,7 @@ WITH t AS (
   SELECT c.oid, n.nspname s, c.relname r, c.relrowsecurity, c.relforcerowsecurity
   FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
   WHERE c.relkind='r' AND n.nspname IN ('clinicas','identidade','pacientes','agenda',
-        'prontuario','orcamento','financeiro','billing','estoque','lgpd','auditoria','plataforma'))
+        'prontuario','orcamento','financeiro','billing','estoque','lgpd','auditoria','plataforma','ia'))
 SELECT count(*) FROM t
 WHERE EXISTS (SELECT 1 FROM pg_attribute a WHERE a.attrelid=t.oid
               AND a.attname IN ('id_clinica','clinica_id') AND a.attnum>0 AND NOT a.attisdropped)

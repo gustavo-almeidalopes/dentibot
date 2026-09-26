@@ -54,6 +54,17 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
         return problema(HttpStatus.SERVICE_UNAVAILABLE, "servico-indisponivel", e.getMessage());
     }
 
+    @ExceptionHandler(LimiteExcedidoException.class)
+    public ProblemDetail limite(LimiteExcedidoException e) {
+        return problema(HttpStatus.TOO_MANY_REQUESTS, "limite-excedido", e.getMessage());
+    }
+
+    @ExceptionHandler(FalhaExternaException.class)
+    public ProblemDetail falhaExterna(FalhaExternaException e) {
+        log.warn("Falha em serviço externo: {}", e.getMessage(), e.getCause());
+        return problema(HttpStatus.BAD_GATEWAY, "falha-externa", e.getMessage());
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ProblemDetail naoEncontrado(RecursoNaoEncontradoException e) {
         return problema(HttpStatus.NOT_FOUND, "nao-encontrado", "Recurso não encontrado.");
