@@ -64,7 +64,8 @@
 .campo-app input, .campo-app select, .campo-app textarea {
   appearance: none;
   background: transparent;
-  border: 1px solid var(--hair);
+  /* Controle, não hairline: --hair dava 1,69:1 no papel (1.4.11 pede 3:1). */
+  border: 1px solid var(--tinta-fraca);
   border-radius: 0;
   color: var(--tinta);
   font-family: inherit;
