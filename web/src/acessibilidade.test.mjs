@@ -126,7 +126,7 @@ const CLARAS = [
 /** As regras de CSS cujas classes aparecem todas em alguma tela clara. */
 function regrasDasTelasClaras() {
   const corpus = CLARAS.map(ler).join('\n');
-  const usada = (classe) => new RegExp(`(?<![\w-])${classe}(?![\w-])`).test(corpus);
+  const usada = (classe) => new RegExp(`(?<![\\w-])${classe}(?![\\w-])`).test(corpus);
   const achadas = [];
   for (const arquivo of ['style.css', 'app.css']) {
     for (const { seletor, decls } of regras(ler(arquivo))) {
@@ -156,5 +156,19 @@ test('vermelho é marca, não tinta, nas telas claras', () => {
 
   for (const f of CLARAS) {
     assert.ok(!/color:\s*['"`]var\(--alarm\)/.test(ler(f)), `${f} pinta texto de vermelho em style inline`);
+  }
+});
+
+test('literal da marca pensado para o preto não pinta as telas claras', () => {
+  // --ash dá 3,6:1 no papel; --bone some nele. O .cap-ash, o .btn e o
+  // .skip-link usavam os dois, e aparecem em todas as telas do sistema.
+  const ruins = regrasDasTelasClaras()
+    .filter(({ decls }) => pintaTexto(decls, ['--ash', '--bone'])
+      || /(?:^|;)\s*(?:background|border)[\w-]*\s*:[^;]*var\(--bone\)/.test(decls))
+    .map(({ onde }) => onde);
+  assert.deepEqual(ruins, []);
+
+  for (const f of CLARAS) {
+    assert.ok(!/color:\s*['"`]var\(--(?:ash|bone)\)/.test(ler(f)), `${f} usa literal da marca em style inline`);
   }
 });

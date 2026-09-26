@@ -250,7 +250,9 @@
    coluna de ações são oito varreduras simultâneas, e isso é ruído numa
    ferramenta que a pessoa usa oito horas por dia. */
 :root:has(.app-main) .btn::before { transition: none; }
-.btn-sm { padding: 6px 12px; font-size: 12px; }
+/* Ação de linha com borda de 1px: uma coluna de caixas de 2px grita mais que o
+   dado da linha. */
+.btn-sm { padding: 6px 12px; font-size: 12px; border-width: 1px; }
 
 /* ── NAVEGAÇÃO ────────────────────────────────────────────────────────────── */
 /* Deixa de ser fileira de blocos preenchidos. Um bloco invertido para o item

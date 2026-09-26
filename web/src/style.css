@@ -107,10 +107,10 @@ a { color: inherit; text-decoration: none; }
   top: -100px;
   z-index: 200;
   padding: 7px 20px;
-  border: 1px solid var(--bone);
+  border: 1px solid var(--tinta);
   border-radius: 0;
-  background: var(--bone);
-  color: var(--obsidian);
+  background: var(--tinta);
+  color: var(--fundo);
   font-size: 19px;
   transition: top .15s;
 }
@@ -162,10 +162,12 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.25;
   text-transform: uppercase;
 }
-.cap-ash { color: var(--ash); }
+/* --tinta-fraca e não --ash: no preto são o mesmo cinza, mas no papel o --ash
+   dá 3,6:1 e reprova. As telas do sistema usam estas duas classes 67 vezes. */
+.cap-ash { color: var(--tinta-fraca); }
 
 .body { line-height: 1.32; max-width: 56ch; }
-.body-ash { color: var(--ash); }
+.body-ash { color: var(--tinta-fraca); }
 
 /* Editorial credit — classical serif small caps against the brutalism. */
 .credit {
@@ -186,7 +188,10 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 10px;
   padding: 13px var(--spacing-20);
-  border: 2px solid var(--bone);
+  /* Token semântico, não literal: no preto --tinta é osso e --fundo é
+     obsidiana, e a landing não muda. No papel o botão vira a caixa preta de
+     canto vivo, em vez de uma borda branca que sumia. */
+  border: 2px solid var(--tinta);
   border-radius: var(--radius-buttons);
   font-size: var(--text-body-sm, 19px);
   font-weight: 700;
@@ -206,19 +211,19 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--bone);
+  background: var(--tinta);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform .34s var(--ease-brut);
 }
 .btn:hover::before,
 .btn:focus-visible::before { transform: scaleX(1); }
-.btn:hover, .btn:focus-visible { color: var(--obsidian); }
+.btn:hover, .btn:focus-visible { color: var(--fundo); }
 
 /* Filled block starts flipped, so its sweep runs the other way. */
-.btn-fill { background: var(--bone); color: var(--obsidian); }
-.btn-fill::before { background: var(--obsidian); transform-origin: right center; }
-.btn-fill:hover, .btn-fill:focus-visible { color: var(--bone); }
+.btn-fill { background: var(--tinta); color: var(--fundo); }
+.btn-fill::before { background: var(--fundo); transform-origin: right center; }
+.btn-fill:hover, .btn-fill:focus-visible { color: var(--tinta); }
 
 .btn-lg { padding: 16px var(--spacing-30); font-size: 20px; }
 
@@ -664,11 +669,11 @@ html:not(.no-js) #odontograma.visible .fdi {
 .auth-swap { margin-top: var(--spacing-30); }
 .auth-swap a, .auth-swap button {
   cursor: pointer;
-  color: var(--ash);
+  color: var(--tinta-fraca);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.auth-swap a:hover, .auth-swap button:hover { color: var(--bone); }
+.auth-swap a:hover, .auth-swap button:hover { color: var(--tinta); }
 
 /* Bloco inerte não deve prometer o wipe que não vai acontecer. */
 .btn:disabled { opacity: .5; cursor: not-allowed; }
