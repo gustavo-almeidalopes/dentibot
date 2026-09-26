@@ -114,15 +114,17 @@
   cursor: pointer;
   transition: background .15s linear;
 }
-.odonto-dente:hover { background: rgba(255, 255, 255, .07); }
+.odonto-dente:hover { background: var(--hair-fraca); }
 .odonto-dente[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
 .odonto-dente:focus-visible { outline: 2px solid var(--alarm); outline-offset: 2px; }
-/* A condição é cor E borda: cor sozinha não existe para quem não a distingue. */
+/* A condição é cor E borda: cor sozinha não existe para quem não a distingue.
+   E a marca precisa de 3:1 (1.4.11): no --hair ela dava 1,69:1, e a opacidade
+   do ausente apagava o número junto. */
 .odonto-dente[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
-.odonto-dente[data-condicao="ausente"] { opacity: .38; border-style: dashed; }
+.odonto-dente[data-condicao="ausente"] { border-style: dashed; border-color: var(--tinta-fraca); }
 .odonto-dente[data-condicao="restaurado"],
 .odonto-dente[data-condicao="coroa"],
-.odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; }
+.odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
 
 /* ── TABELA ───────────────────────────────────────────────────────────────── */
 .tabela-rolagem { overflow-x: auto; }
@@ -358,10 +360,10 @@
 .odonto-legenda li { display: flex; align-items: center; gap: 6px; }
 .odonto-amostra { width: 16px; height: 16px; border: 1px solid var(--hair); display: inline-block; }
 .odonto-amostra[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
-.odonto-amostra[data-condicao="ausente"] { opacity: .38; border-style: dashed; }
+.odonto-amostra[data-condicao="ausente"] { border-style: dashed; border-color: var(--tinta-fraca); }
 .odonto-amostra[data-condicao="restaurado"],
 .odonto-amostra[data-condicao="coroa"],
-.odonto-amostra[data-condicao="implante"] { border-bottom-width: 3px; }
+.odonto-amostra[data-condicao="implante"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
 
 @media (min-width: 900px) {
   .odonto-area {

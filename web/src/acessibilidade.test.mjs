@@ -172,3 +172,55 @@ test('literal da marca pensado para o preto não pinta as telas claras', () => {
     assert.ok(!/color:\s*['"`]var\(--(?:ash|bone)\)/.test(ler(f)), `${f} usa literal da marca em style inline`);
   }
 });
+
+/** Todo .js e .jsx do front. Os testes são .mjs e ficam de fora sozinhos. */
+const arquivosJs = () => readdirSync(new URL('.', import.meta.url), { recursive: true })
+  .map((f) => f.replaceAll('\\', '/'))
+  .filter((f) => /\.jsx?$/.test(f));
+
+const indexHtml = () => readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+
+test('a página diz o idioma e deixa ampliar', () => {
+  const html = indexHtml();
+  assert.match(html, /<html[^>]*\blang="pt-BR"/);
+  const viewport = html.match(/<meta[^>]*name="viewport"[^>]*content="([^"]*)"/)?.[1];
+  assert.ok(viewport, 'sem meta viewport');
+  // Bloquear o zoom reprova o 1.4.4: quem precisa de 200% não chega lá.
+  assert.ok(!/user-scalable\s*=\s*(no|0)|maximum-scale/i.test(viewport), `viewport bloqueia zoom: ${viewport}`);
+});
+
+test('o anel de foco nunca some e a tabulação segue o documento', () => {
+  for (const arquivo of ['style.css', 'app.css']) {
+    assert.ok(!/outline\s*:\s*(none|0)\b/.test(semComentario(ler(arquivo))), `${arquivo} apaga o anel de foco`);
+  }
+  for (const f of arquivosJs()) {
+    assert.ok(!/tabIndex=\{?\s*["']?[1-9]/.test(ler(f)), `${f} tem tabIndex positivo`);
+  }
+});
+
+test('toda tela tem título de primeiro nível', () => {
+  const paginas = readdirSync(new URL('./paginas', import.meta.url))
+    .filter((f) => f.endsWith('.jsx') && f !== 'Layout.jsx');
+  for (const f of paginas) {
+    assert.ok(/<h1\b|<Cabecalho\b/.test(ler(`paginas/${f}`)), `${f} não tem h1`);
+  }
+});
+
+test('a marca de condição do dente se lê a 3:1', () => {
+  // O critério 1.4.11 vale para estado: o tracejado do ausente e o filete de
+  // 3px do restaurado ficavam no --hair, a 1,69:1, e o ausente ainda apagava o
+  // número com opacity: .38 (2,46:1).
+  const marcas = regras(ler('app.css'))
+    .filter(({ seletor }) => /\.odonto-(dente|amostra)\[data-condicao=/.test(seletor));
+  assert.ok(marcas.length >= 4, 'o extrator não achou as marcas do odontograma');
+  for (const { seletor, decls } of marcas) {
+    const nome = seletor.replace(/\s+/g, ' ');
+    const cores = [...decls.matchAll(/(?:^|;)\s*border(?:-bottom)?-color\s*:\s*([^;]+)/g)].map((m) => m[1].trim());
+    assert.ok(cores.length > 0, `${nome} não diz a cor da marca`);
+    for (const c of cores) {
+      const r = contraste(cor(c, CLARO), cor('var(--fundo)', CLARO));
+      assert.ok(r >= 3, `${nome}: ${c} dá ${r.toFixed(2)}:1`);
+    }
+    assert.ok(!/opacity\s*:/.test(decls), `${nome} apaga o dente com opacidade`);
+  }
+});
