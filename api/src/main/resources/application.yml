@@ -156,3 +156,14 @@ logging:
     # que tira CPF e e-mail da exceção. Sem ela no padrão, o Logback anexa o
     # próprio conversor de exceção, sem limpeza.
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlacaoId:-}] %logger{36} - %msg%n%wEx"
+
+# ST-20: o contrato OpenAPI. Desligado por padrão — em produção /v3/api-docs dá
+# 404 e não mapa da API a quem bate na porta. O teste de contrato liga, gera e
+# compara com api/openapi.json; o dev liga com DENTIBOT_OPENAPI=true.
+springdoc:
+  api-docs:
+    enabled: ${DENTIBOT_OPENAPI:false}
+    version: openapi_3_1
+  writer-with-order-by-keys: true
+  writer-with-default-pretty-printer: true
+  packages-to-scan: br.com.dentibot

@@ -23,6 +23,7 @@
 		<sentry.version>8.58.0</sentry.version>
 		<awssdk.version>2.55.6</awssdk.version>
 		<anthropic.version>2.65.0</anthropic.version>
+		<springdoc.version>3.1.1</springdoc.version>
 		<jacoco.version>0.8.15</jacoco.version>
 		<cobertura.minima>0.60</cobertura.minima>
 	</properties>
@@ -103,6 +104,13 @@
 			<groupId>com.anthropic</groupId>
 			<artifactId>anthropic-java</artifactId>
 			<version>${anthropic.version}</version>
+		</dependency>
+		<!-- ST-20: o contrato OpenAPI sai do código. Só o JSON (sem Swagger UI), e
+		     desligado em produção: ver springdoc no application.yml. -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+			<version>${springdoc.version}</version>
 		</dependency>
 		<!-- ST-41: anexos clínicos em armazenamento S3-compatível (R2 em produção,
 		     MinIO em dev). Só o presign e o HEAD: o arquivo vai do navegador

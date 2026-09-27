@@ -65,6 +65,12 @@ não alcança dado clínico e que a aplicação não é dona das tabelas. A V1 d
 projeto pretendia 31 políticas de RLS, criou zero, e vazava dados entre
 clínicas sem um único teste vermelho.
 
+O contrato da API mora em `api/openapi.json`, gerado do código (ST-20). Mudou um
+endpoint? O `ContratoOpenApiTest` falha até o arquivo ser regenerado —
+`./mvnw test -Dtest=ContratoOpenApiTest -Dcontrato.atualizar=true` — e a mudança
+aparece no diff do PR. Do outro lado, `contrato.test.mjs` no `web/` e no `app/`
+confere cada chamada dos clientes contra esse arquivo (ST-55).
+
 ## Operar
 
 | Onde | O quê | Variável |

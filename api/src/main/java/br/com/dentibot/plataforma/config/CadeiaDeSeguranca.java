@@ -112,6 +112,9 @@ public class CadeiaDeSeguranca {
                         // Painel do titular: a credencial é o link, conferida
                         // pelo hash na V25 — não há conta de paciente.
                         .requestMatchers(HttpMethod.POST, "/api/v1/titular/**").permitAll()
+                        // Contrato OpenAPI (ST-20): público quando ligado, e
+                        // desligado em produção — aí a rota nem existe.
+                        .requestMatchers(HttpMethod.GET, "/v3/api-docs", "/v3/api-docs/**").permitAll()
                         // Deny by default: o que não foi liberado acima exige
                         // autenticação, inclusive rota que ainda não existe.
                         .anyRequest().authenticated())

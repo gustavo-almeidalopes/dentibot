@@ -1,0 +1,5758 @@
+{
+  "openapi" : "3.1.0",
+  "info" : {
+    "description" : "Contrato gerado do código. Autenticação: Bearer do Clerk.",
+    "title" : "DentiBot API",
+    "version" : "v1"
+  },
+  "security" : [ {
+    "clerk" : [ ]
+  } ],
+  "paths" : {
+    "/api/v1/auditoria" : {
+      "get" : {
+        "operationId" : "Auditoria.consultar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "de",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ate",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "acao",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "recurso",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "idUsuario",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "query",
+          "name" : "apos",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64",
+            "default" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "limite",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 100
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EventoAuditoria"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "auditoria-controller" ]
+      }
+    },
+    "/api/v1/auth/cadastro" : {
+      "post" : {
+        "operationId" : "Onboarding.cadastrar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoCadastro"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "onboarding-controller" ]
+      }
+    },
+    "/api/v1/auth/pre-cadastro" : {
+      "post" : {
+        "operationId" : "PreCadastro.registrar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoPaciente"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "pre-cadastro-controller" ]
+      }
+    },
+    "/api/v1/billing/assinatura" : {
+      "get" : {
+        "operationId" : "Billing.assinatura",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : { }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "billing-controller" ]
+      }
+    },
+    "/api/v1/billing/faturas" : {
+      "get" : {
+        "operationId" : "Billing.faturas",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Fatura"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "billing-controller" ]
+      }
+    },
+    "/api/v1/billing/limites/profissionais" : {
+      "get" : {
+        "operationId" : "Billing.limiteDeProfissionais",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LimiteDoPlano"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "billing-controller" ]
+      }
+    },
+    "/api/v1/billing/planos" : {
+      "get" : {
+        "operationId" : "Billing.planos",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Plano"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "billing-controller" ]
+      }
+    },
+    "/api/v1/billing/uso" : {
+      "get" : {
+        "operationId" : "Billing.uso",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/UsoDoPlano"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "billing-controller" ]
+      }
+    },
+    "/api/v1/clinica" : {
+      "get" : {
+        "operationId" : "Clinica.atual",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Clinica"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "clinica-controller" ]
+      }
+    },
+    "/api/v1/clinica/procedimentos" : {
+      "get" : {
+        "operationId" : "Clinica.procedimentos",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "somenteAtivos",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : true
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProcedimentoResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "clinica-controller" ]
+      },
+      "post" : {
+        "operationId" : "Clinica.criar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoProcedimento"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "clinica-controller" ]
+      }
+    },
+    "/api/v1/clinica/procedimentos/{id}" : {
+      "put" : {
+        "operationId" : "Clinica.atualizar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoAtualizacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "clinica-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/canal" : {
+      "get" : {
+        "operationId" : "Comunicacao.canal",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfiguracaoDoCanal"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      },
+      "put" : {
+        "operationId" : "Comunicacao.salvarCanal",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoCanal"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfiguracaoDoCanal"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/escaladas" : {
+      "get" : {
+        "operationId" : "Comunicacao.escaladas",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Item"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/espera" : {
+      "get" : {
+        "operationId" : "Comunicacao.espera",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Espera"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      },
+      "post" : {
+        "operationId" : "Comunicacao.entrar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaEspera"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/espera/{id}" : {
+      "delete" : {
+        "operationId" : "Comunicacao.sair",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/mensagens/{id}/resolucao" : {
+      "post" : {
+        "operationId" : "Comunicacao.resolver",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/mensagens/{id}/respostas" : {
+      "post" : {
+        "operationId" : "Comunicacao.responder",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Resposta"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/orientacoes" : {
+      "get" : {
+        "operationId" : "Comunicacao.temas",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Tema"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      },
+      "post" : {
+        "operationId" : "Comunicacao.orientar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaOrientacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/comunicacao/pacientes/{idPaciente}/mensagens" : {
+      "get" : {
+        "operationId" : "Comunicacao.doPaciente",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Item"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "comunicacao-controller" ]
+      }
+    },
+    "/api/v1/consultas" : {
+      "get" : {
+        "operationId" : "Agenda.listar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "de",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ate",
+          "required" : true,
+          "schema" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }, {
+          "in" : "query",
+          "name" : "idDentista",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ConsultaResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "agenda-controller" ]
+      },
+      "post" : {
+        "operationId" : "Agenda.agendar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaConsulta"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "agenda-controller" ]
+      }
+    },
+    "/api/v1/consultas/{id}/cancelar" : {
+      "post" : {
+        "operationId" : "Agenda.cancelar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoCancelamento"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "agenda-controller" ]
+      }
+    },
+    "/api/v1/consultas/{id}/concluir" : {
+      "post" : {
+        "operationId" : "Agenda.concluir",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "agenda-controller" ]
+      }
+    },
+    "/api/v1/consultas/{id}/confirmar" : {
+      "post" : {
+        "operationId" : "Agenda.confirmar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "agenda-controller" ]
+      }
+    },
+    "/api/v1/consultas/{id}/falta" : {
+      "post" : {
+        "operationId" : "Agenda.falta",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "agenda-controller" ]
+      }
+    },
+    "/api/v1/copiloto/nota-clinica" : {
+      "post" : {
+        "operationId" : "Copiloto.notaClinica",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoDeNota"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RascunhoDeNota"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "copiloto-controller" ]
+      }
+    },
+    "/api/v1/copiloto/pendencias" : {
+      "get" : {
+        "operationId" : "Copiloto.pendencias",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "dias",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 30
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Pendencia"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "copiloto-controller" ]
+      }
+    },
+    "/api/v1/copiloto/plano-explicado" : {
+      "post" : {
+        "operationId" : "Copiloto.planoExplicado",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoDePlano"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/PlanoExplicado"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "copiloto-controller" ]
+      }
+    },
+    "/api/v1/copiloto/tratamentos-parados" : {
+      "get" : {
+        "operationId" : "Copiloto.tratamentosParados",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "dias",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 30
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/TratamentoParado"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "copiloto-controller" ]
+      }
+    },
+    "/api/v1/equipe" : {
+      "get" : {
+        "operationId" : "Equipe.listar",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MembroEquipe"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "equipe-controller" ]
+      },
+      "post" : {
+        "operationId" : "Equipe.admitir",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoMembro"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "equipe-controller" ]
+      }
+    },
+    "/api/v1/equipe/dentistas" : {
+      "get" : {
+        "operationId" : "Equipe.dentistas",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DentistaResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "equipe-controller" ]
+      }
+    },
+    "/api/v1/equipe/{idUsuario}" : {
+      "put" : {
+        "operationId" : "Equipe.atualizar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idUsuario",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoAtualizacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "equipe-controller" ]
+      }
+    },
+    "/api/v1/estoque/fornecedores" : {
+      "get" : {
+        "operationId" : "Estoque.fornecedores",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/FornecedorResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      },
+      "post" : {
+        "operationId" : "Estoque.criarFornecedor",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoFornecedor"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      }
+    },
+    "/api/v1/estoque/movimentacoes" : {
+      "post" : {
+        "operationId" : "Estoque.movimentar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaMovimentacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      }
+    },
+    "/api/v1/estoque/posicao" : {
+      "get" : {
+        "operationId" : "Estoque.posicao",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "somenteAbaixoDoPontoPedido",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PosicaoProduto"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      }
+    },
+    "/api/v1/estoque/produtos" : {
+      "get" : {
+        "operationId" : "Estoque.produtos",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ProdutoResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      },
+      "post" : {
+        "operationId" : "Estoque.criarProduto",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoProduto"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      }
+    },
+    "/api/v1/estoque/produtos/{idProduto}/movimentacoes" : {
+      "get" : {
+        "operationId" : "Estoque.extrato",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idProduto",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "query",
+          "name" : "limite",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 100
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/MovimentacaoResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      }
+    },
+    "/api/v1/estoque/sugestao-compra" : {
+      "get" : {
+        "operationId" : "Estoque.sugestaoDeCompra",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "cobertura",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 30
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SugestaoCompra"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      }
+    },
+    "/api/v1/estoque/vencimentos" : {
+      "get" : {
+        "operationId" : "Estoque.vencimentos",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "emDias",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 60
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/LoteVencendo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "estoque-controller" ]
+      }
+    },
+    "/api/v1/eu" : {
+      "get" : {
+        "operationId" : "Eu.eu",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Eu"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "eu-controller" ]
+      }
+    },
+    "/api/v1/financeiro/comissoes" : {
+      "get" : {
+        "operationId" : "Financeiro.comissoes",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "idDentista",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ComissaoResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/comissoes/{id}/liberar" : {
+      "post" : {
+        "operationId" : "Financeiro.liberar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/despesas" : {
+      "get" : {
+        "operationId" : "Financeiro.despesas",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "de",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ate",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/DespesaResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      },
+      "post" : {
+        "operationId" : "Financeiro.criarDespesa",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaDespesa"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/despesas/{id}/pagar" : {
+      "post" : {
+        "operationId" : "Financeiro.pagar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoPagamento"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/formas" : {
+      "get" : {
+        "operationId" : "Financeiro.formas",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/FormaPagamento"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      },
+      "post" : {
+        "operationId" : "Financeiro.criarForma",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaFormaPagamento"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/lancamentos" : {
+      "post" : {
+        "operationId" : "Financeiro.lancar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoLancamento"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/lancamentos/{id}/estornar" : {
+      "post" : {
+        "operationId" : "Financeiro.estornar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoEstorno"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/recebiveis" : {
+      "get" : {
+        "operationId" : "Financeiro.recebiveis",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "de",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ate",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "idPaciente",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "query",
+          "name" : "apos",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64",
+            "default" : 0
+          }
+        }, {
+          "in" : "query",
+          "name" : "limite",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 100
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RecebivelResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      },
+      "post" : {
+        "operationId" : "Financeiro.abrir",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoRecebivel"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "array",
+                    "items" : {
+                      "type" : "integer",
+                      "format" : "int64"
+                    }
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/recebiveis/{id}" : {
+      "get" : {
+        "operationId" : "Financeiro.detalhar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/RecebivelDetalhado"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/regras-comissao" : {
+      "get" : {
+        "operationId" : "Financeiro.regras",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/RegraComissao"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      },
+      "post" : {
+        "operationId" : "Financeiro.criarRegra",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaRegraComissao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/financeiro/resumo" : {
+      "get" : {
+        "operationId" : "Financeiro.resumo",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "de",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }, {
+          "in" : "query",
+          "name" : "ate",
+          "required" : false,
+          "schema" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResumoFinanceiro"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "financeiro-controller" ]
+      }
+    },
+    "/api/v1/ia/chamadas/{idChamada}/confirmacao" : {
+      "post" : {
+        "operationId" : "Ia.confirmar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idChamada",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Confirmacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "ia-controller" ]
+      }
+    },
+    "/api/v1/ia/configuracao" : {
+      "get" : {
+        "operationId" : "Ia.configuracao",
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfiguracaoDeIa"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "ia-controller" ]
+      },
+      "put" : {
+        "operationId" : "Ia.salvar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaConfiguracao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ConfiguracaoDeIa"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "ia-controller" ]
+      }
+    },
+    "/api/v1/ia/consumo" : {
+      "get" : {
+        "operationId" : "Ia.consumo",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "mes",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/ConsumoDeIa"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "ia-controller" ]
+      }
+    },
+    "/api/v1/lgpd/consentimentos" : {
+      "post" : {
+        "operationId" : "Lgpd.registrarConsentimento",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoConsentimento"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/consentimentos/{id}" : {
+      "delete" : {
+        "operationId" : "Lgpd.revogar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/pacientes/{idPaciente}/consentimentos" : {
+      "get" : {
+        "operationId" : "Lgpd.consentimentos",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Consentimento"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/pacientes/{idPaciente}/link-titular" : {
+      "post" : {
+        "operationId" : "Lgpd.linkDoTitular",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/LinkDoTitular"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/pacientes/{idPaciente}/preferencias" : {
+      "get" : {
+        "operationId" : "Lgpd.preferencias",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Preferencia"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/pacientes/{idPaciente}/preferencias/{finalidade}" : {
+      "put" : {
+        "operationId" : "Lgpd.alterarPreferencia",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "finalidade",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaPreferencia"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Preferencia"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/solicitacoes" : {
+      "get" : {
+        "operationId" : "Lgpd.solicitacoes",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/SolicitacaoTitular"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      },
+      "post" : {
+        "operationId" : "Lgpd.abrir",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaSolicitacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/solicitacoes/{id}/responder" : {
+      "post" : {
+        "operationId" : "Lgpd.responder",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/RespostaSolicitacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/termos" : {
+      "get" : {
+        "operationId" : "Lgpd.termos",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "somenteAtivos",
+          "required" : false,
+          "schema" : {
+            "type" : "boolean",
+            "default" : false
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Termo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      },
+      "post" : {
+        "operationId" : "Lgpd.publicar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoTermo"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/lgpd/termos/{id}" : {
+      "delete" : {
+        "operationId" : "Lgpd.desativar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "lgpd-controller" ]
+      }
+    },
+    "/api/v1/orcamentos" : {
+      "get" : {
+        "operationId" : "Orcamento.listar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "idPaciente",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "query",
+          "name" : "status",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/OrcamentoResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      },
+      "post" : {
+        "operationId" : "Orcamento.criar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoOrcamento"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/orcamentos/{id}" : {
+      "get" : {
+        "operationId" : "Orcamento.detalhar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/OrcamentoDetalhado"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/orcamentos/{id}/aprovar" : {
+      "post" : {
+        "operationId" : "Orcamento.aprovar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/orcamentos/{id}/enviar" : {
+      "post" : {
+        "operationId" : "Orcamento.enviar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/orcamentos/{id}/itens" : {
+      "post" : {
+        "operationId" : "Orcamento.adicionarItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoItem"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/orcamentos/{id}/itens/{idItem}" : {
+      "delete" : {
+        "operationId" : "Orcamento.removerItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "idItem",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/orcamentos/{id}/itens/{idItem}/concluir" : {
+      "post" : {
+        "operationId" : "Orcamento.concluirItem",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "idItem",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoConclusao"
+              }
+            }
+          }
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/orcamentos/{id}/recusar" : {
+      "post" : {
+        "operationId" : "Orcamento.recusar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "id",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoRecusa"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "orcamento-controller" ]
+      }
+    },
+    "/api/v1/pacientes" : {
+      "get" : {
+        "operationId" : "Paciente.listar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "limite",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int32",
+            "default" : 50
+          }
+        }, {
+          "in" : "query",
+          "name" : "apos",
+          "required" : false,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64",
+            "default" : 0
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/PacienteResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "paciente-controller" ]
+      },
+      "post" : {
+        "operationId" : "Paciente.criar",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoPaciente"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "paciente-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/exportacao" : {
+      "get" : {
+        "operationId" : "Copiloto.exportar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string",
+                  "format" : "byte"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "copiloto-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/prontuario/anexos" : {
+      "get" : {
+        "operationId" : "Prontuario.anexos",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/AnexoResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      },
+      "post" : {
+        "operationId" : "Prontuario.iniciarAnexo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovoAnexo"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/EnvioDeAnexo"
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/prontuario/anexos/confirmar" : {
+      "post" : {
+        "operationId" : "Prontuario.confirmarAnexo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoConfirmacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/prontuario/anexos/{idAnexo}/url" : {
+      "get" : {
+        "operationId" : "Prontuario.urlDoAnexo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "idAnexo",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "string"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/prontuario/evolucoes" : {
+      "get" : {
+        "operationId" : "Prontuario.historico",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/EvolucaoResumo"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      },
+      "post" : {
+        "operationId" : "Prontuario.registrar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoEvolucao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/prontuario/evolucoes/{idEvolucao}/retificacoes" : {
+      "post" : {
+        "operationId" : "Prontuario.retificar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "idEvolucao",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoRetificacao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/prontuario/odontograma" : {
+      "get" : {
+        "operationId" : "Prontuario.odontograma",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/LancamentoOdontograma"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      },
+      "post" : {
+        "operationId" : "Prontuario.lancar",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/PedidoLancamento"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "prontuario-controller" ]
+      }
+    },
+    "/api/v1/pacientes/{idPaciente}/resumo" : {
+      "get" : {
+        "operationId" : "Copiloto.resumo",
+        "parameters" : [ {
+          "in" : "path",
+          "name" : "idPaciente",
+          "required" : true,
+          "schema" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/ResumoDoPaciente"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "copiloto-controller" ]
+      }
+    },
+    "/api/v1/titular/oposicoes" : {
+      "post" : {
+        "operationId" : "Titular.opor",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/Oposicao"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "201" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "object",
+                  "additionalProperties" : {
+                    "type" : "integer",
+                    "format" : "int64"
+                  }
+                }
+              }
+            },
+            "description" : "Created"
+          }
+        },
+        "tags" : [ "titular-controller" ]
+      }
+    },
+    "/api/v1/titular/painel" : {
+      "post" : {
+        "operationId" : "Titular.painel",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/ComToken"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "$ref" : "#/components/schemas/Painel"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "titular-controller" ]
+      }
+    },
+    "/api/v1/titular/preferencias" : {
+      "post" : {
+        "operationId" : "Titular.preferencia",
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "$ref" : "#/components/schemas/NovaPreferencia"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "array",
+                  "items" : {
+                    "$ref" : "#/components/schemas/Preferencia"
+                  }
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "titular-controller" ]
+      }
+    },
+    "/api/v1/webhooks/whatsapp" : {
+      "get" : {
+        "operationId" : "WebhookWhatsApp.verificar",
+        "parameters" : [ {
+          "in" : "query",
+          "name" : "hub.mode",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "hub.verify_token",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        }, {
+          "in" : "query",
+          "name" : "hub.challenge",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "responses" : {
+          "200" : {
+            "content" : {
+              "*/*" : {
+                "schema" : {
+                  "type" : "string"
+                }
+              }
+            },
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "webhook-whats-app-controller" ]
+      },
+      "post" : {
+        "operationId" : "WebhookWhatsApp.receber",
+        "parameters" : [ {
+          "in" : "header",
+          "name" : "X-Hub-Signature-256",
+          "required" : false,
+          "schema" : {
+            "type" : "string"
+          }
+        } ],
+        "requestBody" : {
+          "content" : {
+            "application/json" : {
+              "schema" : {
+                "type" : "string",
+                "format" : "byte"
+              }
+            }
+          },
+          "required" : true
+        },
+        "responses" : {
+          "200" : {
+            "description" : "OK"
+          }
+        },
+        "tags" : [ "webhook-whats-app-controller" ]
+      }
+    }
+  },
+  "components" : {
+    "schemas" : {
+      "Acesso" : {
+        "type" : "object",
+        "properties" : {
+          "acao" : {
+            "type" : "string"
+          },
+          "em" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "idEvento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "quem" : {
+            "type" : "string"
+          },
+          "recurso" : {
+            "type" : "string"
+          }
+        }
+      },
+      "AlertasClinicos" : {
+        "type" : "object",
+        "properties" : {
+          "alergia" : {
+            "type" : "string"
+          },
+          "avisos" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "condicaoSistemica" : {
+            "type" : "boolean"
+          },
+          "emTratamentoMedico" : {
+            "type" : "boolean"
+          },
+          "gravidez" : {
+            "type" : "boolean"
+          },
+          "medicamentoContinuo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Anamnese" : {
+        "type" : "object",
+        "properties" : {
+          "alergia" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "condicaoSistemica" : {
+            "type" : "boolean"
+          },
+          "emTratamentoMedico" : {
+            "type" : "boolean"
+          },
+          "gravidez" : {
+            "type" : "boolean"
+          },
+          "medicamentoContinuo" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "motivoConsulta" : {
+            "type" : "string",
+            "pattern" : "^(dor|estetica|limpeza|rotina)$"
+          },
+          "sangramentoGengival" : {
+            "type" : "boolean"
+          },
+          "sensibilidade" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "AnexoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "contentType" : {
+            "type" : "string"
+          },
+          "enviadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "idAnexo" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeArquivo" : {
+            "type" : "string"
+          },
+          "sha256" : {
+            "type" : "string"
+          },
+          "tamanhoBytes" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tipo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Clinica" : {
+        "type" : "object",
+        "properties" : {
+          "cnpj" : {
+            "type" : "string"
+          },
+          "criadaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "id" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeFantasia" : {
+            "type" : "string"
+          },
+          "plano" : {
+            "type" : "string",
+            "enum" : [ "SOLO", "CLINICA" ]
+          },
+          "razaoSocial" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string",
+            "enum" : [ "TRIAL", "ATIVA", "INADIMPLENTE", "SUSPENSA", "ENCERRADA" ]
+          },
+          "timezone" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ComToken" : {
+        "type" : "object",
+        "properties" : {
+          "token" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "token" ]
+      },
+      "ComissaoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "idComissao" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idItem" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idRecebivel" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pagoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "percentualAplicado" : {
+            "type" : "number"
+          },
+          "previsaoLiberacaoEm" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "valorBase" : {
+            "type" : "number"
+          },
+          "valorComissao" : {
+            "type" : "number"
+          }
+        }
+      },
+      "ConfiguracaoDeIa" : {
+        "type" : "object",
+        "properties" : {
+          "cotaMensalUsd" : {
+            "type" : "number"
+          },
+          "gastoNoMesUsd" : {
+            "type" : "number"
+          },
+          "modelo" : {
+            "type" : "string"
+          },
+          "provedorConfigurado" : {
+            "type" : "boolean"
+          },
+          "recursosDesligados" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "recursosDisponiveis" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "ConfiguracaoDoCanal" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "phoneNumberId" : {
+            "type" : "string"
+          },
+          "provedorConfigurado" : {
+            "type" : "boolean"
+          },
+          "tiposDesligados" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "tiposDisponiveis" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "Confirmacao" : {
+        "type" : "object",
+        "properties" : {
+          "aceita" : {
+            "type" : "boolean"
+          },
+          "registro" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "aceita" ]
+      },
+      "Consentimento" : {
+        "type" : "object",
+        "properties" : {
+          "aceitoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "finalidadesAceitas" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "idConsentimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idTermo" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ipOrigem" : {
+            "type" : "string"
+          },
+          "revogadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "tipoDoTermo" : {
+            "type" : "string"
+          },
+          "versaoDoTermo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ConsultaResumo" : {
+        "type" : "object",
+        "properties" : {
+          "consultasRecentes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "faltasRecentes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "inicioEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "nomePaciente" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "telefonePaciente" : {
+            "type" : "string"
+          },
+          "terminoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "ConsumoDeIa" : {
+        "type" : "object",
+        "properties" : {
+          "aceitas" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "chamadas" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "custoUsd" : {
+            "type" : "number"
+          },
+          "descartadas" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "erros" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "recurso" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DentistaResumo" : {
+        "type" : "object",
+        "properties" : {
+          "croNumero" : {
+            "type" : "string"
+          },
+          "croUf" : {
+            "type" : "string"
+          },
+          "especialidade" : {
+            "type" : "string"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeCompleto" : {
+            "type" : "string"
+          }
+        }
+      },
+      "DespesaResumo" : {
+        "type" : "object",
+        "properties" : {
+          "categoria" : {
+            "type" : "string"
+          },
+          "descricao" : {
+            "type" : "string"
+          },
+          "idDespesa" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pagoEm" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "valorDocumento" : {
+            "type" : "number"
+          },
+          "vencimentoEm" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "EnvioDeAnexo" : {
+        "type" : "object",
+        "properties" : {
+          "cabecalhos" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "string"
+            }
+          },
+          "chave" : {
+            "type" : "string"
+          },
+          "expiraEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "url" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Espera" : {
+        "type" : "object",
+        "properties" : {
+          "desde" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idEspera" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomePaciente" : {
+            "type" : "string"
+          },
+          "observacao" : {
+            "type" : "string"
+          },
+          "periodo" : {
+            "type" : "string"
+          },
+          "urgencia" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "Eu" : {
+        "type" : "object",
+        "properties" : {
+          "papel" : {
+            "type" : "string"
+          },
+          "permissoes" : {
+            "type" : "object",
+            "additionalProperties" : {
+              "type" : "object",
+              "additionalProperties" : {
+                "type" : "string",
+                "enum" : [ "TODOS", "PROPRIOS", "NENHUM" ]
+              }
+            }
+          },
+          "staffPapel" : {
+            "type" : "string"
+          }
+        }
+      },
+      "EventoAuditoria" : {
+        "type" : "object",
+        "properties" : {
+          "acao" : {
+            "type" : "string"
+          },
+          "correlacaoId" : {
+            "type" : "string"
+          },
+          "idEvento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idRecurso" : {
+            "type" : "string"
+          },
+          "idUsuario" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ipOrigem" : {
+            "type" : "string"
+          },
+          "ocorridoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "recurso" : {
+            "type" : "string"
+          },
+          "staffPapel" : {
+            "type" : "string"
+          }
+        }
+      },
+      "EvolucaoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "descricao" : {
+            "type" : "string"
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idEvolucao" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "motivoRetificacao" : {
+            "type" : "string"
+          },
+          "registradoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "retificaEvolucao" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "Fatura" : {
+        "type" : "object",
+        "properties" : {
+          "competencia" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "idExterno" : {
+            "type" : "string"
+          },
+          "idFatura" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "pagaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "urlFatura" : {
+            "type" : "string"
+          },
+          "valorCentavos" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "venceEm" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "FormaPagamento" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "diasLiquidacao" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "idForma" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nome" : {
+            "type" : "string"
+          },
+          "taxaPercentual" : {
+            "type" : "number"
+          },
+          "tipo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "FornecedorResumo" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "cnpj" : {
+            "type" : "string"
+          },
+          "emailVendedor" : {
+            "type" : "string"
+          },
+          "idFornecedor" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "razaoSocial" : {
+            "type" : "string"
+          },
+          "telefone" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Item" : {
+        "type" : "object",
+        "properties" : {
+          "mensagem" : {
+            "$ref" : "#/components/schemas/Mensagem"
+          },
+          "nomePaciente" : {
+            "type" : "string"
+          }
+        }
+      },
+      "ItemDePlano" : {
+        "type" : "object",
+        "properties" : {
+          "aprovadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "dente" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "executadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idItem" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idOrcamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idProcedimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeProcedimento" : {
+            "type" : "string"
+          },
+          "statusExecucao" : {
+            "type" : "string"
+          },
+          "valorCobrado" : {
+            "type" : "number"
+          }
+        }
+      },
+      "ItemResumo" : {
+        "type" : "object",
+        "properties" : {
+          "dente" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "executadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "face" : {
+            "type" : "string"
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idItem" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idProcedimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeProcedimento" : {
+            "type" : "string"
+          },
+          "statusExecucao" : {
+            "type" : "string"
+          },
+          "valorCobrado" : {
+            "type" : "number"
+          }
+        }
+      },
+      "LancamentoOdontograma" : {
+        "type" : "object",
+        "properties" : {
+          "condicao" : {
+            "type" : "string"
+          },
+          "dente" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "face" : {
+            "type" : "string"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idLancamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "observacao" : {
+            "type" : "string"
+          },
+          "registradoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "LancamentoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "descricao" : {
+            "type" : "string"
+          },
+          "estornaLancamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idForma" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idLancamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idRecebivel" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "ocorridoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "registradoPor" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tipo" : {
+            "type" : "string"
+          },
+          "valor" : {
+            "type" : "number"
+          }
+        }
+      },
+      "LancamentoSugerido" : {
+        "type" : "object",
+        "properties" : {
+          "condicao" : {
+            "type" : "string"
+          },
+          "dente" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "face" : {
+            "type" : "string"
+          },
+          "observacao" : {
+            "type" : "string"
+          }
+        }
+      },
+      "LimiteDoPlano" : {
+        "type" : "object",
+        "properties" : {
+          "cabe" : {
+            "type" : "boolean"
+          },
+          "limite" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "motivo" : {
+            "type" : "string"
+          },
+          "usado" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "LinkDoTitular" : {
+        "type" : "object",
+        "properties" : {
+          "expiraEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "token" : {
+            "type" : "string"
+          }
+        }
+      },
+      "LoteVencendo" : {
+        "type" : "object",
+        "properties" : {
+          "idProduto" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "lote" : {
+            "type" : "string"
+          },
+          "nomeProduto" : {
+            "type" : "string"
+          },
+          "saldo" : {
+            "type" : "number"
+          },
+          "validade" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "MembroEquipe" : {
+        "type" : "object",
+        "properties" : {
+          "croNumero" : {
+            "type" : "string"
+          },
+          "croUf" : {
+            "type" : "string"
+          },
+          "email" : {
+            "type" : "string"
+          },
+          "especialidade" : {
+            "type" : "string"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idUsuario" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeCompleto" : {
+            "type" : "string"
+          },
+          "papel" : {
+            "type" : "string",
+            "enum" : [ "ADMIN", "DENTISTA", "RECEPCIONISTA", "FINANCEIRO", "AUXILIAR" ]
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "vinculado" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "Mensagem" : {
+        "type" : "object",
+        "properties" : {
+          "classificacao" : {
+            "type" : "string"
+          },
+          "criadaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "enviadaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "enviarEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "escalada" : {
+            "type" : "string"
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idMensagem" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "lidaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "motivo" : {
+            "type" : "string"
+          },
+          "resolvidaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "sentido" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "telefone" : {
+            "type" : "string"
+          },
+          "texto" : {
+            "type" : "string"
+          },
+          "tipo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "MovimentacaoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "custoUnitario" : {
+            "type" : "number"
+          },
+          "idMovimentacao" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idProduto" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idUsuario" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "lote" : {
+            "type" : "string"
+          },
+          "movimentadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "observacao" : {
+            "type" : "string"
+          },
+          "quantidade" : {
+            "type" : "number"
+          },
+          "tipo" : {
+            "type" : "string"
+          },
+          "validade" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "NovaConfiguracao" : {
+        "type" : "object",
+        "properties" : {
+          "cotaMensalUsd" : {
+            "type" : "number",
+            "minimum" : 0
+          },
+          "recursosDesligados" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "maxItems" : 20,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "cotaMensalUsd", "recursosDesligados" ]
+      },
+      "NovaConsulta" : {
+        "type" : "object",
+        "properties" : {
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64",
+            "exclusiveMinimum" : 0
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64",
+            "exclusiveMinimum" : 0
+          },
+          "idProcedimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "inicioEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "observacoes" : {
+            "type" : "string",
+            "maxLength" : 2000,
+            "minLength" : 0
+          },
+          "terminoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        },
+        "required" : [ "idDentista", "idPaciente", "inicioEm", "terminoEm" ]
+      },
+      "NovaDespesa" : {
+        "type" : "object",
+        "properties" : {
+          "categoria" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "descricao" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "observacoes" : {
+            "type" : "string"
+          },
+          "valorDocumento" : {
+            "type" : "number",
+            "exclusiveMinimum" : 0
+          },
+          "vencimentoEm" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "categoria", "descricao", "valorDocumento", "vencimentoEm" ]
+      },
+      "NovaEspera" : {
+        "type" : "object",
+        "properties" : {
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "observacao" : {
+            "type" : "string",
+            "maxLength" : 200,
+            "minLength" : 0
+          },
+          "periodo" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "urgencia" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 3,
+            "minimum" : 1
+          }
+        },
+        "required" : [ "idPaciente", "periodo" ]
+      },
+      "NovaFormaPagamento" : {
+        "type" : "object",
+        "properties" : {
+          "diasLiquidacao" : {
+            "type" : "integer",
+            "format" : "int32",
+            "minimum" : 0
+          },
+          "nome" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "taxaPercentual" : {
+            "type" : "number",
+            "minimum" : 0
+          },
+          "tipo" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "nome", "tipo" ]
+      },
+      "NovaMovimentacao" : {
+        "type" : "object",
+        "properties" : {
+          "custoUnitario" : {
+            "type" : "number"
+          },
+          "idProduto" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "lote" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "observacao" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "quantidade" : {
+            "type" : "number"
+          },
+          "tipo" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "validade" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        },
+        "required" : [ "idProduto", "quantidade", "tipo" ]
+      },
+      "NovaOrientacao" : {
+        "type" : "object",
+        "properties" : {
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "tema" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "idPaciente", "tema" ]
+      },
+      "NovaPreferencia" : {
+        "type" : "object",
+        "properties" : {
+          "permitido" : {
+            "type" : "boolean"
+          }
+        },
+        "required" : [ "permitido" ]
+      },
+      "NovaRegraComissao" : {
+        "type" : "object",
+        "properties" : {
+          "baseCalculo" : {
+            "type" : "string"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idProcedimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "percentual" : {
+            "type" : "number",
+            "maximum" : 100.0,
+            "minimum" : 0.0
+          }
+        },
+        "required" : [ "idDentista", "percentual" ]
+      },
+      "NovaSolicitacao" : {
+        "type" : "object",
+        "properties" : {
+          "direito" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "direito", "idPaciente" ]
+      },
+      "NovoAnexo" : {
+        "type" : "object",
+        "properties" : {
+          "contentType" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeArquivo" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "sha256" : {
+            "type" : "string",
+            "pattern" : "^[0-9a-f]{64}$"
+          },
+          "tamanhoBytes" : {
+            "type" : "integer",
+            "format" : "int64",
+            "exclusiveMinimum" : 0,
+            "maximum" : 52428800
+          },
+          "tipo" : {
+            "type" : "string",
+            "pattern" : "^(radiografia|foto_intraoral|documento|laudo|modelo_3d)$"
+          }
+        },
+        "required" : [ "contentType", "nomeArquivo", "sha256", "tamanhoBytes", "tipo" ]
+      },
+      "NovoCanal" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "phoneNumberId" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "^[0-9]{5,30}$"
+          },
+          "tiposDesligados" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "maxItems" : 10,
+            "minItems" : 0
+          }
+        },
+        "required" : [ "phoneNumberId", "tiposDesligados" ]
+      },
+      "NovoConsentimento" : {
+        "type" : "object",
+        "properties" : {
+          "finalidadesAceitas" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            },
+            "minItems" : 1
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idTermo" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "finalidadesAceitas", "idPaciente", "idTermo" ]
+      },
+      "NovoFornecedor" : {
+        "type" : "object",
+        "properties" : {
+          "cnpj" : {
+            "type" : "string",
+            "pattern" : "^[0-9]{14}$"
+          },
+          "emailVendedor" : {
+            "type" : "string",
+            "format" : "email",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "razaoSocial" : {
+            "type" : "string",
+            "maxLength" : 144,
+            "minLength" : 0
+          },
+          "telefone" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "razaoSocial" ]
+      },
+      "NovoItem" : {
+        "type" : "object",
+        "properties" : {
+          "dente" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 48,
+            "minimum" : 11
+          },
+          "face" : {
+            "type" : "string",
+            "pattern" : "^[VLMDOIP]$"
+          },
+          "idProcedimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "valorCobrado" : {
+            "type" : "number",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "idProcedimento" ]
+      },
+      "NovoLancamento" : {
+        "type" : "object",
+        "properties" : {
+          "descricao" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "idForma" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idRecebivel" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "referenciaExterna" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          },
+          "tipo" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "valor" : {
+            "type" : "number",
+            "exclusiveMinimum" : 0
+          }
+        },
+        "required" : [ "idRecebivel", "tipo", "valor" ]
+      },
+      "NovoMembro" : {
+        "type" : "object",
+        "properties" : {
+          "croNumero" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "croUf" : {
+            "type" : "string",
+            "pattern" : "^[A-Z]{2}$"
+          },
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "especialidade" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "nomeCompleto" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "papel" : {
+            "type" : "string",
+            "enum" : [ "ADMIN", "DENTISTA", "RECEPCIONISTA", "FINANCEIRO", "AUXILIAR" ]
+          }
+        },
+        "required" : [ "email", "nomeCompleto", "papel" ]
+      },
+      "NovoOrcamento" : {
+        "type" : "object",
+        "properties" : {
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "observacoes" : {
+            "type" : "string"
+          },
+          "validadeEm" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "valorDesconto" : {
+            "type" : "number",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "idDentista", "idPaciente" ]
+      },
+      "NovoPaciente" : {
+        "type" : "object",
+        "properties" : {
+          "anamnese" : {
+            "$ref" : "#/components/schemas/Anamnese"
+          },
+          "bairro" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "cep" : {
+            "type" : "string",
+            "pattern" : "^[0-9]{8}$"
+          },
+          "cidade" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "complemento" : {
+            "type" : "string",
+            "maxLength" : 100,
+            "minLength" : 0
+          },
+          "cpf" : {
+            "type" : "string",
+            "pattern" : "^[0-9]{11}$"
+          },
+          "dataNascimento" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "email" : {
+            "type" : "string",
+            "format" : "email",
+            "maxLength" : 254,
+            "minLength" : 0
+          },
+          "idPlanoConvenio" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "logradouro" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          },
+          "nomeCompleto" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "numero" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "numeroCarteirinha" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "profissao" : {
+            "type" : "string",
+            "maxLength" : 80,
+            "minLength" : 0
+          },
+          "responsavelLegal" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "rg" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "telefoneCelular" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "uf" : {
+            "type" : "string",
+            "pattern" : "^[A-Z]{2}$"
+          }
+        },
+        "required" : [ "nomeCompleto" ]
+      },
+      "NovoProcedimento" : {
+        "type" : "object",
+        "properties" : {
+          "codigoTuss" : {
+            "type" : "string",
+            "maxLength" : 20,
+            "minLength" : 0
+          },
+          "duracaoMinutos" : {
+            "type" : "integer",
+            "format" : "int32",
+            "exclusiveMinimum" : 0
+          },
+          "nomeServico" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          },
+          "precoParticular" : {
+            "type" : "number",
+            "minimum" : 0
+          }
+        },
+        "required" : [ "nomeServico", "precoParticular" ]
+      },
+      "NovoProduto" : {
+        "type" : "object",
+        "properties" : {
+          "controlaLote" : {
+            "type" : "boolean"
+          },
+          "idFornecedorPadrao" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeProduto" : {
+            "type" : "string",
+            "maxLength" : 120,
+            "minLength" : 0
+          },
+          "pontoPedido" : {
+            "type" : "number",
+            "minimum" : 0
+          },
+          "unidadeMedida" : {
+            "type" : "string",
+            "maxLength" : 30,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "nomeProduto", "unidadeMedida" ]
+      },
+      "NovoRecebivel" : {
+        "type" : "object",
+        "properties" : {
+          "idConvenio" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idOrcamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "parcelas" : {
+            "type" : "integer",
+            "format" : "int32",
+            "maximum" : 120,
+            "minimum" : 1
+          },
+          "primeiroVencimento" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "valorTotal" : {
+            "type" : "number",
+            "exclusiveMinimum" : 0
+          }
+        },
+        "required" : [ "primeiroVencimento", "valorTotal" ]
+      },
+      "NovoTermo" : {
+        "type" : "object",
+        "properties" : {
+          "ativoDesde" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "textoIntegral" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "tipo" : {
+            "type" : "string",
+            "minLength" : 1
+          },
+          "versao" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "ativoDesde", "textoIntegral", "tipo", "versao" ]
+      },
+      "Oposicao" : {
+        "type" : "object",
+        "properties" : {
+          "idEvento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "texto" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          },
+          "token" : {
+            "type" : "string",
+            "maxLength" : 64,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "idEvento", "texto", "token" ]
+      },
+      "OrcamentoDetalhado" : {
+        "type" : "object",
+        "properties" : {
+          "cabecalho" : {
+            "$ref" : "#/components/schemas/OrcamentoResumo"
+          },
+          "itens" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ItemResumo"
+            }
+          },
+          "observacoes" : {
+            "type" : "string"
+          }
+        }
+      },
+      "OrcamentoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "aprovadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "criadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idOrcamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "validadeEm" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "valorBruto" : {
+            "type" : "number"
+          },
+          "valorDesconto" : {
+            "type" : "number"
+          },
+          "valorFinal" : {
+            "type" : "number"
+          }
+        }
+      },
+      "PacienteResumo" : {
+        "type" : "object",
+        "properties" : {
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPessoa" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeCompleto" : {
+            "type" : "string"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "telefoneCelular" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Painel" : {
+        "type" : "object",
+        "properties" : {
+          "acessos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Acesso"
+            }
+          },
+          "clinica" : {
+            "type" : "string"
+          },
+          "preferencias" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/Preferencia"
+            }
+          }
+        }
+      },
+      "PedidoAtualizacao" : {
+        "type" : "object",
+        "properties" : {
+          "papel" : {
+            "type" : "string",
+            "enum" : [ "ADMIN", "DENTISTA", "RECEPCIONISTA", "FINANCEIRO", "AUXILIAR" ]
+          },
+          "status" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "papel", "status" ]
+      },
+      "PedidoCadastro" : {
+        "type" : "object",
+        "properties" : {
+          "cnpj" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "^([0-9]{11}|[0-9]{14})$"
+          },
+          "nomeAdmin" : {
+            "type" : "string",
+            "maxLength" : 150,
+            "minLength" : 0
+          },
+          "nomeFantasia" : {
+            "type" : "string",
+            "maxLength" : 60,
+            "minLength" : 0
+          },
+          "plano" : {
+            "type" : "string"
+          },
+          "razaoSocial" : {
+            "type" : "string",
+            "maxLength" : 144,
+            "minLength" : 0
+          },
+          "timezone" : {
+            "type" : "string"
+          }
+        },
+        "required" : [ "cnpj", "nomeAdmin", "nomeFantasia", "razaoSocial" ]
+      },
+      "PedidoCancelamento" : {
+        "type" : "object",
+        "properties" : {
+          "motivo" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "motivo" ]
+      },
+      "PedidoConclusao" : {
+        "type" : "object",
+        "properties" : {
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        }
+      },
+      "PedidoConfirmacao" : {
+        "type" : "object",
+        "properties" : {
+          "anexo" : {
+            "$ref" : "#/components/schemas/NovoAnexo"
+          },
+          "chave" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "chave" ]
+      },
+      "PedidoDeNota" : {
+        "type" : "object",
+        "properties" : {
+          "ditado" : {
+            "type" : "string",
+            "maxLength" : 8000,
+            "minLength" : 0
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "ditado", "idPaciente" ]
+      },
+      "PedidoDePlano" : {
+        "type" : "object",
+        "properties" : {
+          "idOrcamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "idOrcamento" ]
+      },
+      "PedidoEstorno" : {
+        "type" : "object",
+        "properties" : {
+          "motivo" : {
+            "type" : "string",
+            "maxLength" : 280,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "motivo" ]
+      },
+      "PedidoEvolucao" : {
+        "type" : "object",
+        "properties" : {
+          "descricao" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          }
+        },
+        "required" : [ "descricao" ]
+      },
+      "PedidoLancamento" : {
+        "type" : "object",
+        "properties" : {
+          "condicao" : {
+            "type" : "string",
+            "minLength" : 1,
+            "pattern" : "^(higido|carie|restauracao|ausente|implante|coroa|canal|fratura|extraido|selante|protese)$"
+          },
+          "dente" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "face" : {
+            "type" : "string",
+            "pattern" : "^[VLMDOIP]$"
+          },
+          "observacao" : {
+            "type" : "string",
+            "maxLength" : 300,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "condicao", "dente" ]
+      },
+      "PedidoPagamento" : {
+        "type" : "object",
+        "properties" : {
+          "pagoEm" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "PedidoRecusa" : {
+        "type" : "object",
+        "properties" : {
+          "motivo" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "motivo" ]
+      },
+      "PedidoRetificacao" : {
+        "type" : "object",
+        "properties" : {
+          "descricao" : {
+            "type" : "string",
+            "maxLength" : 20000,
+            "minLength" : 0
+          },
+          "motivo" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "descricao", "motivo" ]
+      },
+      "Pendencia" : {
+        "type" : "object",
+        "properties" : {
+          "descricao" : {
+            "type" : "string"
+          },
+          "idConsulta" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idItem" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomePaciente" : {
+            "type" : "string"
+          },
+          "quando" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "tipo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Plano" : {
+        "type" : "object",
+        "properties" : {
+          "codigo" : {
+            "type" : "string"
+          },
+          "maxMensagensMes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "maxProfissionais" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nome" : {
+            "type" : "string"
+          },
+          "permitePermissaoPorPerfil" : {
+            "type" : "boolean"
+          },
+          "precoMensalCentavos" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      },
+      "PlanoExplicado" : {
+        "type" : "object",
+        "properties" : {
+          "idChamada" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "procedimentos" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "versaoPaciente" : {
+            "type" : "string"
+          },
+          "versaoTecnica" : {
+            "type" : "string"
+          }
+        }
+      },
+      "PosicaoProduto" : {
+        "type" : "object",
+        "properties" : {
+          "abaixoDoPontoPedido" : {
+            "type" : "boolean"
+          },
+          "idProduto" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeProduto" : {
+            "type" : "string"
+          },
+          "pontoPedido" : {
+            "type" : "number"
+          },
+          "quantidadeAtual" : {
+            "type" : "number"
+          },
+          "unidadeMedida" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Preferencia" : {
+        "type" : "object",
+        "properties" : {
+          "alteradaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "descricao" : {
+            "type" : "string"
+          },
+          "finalidade" : {
+            "type" : "string"
+          },
+          "origem" : {
+            "type" : "string"
+          },
+          "permitido" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "ProcedimentoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "codigoTuss" : {
+            "type" : "string"
+          },
+          "duracaoMinutos" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "idProcedimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeServico" : {
+            "type" : "string"
+          },
+          "precoParticular" : {
+            "type" : "number"
+          }
+        }
+      },
+      "ProdutoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "controlaLote" : {
+            "type" : "boolean"
+          },
+          "idFornecedorPadrao" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idProduto" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeProduto" : {
+            "type" : "string"
+          },
+          "pontoPedido" : {
+            "type" : "number"
+          },
+          "unidadeMedida" : {
+            "type" : "string"
+          }
+        }
+      },
+      "RascunhoDeNota" : {
+        "type" : "object",
+        "properties" : {
+          "evolucao" : {
+            "type" : "string"
+          },
+          "idChamada" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "lancamentos" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LancamentoSugerido"
+            }
+          },
+          "naoConfirmado" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          }
+        }
+      },
+      "RecebivelDetalhado" : {
+        "type" : "object",
+        "properties" : {
+          "extrato" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/LancamentoResumo"
+            }
+          },
+          "recebivel" : {
+            "$ref" : "#/components/schemas/RecebivelResumo"
+          }
+        }
+      },
+      "RecebivelResumo" : {
+        "type" : "object",
+        "properties" : {
+          "idOrcamento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idRecebivel" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "parcelaNumero" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "parcelaTotal" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "saldoDevedor" : {
+            "type" : "number"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "valorLiquidado" : {
+            "type" : "number"
+          },
+          "valorParcela" : {
+            "type" : "number"
+          },
+          "vencimentoEm" : {
+            "type" : "string",
+            "format" : "date"
+          }
+        }
+      },
+      "RegraComissao" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "baseCalculo" : {
+            "type" : "string"
+          },
+          "idDentista" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idProcedimento" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idRegra" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "percentual" : {
+            "type" : "number"
+          }
+        }
+      },
+      "Resposta" : {
+        "type" : "object",
+        "properties" : {
+          "texto" : {
+            "type" : "string",
+            "maxLength" : 1000,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "texto" ]
+      },
+      "RespostaSolicitacao" : {
+        "type" : "object",
+        "properties" : {
+          "chaveObjetoResposta" : {
+            "type" : "string",
+            "maxLength" : 500,
+            "minLength" : 0
+          },
+          "justificativa" : {
+            "type" : "string",
+            "maxLength" : 4000,
+            "minLength" : 0
+          },
+          "status" : {
+            "type" : "string",
+            "minLength" : 1
+          }
+        },
+        "required" : [ "status" ]
+      },
+      "ResumoDoPaciente" : {
+        "type" : "object",
+        "properties" : {
+          "agenda" : {
+            "$ref" : "#/components/schemas/SecaoSituacaoNaAgenda"
+          },
+          "alertas" : {
+            "$ref" : "#/components/schemas/SecaoAlertasClinicos"
+          },
+          "financeiro" : {
+            "$ref" : "#/components/schemas/SecaoSituacaoFinanceira"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomePaciente" : {
+            "type" : "string"
+          },
+          "planoEmAberto" : {
+            "$ref" : "#/components/schemas/SecaoListItemDePlano"
+          },
+          "ultimaEvolucao" : {
+            "$ref" : "#/components/schemas/SecaoEvolucaoResumo"
+          }
+        }
+      },
+      "ResumoFinanceiro" : {
+        "type" : "object",
+        "properties" : {
+          "aPagar" : {
+            "type" : "number"
+          },
+          "aReceber" : {
+            "type" : "number"
+          },
+          "comissoesPrevistas" : {
+            "type" : "number"
+          },
+          "recebidoNoPeriodo" : {
+            "type" : "number"
+          },
+          "vencido" : {
+            "type" : "number"
+          }
+        }
+      },
+      "SecaoAlertasClinicos" : {
+        "type" : "object",
+        "properties" : {
+          "dados" : {
+            "$ref" : "#/components/schemas/AlertasClinicos"
+          },
+          "permitido" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SecaoEvolucaoResumo" : {
+        "type" : "object",
+        "properties" : {
+          "dados" : {
+            "$ref" : "#/components/schemas/EvolucaoResumo"
+          },
+          "permitido" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SecaoListItemDePlano" : {
+        "type" : "object",
+        "properties" : {
+          "dados" : {
+            "type" : "array",
+            "items" : {
+              "$ref" : "#/components/schemas/ItemDePlano"
+            }
+          },
+          "permitido" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SecaoSituacaoFinanceira" : {
+        "type" : "object",
+        "properties" : {
+          "dados" : {
+            "$ref" : "#/components/schemas/SituacaoFinanceira"
+          },
+          "permitido" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SecaoSituacaoNaAgenda" : {
+        "type" : "object",
+        "properties" : {
+          "dados" : {
+            "$ref" : "#/components/schemas/SituacaoNaAgenda"
+          },
+          "permitido" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SituacaoFinanceira" : {
+        "type" : "object",
+        "properties" : {
+          "emAberto" : {
+            "type" : "number"
+          },
+          "parcelasEmAberto" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "vencido" : {
+            "type" : "number"
+          }
+        }
+      },
+      "SituacaoNaAgenda" : {
+        "type" : "object",
+        "properties" : {
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "proximaMarcada" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "ultimaRealizada" : {
+            "type" : "string",
+            "format" : "date-time"
+          }
+        }
+      },
+      "SolicitacaoTitular" : {
+        "type" : "object",
+        "properties" : {
+          "abertaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "detalhe" : {
+            "type" : "string"
+          },
+          "direito" : {
+            "type" : "string"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idSolicitacao" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "justificativaRecusa" : {
+            "type" : "string"
+          },
+          "prazoRespostaEm" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "respondidaEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "status" : {
+            "type" : "string"
+          },
+          "vencida" : {
+            "type" : "boolean"
+          }
+        }
+      },
+      "SugestaoCompra" : {
+        "type" : "object",
+        "properties" : {
+          "consumoDiario" : {
+            "type" : "number"
+          },
+          "idProduto" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "nomeProduto" : {
+            "type" : "string"
+          },
+          "pontoPedido" : {
+            "type" : "number"
+          },
+          "quantidadeAtual" : {
+            "type" : "number"
+          },
+          "quantidadeSugerida" : {
+            "type" : "number"
+          },
+          "unidadeMedida" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Tema" : {
+        "type" : "object",
+        "properties" : {
+          "chave" : {
+            "type" : "string"
+          },
+          "texto" : {
+            "type" : "string"
+          },
+          "titulo" : {
+            "type" : "string"
+          }
+        }
+      },
+      "Termo" : {
+        "type" : "object",
+        "properties" : {
+          "ativo" : {
+            "type" : "boolean"
+          },
+          "ativoDesde" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "criadoEm" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "idTermo" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "textoIntegral" : {
+            "type" : "string"
+          },
+          "tipo" : {
+            "type" : "string"
+          },
+          "versao" : {
+            "type" : "string"
+          }
+        }
+      },
+      "TratamentoParado" : {
+        "type" : "object",
+        "properties" : {
+          "diasParado" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "idPaciente" : {
+            "type" : "integer",
+            "format" : "int64"
+          },
+          "itensEmAberto" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "nomePaciente" : {
+            "type" : "string"
+          },
+          "paradoDesde" : {
+            "type" : "string",
+            "format" : "date-time"
+          },
+          "procedimentos" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
+          "telefone" : {
+            "type" : "string"
+          },
+          "valorEmAberto" : {
+            "type" : "number"
+          }
+        }
+      },
+      "UsoDoPlano" : {
+        "type" : "object",
+        "properties" : {
+          "competencia" : {
+            "type" : "string",
+            "format" : "date"
+          },
+          "maxMensagensMes" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "maxProfissionais" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "mensagensEnviadas" : {
+            "type" : "integer",
+            "format" : "int32"
+          },
+          "plano" : {
+            "type" : "string"
+          },
+          "profissionaisAtivos" : {
+            "type" : "integer",
+            "format" : "int32"
+          }
+        }
+      }
+    },
+    "securitySchemes" : {
+      "clerk" : {
+        "bearerFormat" : "JWT",
+        "scheme" : "bearer",
+        "type" : "http"
+      }
+    }
+  }
+}
