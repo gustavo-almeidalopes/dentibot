@@ -1,6 +1,7 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
 import { createContext, useContext } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useSemConexao } from '../components/SessaoOffline.jsx';
 import { Esqueleto } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
 import { CADASTRO, MENU, recursoDaTela } from '../rotas.js';
@@ -88,6 +89,7 @@ function Autenticado() {
   if (eu.status !== 'ok') {
     return (
       <main id="main" className="app-main edge">
+        <SemConexao />
         <Estado status={eu.status} erro={eu.erro} onTentarDeNovo={eu.recarregar} />
       </main>
     );
@@ -125,6 +127,7 @@ function Autenticado() {
       </header>
 
       <main id="main" className="app-main edge">
+        <SemConexao />
         {/* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
             viraria uma tela de erro técnica. Isto responde a mesma negativa em
             português, sem nunca ser a razão pela qual o acesso foi negado. */}
@@ -204,5 +207,17 @@ export function Cabecalho({ titulo, detalhe, acao }) {
       </div>
       {acao}
     </div>
+  );
+}
+
+/* Sem rede, cada tela vira erro de carregamento. Dizer o porquê, e onde está
+   a agenda que ficou salva (ST-54), vale mais que o "tente de novo". */
+function SemConexao() {
+  if (!useSemConexao()) return null;
+  return (
+    <p className="faixa-offline" role="status">
+      Sem conexão. Nada do que você fizer agora é enviado.{' '}
+      <a href="/agenda-offline.html">Ver a agenda salva</a>
+    </p>
   );
 }

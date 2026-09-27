@@ -5,6 +5,7 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';
 import Login from './components/Login.jsx';
+import SessaoOffline from './components/SessaoOffline.jsx';
 import Acompanhamento from './paginas/Acompanhamento.jsx';
 import Agenda from './paginas/Agenda.jsx';
 import Auditoria from './paginas/Auditoria.jsx';
@@ -84,6 +85,7 @@ createRoot(document.getElementById('root')).render(
         signUpUrl={CRIAR}
         afterSignOutUrl="/"
       >
+        <SessaoOffline />
         <Routes>
           <Route path="/" element={<App />} />
           <Route path={LOGIN} element={<Login />} />

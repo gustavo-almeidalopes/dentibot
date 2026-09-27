@@ -463,3 +463,6 @@
 .titular-form button { justify-self: start; }
 .titular-texto { margin-top: 12px; }
 .titular-secao > .sub { margin-bottom: 4px; }
+
+/* Sem conexão (ST-54): alarme de verdade — o vermelho é a borda, não o texto. */
+.faixa-offline { border: 1px solid var(--hair); border-left: 6px solid var(--alarm); padding: 10px 14px; margin: 0 0 var(--spacing-20, 20px); }
