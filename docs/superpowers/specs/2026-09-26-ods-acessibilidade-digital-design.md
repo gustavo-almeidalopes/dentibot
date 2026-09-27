@@ -283,7 +283,10 @@ adaptado ao português (Martins et al., 1996:
 saúde — o aviso e as oito perguntas — e reprova abaixo de 75, onde começa a faixa
 "muito fácil". Medido: o texto de hoje dá 58,1 e passaria num piso de 50 com
 "cardíacos", "hipertensão" e "uso contínuo"; a revisão ("pressão alta", "remédio
-todo dia") dá 89,4. O método é heurístico — sílaba contada por grupo vocálico —,
+sempre, mesmo que não seja todo dia") dá 90,2. A primeira versão desta revisão
+dizia "remédio todo dia" e estreitava a pergunta clínica — bisfosfonato semanal e
+denosumabe semestral ficavam de fora, e é o que importa antes de extração ou
+implante —; um teste trava o sentido. O método é heurístico — sílaba contada por grupo vocálico —,
 e o documento de acessibilidade diz isso.
 
 **Roteiro manual** para as telas autenticadas, a cada release: só teclado (ordem

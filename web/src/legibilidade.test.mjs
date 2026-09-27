@@ -38,6 +38,14 @@ test('a fórmula dá os valores de referência', () => {
   assert.ok(Math.abs(flesch(['O gato bebe leite. A casa é grande.']) - 107.3) < 0.001);
 });
 
+test('a pergunta de remédio contínuo não se limita ao que é diário', () => {
+  // Bisfosfonato semanal, ácido zoledrônico anual, denosumabe semestral: é o que
+  // o dentista precisa saber antes de extração ou implante (osteonecrose dos
+  // maxilares). "Toma algum remédio todo dia?" fazia quem toma um deles deixar
+  // o campo em branco — a legibilidade não pode custar o sentido clínico.
+  assert.match(TRIAGEM.medicamentoContinuo, /mesmo que não seja todo dia/);
+});
+
 test('a triagem de saúde se lê sem esforço', () => {
   // O paciente preenche isto sozinho no pré-cadastro. "Cardíacos",
   // "hipertensão" e "uso contínuo" davam 58,1 — passariam num piso de 50.

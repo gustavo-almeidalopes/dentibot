@@ -9,7 +9,7 @@ export const TRIAGEM = {
   aviso: 'Suas respostas sobre saúde são protegidas pela LGPD. Só a equipe que cuida de você lê.',
   emTratamentoMedico: 'Faz algum tratamento médico agora?',
   condicaoSistemica: 'Tem problema de coração, diabetes ou pressão alta?',
-  medicamentoContinuo: 'Toma algum remédio todo dia? Qual?',
+  medicamentoContinuo: 'Toma algum remédio sempre, mesmo que não seja todo dia? Qual?',
   alergia: 'Tem alergia a remédio ou a látex? Qual?',
   gravidez: 'Está grávida?',
   motivoConsulta: 'Por que você quer a consulta?',

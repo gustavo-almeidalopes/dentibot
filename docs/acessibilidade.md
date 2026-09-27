@@ -71,8 +71,13 @@ cai; o `RecuperaCarga` troca a tela branca por uma frase e "Tentar de novo".
 
 **Linguagem simples.** A triagem de saúde da ficha, que o paciente lê sozinho no
 pré-cadastro, dava 58,1 no Flesch adaptado ao português — "cardíacos",
-"hipertensão", "uso contínuo". Reescrita ("pressão alta", "remédio todo dia"),
-dá 89,4. A contagem de sílabas é heurística e serve para comparar versões.
+"hipertensão", "uso contínuo". Reescrita ("pressão alta", "remédio sempre,
+mesmo que não seja todo dia"), dá 90,2. A primeira reescrita dizia "remédio
+todo dia" e deixava de fora o que o dentista mais precisa saber antes de
+extração ou implante — bisfosfonato semanal, denosumabe semestral, pelo risco
+de osteonecrose dos maxilares; um teste trava o sentido, porque legibilidade não
+mede significado. A contagem de sílabas é heurística e serve para comparar
+versões. A redação merece a leitura de um dentista.
 
 ### Achados do axe
 
