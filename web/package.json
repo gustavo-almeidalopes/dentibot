@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test src/*.test.mjs",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "e2e": "playwright test"
   },
   "dependencies": {
     "@clerk/localizations": "^4.16.1",
@@ -19,7 +20,9 @@
     "react-router-dom": "^7.18.3"
   },
   "devDependencies": {
+    "@clerk/testing": "^2.2.39",
     "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",

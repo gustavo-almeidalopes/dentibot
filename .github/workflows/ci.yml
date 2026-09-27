@@ -53,6 +53,9 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # ST-46: as jornadas públicas no Chrome do runner. As logadas pedem
+      # E2E_EMAIL e as chaves do Clerk, e rodam local (README, "Verificar").
+      - run: npm run e2e
 
   app:
     runs-on: ubuntu-latest

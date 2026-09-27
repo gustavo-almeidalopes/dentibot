@@ -71,6 +71,18 @@ endpoint? O `ContratoOpenApiTest` falha até o arquivo ser regenerado —
 aparece no diff do PR. Do outro lado, `contrato.test.mjs` no `web/` e no `app/`
 confere cada chamada dos clientes contra esse arquivo (ST-55).
 
+`cd web && npm run e2e` roda as jornadas no Chrome (ST-46). As públicas rodam
+sempre, inclusive no CI; as logadas — agenda, pacientes, financeiro e o
+cadastro de paciente até a evolução no prontuário — pedem a API de pé
+(`iniciar.bat`) e `E2E_EMAIL`, um usuário do Clerk de dev sem 2FA que já passou
+pelo `/cadastro`. `E2E_URL` aponta para um deploy e vira smoke: lá a jornada
+que grava dados não roda.
+
+Carga (ST-47) é `perf/agenda.js`, em k6 pelo Docker; o cabeçalho do script diz
+como rodar e o que a API precisa. Reprova com p95 da agenda acima de 400 ms ou
+qualquer endpoint 20% pior que `perf/linha-de-base.json` (`GRAVAR=1` a
+regrava).
+
 ## Operar
 
 | Onde | O quê | Variável |
