@@ -437,3 +437,29 @@
 /* Liga/desliga de recurso de IA: checkbox nativo, canto vivo, sem cor além da tinta. */
 .campo-check { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
 .campo-check input { accent-color: var(--tinta); border-radius: 0; }
+
+/* Conversas (Doc 03-D). Urgência é o único vermelho da tela, e como borda e
+   marcador — nunca como cor de texto, que no papel não passa em contraste. */
+.conversas { display: grid; gap: 12px; }
+.conversa { border: 1px solid var(--hair); border-left-width: 6px; padding: 14px 16px; background: var(--superficie); }
+.conversa[data-alarme="sim"] { border-left-color: var(--alarm); }
+.conversa-urgente { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.conversa-urgente::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; background: var(--alarm); }
+.conversa-texto, .mensagem-texto { white-space: pre-wrap; overflow-wrap: anywhere; }
+.conversa-resposta { margin-top: 10px; }
+.form-linha { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.orientacao-previa { border-left: 1px solid var(--hair); padding-left: 12px; max-width: 72ch; }
+.preferencia { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 10px; border-bottom: 1px solid var(--hair-fraca); }
+.link-titular { overflow-wrap: anywhere; font-family: ui-monospace, monospace; font-size: 13px; }
+
+/* Página do titular: pública, preta como a landing, uma coluna só. */
+.titular-texto { max-width: 60ch; }
+.titular-secao { margin-top: var(--spacing-50, 50px); max-width: 72ch; }
+.titular-lista { list-style: none; margin: 16px 0 0; padding: 0; }
+.titular-lista > li { padding-block: 16px; border-top: 1px solid var(--tinta-fraca); display: grid; gap: 8px; justify-items: start; }
+.titular-form { display: grid; gap: 8px; width: 100%; }
+.titular-form textarea { width: 100%; background: transparent; color: inherit; border: 1px solid var(--tinta-fraca); border-radius: 0; padding: 10px; font: inherit; }
+.titular-erro { border-left: 3px solid var(--alarm); padding-left: 10px; }
+.titular-form button { justify-self: start; }
+.titular-texto { margin-top: 12px; }
+.titular-secao > .sub { margin-bottom: 4px; }

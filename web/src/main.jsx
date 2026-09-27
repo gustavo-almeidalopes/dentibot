@@ -9,6 +9,7 @@ import Acompanhamento from './paginas/Acompanhamento.jsx';
 import Agenda from './paginas/Agenda.jsx';
 import Auditoria from './paginas/Auditoria.jsx';
 import Cadastro from './paginas/Cadastro.jsx';
+import Conversas from './paginas/Conversas.jsx';
 import Equipe from './paginas/Equipe.jsx';
 import Estoque from './paginas/Estoque.jsx';
 import Financeiro from './paginas/Financeiro.jsx';
@@ -17,12 +18,13 @@ import Layout from './paginas/Layout.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
 import Pacientes from './paginas/Pacientes.jsx';
 import Prontuario from './paginas/Prontuario.jsx';
+import Titular from './paginas/Titular.jsx';
 import './style.css';
 import './app.css';
 import { ligarErros } from './erros.js';
 import {
-  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, ESTOQUE, FINANCEIRO, IA, LOGIN,
-  PACIENTES, PRONTUARIO,
+  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CONVERSAS, CRIAR, EQUIPE, ESTOQUE, FINANCEIRO, IA,
+  LOGIN, PACIENTES, PRONTUARIO, TITULAR,
 } from './rotas.js';
 
 /* Router de verdade, e não o mapa de `window.location.pathname` que estava
@@ -88,11 +90,13 @@ createRoot(document.getElementById('root')).render(
           {/* Fora do Layout de propósito: quem chega aqui ainda não tem clínica,
               e o menu do Layout só aponta para telas que responderiam 401. */}
           <Route path={CADASTRO} element={<Cadastro />} />
+          <Route path={TITULAR} element={<Titular />} />
 
           {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
           <Route element={<Layout />}>
             <Route path={AGENDA} element={<Agenda />} />
             <Route path={PACIENTES} element={<Pacientes />} />
+            <Route path={CONVERSAS} element={<Conversas />} />
             <Route path={PRONTUARIO} element={<Prontuario />} />
             <Route path={ACOMPANHAMENTO} element={<Acompanhamento />} />
             <Route path={FINANCEIRO} element={<Financeiro />} />

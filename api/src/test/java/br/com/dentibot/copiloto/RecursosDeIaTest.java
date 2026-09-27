@@ -40,7 +40,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -52,8 +51,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 /** Doc 03-C: nota a partir do ditado (IA-01) e plano em duas linguagens (IA-04). */
 @DisplayName("Recursos de IA generativa (Doc 03-C)")
 class RecursosDeIaTest extends TesteIntegracao {
-
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     @MockitoBean private ClienteAnthropic cliente;
     @Autowired private CopilotoServico copiloto;

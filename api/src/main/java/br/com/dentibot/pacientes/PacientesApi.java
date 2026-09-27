@@ -11,6 +11,9 @@ public interface PacientesApi {
     /** Resumo para listagem em outros módulos (agenda, financeiro). */
     Map<Long, PacienteResumo> mapaDeResumos(Collection<Long> idsPaciente);
 
+    /** Pacientes da clínica com este celular (qualquer formato). Sem permissão: é busca de sistema. */
+    List<Long> porCelular(String telefone);
+
     List<PacienteResumo> listarResumos(int limite, long apos);
 
     long criar(NovoPaciente novo);

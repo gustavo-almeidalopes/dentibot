@@ -5,6 +5,8 @@ import br.com.dentibot.lgpd.Termo;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -152,6 +154,95 @@ public class LgpdRepositorio {
                 .update();
     }
 
+    // ─── Preferências por finalidade ─────────────────────────────────────────
+
+    public record LinhaPreferencia(String finalidade, boolean permitido, Instant em, String origem) {
+    }
+
+    /** A mais recente de cada finalidade — o estado atual. */
+    public List<LinhaPreferencia> preferenciasAtuais(long idPaciente) {
+        return jdbc.sql("""
+                        SELECT DISTINCT ON (finalidade) finalidade, permitido, created_at, origem
+                        FROM lgpd.preferencias
+                        WHERE id_paciente = :paciente
+                        ORDER BY finalidade, id_preferencia DESC
+                        """)
+                .param("paciente", idPaciente)
+                .query((rs, n) -> new LinhaPreferencia(rs.getString("finalidade"),
+                        rs.getBoolean("permitido"), rs.getTimestamp("created_at").toInstant(),
+                        rs.getString("origem")))
+                .list();
+    }
+
+    public void inserirPreferencia(long idPaciente, String finalidade, boolean permitido,
+                                   String origem, Long idUsuario) {
+        jdbc.sql("""
+                        INSERT INTO lgpd.preferencias
+                            (id_clinica, id_paciente, finalidade, permitido, origem, id_usuario)
+                        VALUES (:clinica, :paciente, :finalidade, :permitido, :origem, :usuario)
+                        """)
+                .param("clinica", ContextoAtual.clinicaObrigatoria())
+                .param("paciente", idPaciente)
+                .param("finalidade", finalidade)
+                .param("permitido", permitido)
+                .param("origem", origem)
+                .param("usuario", idUsuario)
+                .update();
+    }
+
+    // ─── Link do titular ─────────────────────────────────────────────────────
+
+    public void inserirAcessoDoTitular(long idPaciente, String tokenSha256, Instant expiraEm,
+                                       long criadoPor) {
+        jdbc.sql("""
+                        INSERT INTO lgpd.acessos_titular
+                            (id_clinica, id_paciente, token_sha256, expira_em, criado_por)
+                        VALUES (:clinica, :paciente, :token, :expira, :usuario)
+                        """)
+                .param("clinica", ContextoAtual.clinicaObrigatoria())
+                .param("paciente", idPaciente)
+                .param("token", tokenSha256)
+                .param("expira", Timestamp.from(expiraEm))
+                .param("usuario", criadoPor)
+                .update();
+    }
+
+    /** Link novo derruba os anteriores: um paciente, um link vivo. */
+    public int revogarAcessosDoTitular(long idPaciente) {
+        return jdbc.sql("""
+                        UPDATE lgpd.acessos_titular SET revogado_em = now()
+                        WHERE id_paciente = :paciente AND revogado_em IS NULL
+                        """)
+                .param("paciente", idPaciente)
+                .update();
+    }
+
+    public record Titular(long idClinica, long idPaciente) {
+    }
+
+    /** Pela função SECURITY DEFINER da V25: roda sem tenant, recebe só o hash. */
+    public Optional<Titular> titularDoToken(String tokenSha256) {
+        return jdbc.sql("SELECT * FROM lgpd.titular_do_token(:token)")
+                .param("token", tokenSha256)
+                .query((rs, n) -> new Titular(rs.getLong("id_clinica"), rs.getLong("id_paciente")))
+                .optional();
+    }
+
+    public long inserirOposicao(long idPaciente, String detalhe, LocalDate prazo) {
+        return jdbc.sql("""
+                        INSERT INTO lgpd.solicitacoes_titular
+                            (id_clinica, id_paciente, direito, prazo_resposta_em, detalhe)
+                        VALUES (:clinica, :paciente, 'oposicao', :prazo, :detalhe)
+                        RETURNING id_solicitacao
+                        """)
+                .param("clinica", ContextoAtual.clinicaObrigatoria())
+                .param("paciente", idPaciente)
+                .param("prazo", prazo)
+                .param("detalhe", detalhe)
+                .query(Long.class)
+                .single();
+    }
+
     // ─── Solicitações do titular ─────────────────────────────────────────────
 
     public List<SolicitacaoTitular> listarSolicitacoes(String status) {
@@ -159,6 +250,7 @@ public class LgpdRepositorio {
                         SELECT id_solicitacao, id_paciente, direito, aberta_em,
                                prazo_resposta_em, status, justificativa_recusa,
                                respondida_em,
+                               detalhe,
                                (respondida_em IS NULL AND prazo_resposta_em < CURRENT_DATE)
                                    AS vencida
                         FROM lgpd.solicitacoes_titular
@@ -242,6 +334,7 @@ public class LgpdRepositorio {
                 rs.getString("justificativa_recusa"),
                 rs.getTimestamp("respondida_em") == null
                         ? null : rs.getTimestamp("respondida_em").toInstant(),
-                rs.getBoolean("vencida"));
+                rs.getBoolean("vencida"),
+                rs.getString("detalhe"));
     }
 }

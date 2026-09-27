@@ -27,6 +27,12 @@ public interface IdentidadeApi {
     Map<Long, PessoaResumo> mapaDeResumos(Collection<Long> idsPessoa);
 
     /**
+     * Pessoas da clínica com este celular, pela {@link Celular#chave}. Lista, e
+     * não uma: a mãe e os filhos costumam dividir o número.
+     */
+    List<Long> pessoasPorCelular(String chave);
+
+    /**
      * Todos os dados de identificação da pessoa — CPF, endereço. Só para
      * portabilidade (LGPD art. 18), e por isso só com permissão de LGPD.
      */

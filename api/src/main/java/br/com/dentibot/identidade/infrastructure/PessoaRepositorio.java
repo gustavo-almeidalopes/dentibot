@@ -72,6 +72,21 @@ public class PessoaRepositorio {
                 .optional();
     }
 
+    public List<PessoaResumo> porFinalDoCelular(String final8) {
+        return jdbc.sql("""
+                        SELECT id_pessoa, nome_completo, telefone_celular
+                        FROM identidade.pessoas
+                        WHERE right(regexp_replace(telefone_celular, '\\D', '', 'g'), 8) = :final
+                          AND deleted_at IS NULL
+                        """)
+                .param("final", final8)
+                .query((rs, n) -> new PessoaResumo(
+                        rs.getLong("id_pessoa"),
+                        rs.getString("nome_completo"),
+                        rs.getString("telefone_celular")))
+                .list();
+    }
+
     public List<PessoaResumo> buscarResumos(Collection<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();

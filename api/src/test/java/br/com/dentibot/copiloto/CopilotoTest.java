@@ -39,7 +39,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.HexFormat;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,8 +54,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @DisplayName("Copiloto sobre o dado existente (Doc 03-A)")
 class CopilotoTest extends TesteIntegracao {
-
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     @Autowired private OnboardingServico onboarding;
     @Autowired private IdentidadeApi identidade;

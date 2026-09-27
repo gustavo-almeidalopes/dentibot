@@ -18,7 +18,6 @@ import br.com.dentibot.plataforma.tenant.GuardaDeTransacao;
 import java.time.ZoneId;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +54,6 @@ class IsolamentoDeTenantTest extends TesteIntegracao {
     private TransactionTemplate transacao;
 
     /** Contador para CNPJ e e-mail únicos entre execuções na mesma JVM. */
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     private long clinicaA;
     private long clinicaB;

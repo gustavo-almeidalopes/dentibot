@@ -12,5 +12,6 @@ documento do repositório, não linha de banco.
 | Cloudflare (R2) | Anexos clínicos (radiografia, foto, documento) | Arquivo clínico, criptografado em repouso, sem URL pública | Quando a clínica anexa arquivo |
 | Sentry | Erros da aplicação | Pilha de erro com CPF, e-mail e telefone removidos; ids de clínica e usuário | Se `SENTRY_DSN` estiver configurado |
 | Anthropic | Recursos de IA (rascunho de nota, plano em duas linguagens) | Texto clínico **redigido**: sem nome, CPF, telefone ou e-mail | Se `DENTIBOT_IA_CHAVE` estiver configurado **e** a clínica não desligou o recurso |
+| Meta (WhatsApp Business) | Lembrete, confirmação, vaga, acompanhamento e orientação ao paciente; conversa com a recepção | Celular do paciente, data e hora da consulta, nome da clínica, o que o paciente escrever e a orientação que o dentista escolher (que revela o procedimento feito) — nunca o prontuário | Se `DENTIBOT_WHATSAPP_TOKEN` estiver configurado, a clínica ativou o canal **e** o paciente não desligou o WhatsApp |
 
 Todo sub-processador novo entra nesta tabela no mesmo PR que o integra.

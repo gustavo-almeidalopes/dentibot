@@ -3,6 +3,7 @@ package br.com.dentibot.identidade.application;
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.billing.BillingApi;
 import br.com.dentibot.billing.LimiteDoPlano;
+import br.com.dentibot.identidade.Celular;
 import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.DentistaResumo;
 import br.com.dentibot.identidade.IdentidadeApi;
@@ -70,6 +71,17 @@ public class IdentidadeServico implements IdentidadeApi {
     public Map<Long, PessoaResumo> mapaDeResumos(Collection<Long> idsPessoa) {
         return pessoas.buscarResumos(idsPessoa).stream()
                 .collect(Collectors.toMap(PessoaResumo::idPessoa, Function.identity()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> pessoasPorCelular(String chave) {
+        // O SQL filtra pelos oito finais; o DDD confere aqui, com a mesma regra
+        // que gerou a chave do outro lado.
+        return pessoas.porFinalDoCelular(chave.substring(chave.length() - 8)).stream()
+                .filter(p -> Celular.chave(p.telefoneCelular()).filter(chave::equals).isPresent())
+                .map(PessoaResumo::idPessoa)
+                .toList();
     }
 
     @Override

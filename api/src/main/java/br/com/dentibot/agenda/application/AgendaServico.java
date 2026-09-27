@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -181,6 +182,13 @@ public class AgendaServico implements AgendaApi {
         Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.LER);
         return montar(consultas.doPaciente(idPaciente,
                 alcance == Alcance.PROPRIOS ? dentistaCorrente() : null));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ConsultaResumo> buscar(long idConsulta) {
+        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.LER));
+        return consultas.buscar(idConsulta).map(l -> montar(List.of(l)).getFirst());
     }
 
     @Override

@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 /** Porta pública do módulo agenda. */
 public interface AgendaApi {
@@ -39,4 +40,7 @@ public interface AgendaApi {
 
     /** Todas as consultas de um paciente, da mais recente para a mais antiga. */
     List<ConsultaResumo> historicoDoPaciente(long idPaciente);
+
+    /** Uma consulta, com o mesmo alcance da listagem: a de um colega é 404 para o dentista. */
+    Optional<ConsultaResumo> buscar(long idConsulta);
 }

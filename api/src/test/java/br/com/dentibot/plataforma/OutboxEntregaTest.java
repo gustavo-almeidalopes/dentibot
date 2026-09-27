@@ -18,7 +18,6 @@ import java.time.ZoneId;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -48,7 +47,6 @@ class OutboxEntregaTest extends TesteIntegracao {
     /** O que o consumidor espião leu em app.clinica, por evento. */
     private static final Map<UUID, String> CLINICA_VISTA = new ConcurrentHashMap<>();
 
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     @TestConfiguration
     static class Consumidores {

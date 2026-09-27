@@ -66,6 +66,20 @@ public class PacienteRepositorio {
                 .list();
     }
 
+    public List<Long> idsDasPessoas(List<Long> idsPessoa) {
+        if (idsPessoa.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.sql("""
+                        SELECT id_paciente FROM pacientes.pacientes
+                        WHERE id_pessoa IN (:ids) AND deleted_at IS NULL
+                        ORDER BY id_paciente
+                        """)
+                .param("ids", idsPessoa)
+                .query(Long.class)
+                .list();
+    }
+
     public List<LinhaPaciente> buscarPorIds(List<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();

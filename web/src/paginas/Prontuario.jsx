@@ -5,6 +5,7 @@ import { enviarAnexo } from '../anexos.js';
 import { reais } from '../apresentacao.js';
 import { CONDICOES, rotuloDaCondicao } from '../odontograma.js';
 import Ditado from '../components/Ditado.jsx';
+import MensagensDoPaciente from '../components/MensagensDoPaciente.jsx';
 import ResumoPaciente from '../components/ResumoPaciente.jsx';
 import { Aviso, Celula, Tabela } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
@@ -21,6 +22,7 @@ const INFERIOR = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38
 
 const ABAS = [
   ['evolucoes', 'Evolução'], ['odontograma', 'Odontograma'], ['anexos', 'Anexos'], ['planos', 'Planos'],
+  ['mensagens', 'Mensagens'],
 ];
 
 const TIPOS_DE_ANEXO = [
@@ -103,6 +105,7 @@ export default function Prontuario() {
         {aba === 'odontograma' && <Odontograma idPaciente={idPaciente} recurso={odontograma} />}
         {aba === 'anexos' && <Anexos idPaciente={idPaciente} />}
         {aba === 'planos' && <Planos idPaciente={idPaciente} />}
+        {aba === 'mensagens' && <MensagensDoPaciente idPaciente={idPaciente} />}
       </div>
     </>
   );

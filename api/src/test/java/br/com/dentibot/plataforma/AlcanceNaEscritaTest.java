@@ -23,7 +23,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.LongConsumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,8 +41,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @DisplayName("Alcance aplicado nas escritas")
 class AlcanceNaEscritaTest extends TesteIntegracao {
-
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     @Autowired
     private OnboardingServico onboarding;

@@ -27,7 +27,7 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
     /** Schemas cujas tabelas pertencem a uma clínica. */
     private static final String SCHEMAS_DE_DOMINIO = """
             'clinicas','identidade','pacientes','agenda','prontuario','orcamento',
-            'financeiro','billing','estoque','lgpd','auditoria','plataforma','ia'
+            'financeiro','billing','estoque','lgpd','auditoria','plataforma','ia','comunicacao'
             """;
 
     @Autowired
@@ -133,7 +133,8 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
         List<String> vazamentos = jdbc.sql("""
                         SELECT schemaname || '.' || tablename || ' / ' || policyname
                         FROM pg_policies
-                        WHERE schemaname IN ('pacientes','prontuario','agenda','lgpd','orcamento','ia')
+                        WHERE schemaname IN ('pacientes','prontuario','agenda','lgpd','orcamento','ia',
+                                             'comunicacao')
                           AND (COALESCE(qual, '') LIKE '%staff_atual%'
                                OR COALESCE(with_check, '') LIKE '%staff_atual%')
                         ORDER BY 1
@@ -194,7 +195,8 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
                                 ('financeiro','lancamentos'),
                                 ('estoque','movimentacoes'),
                                 ('ia','chamadas'),
-                                ('ia','confirmacoes'))
+                                ('ia','confirmacoes'),
+                                ('lgpd','preferencias'))
                         ORDER BY 1
                         """)
                 .query(String.class)

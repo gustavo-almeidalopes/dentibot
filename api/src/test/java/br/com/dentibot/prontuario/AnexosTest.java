@@ -23,7 +23,6 @@ import java.security.MessageDigest;
 import java.time.ZoneId;
 import java.util.HexFormat;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -58,7 +57,6 @@ class AnexosTest extends TesteIntegracao {
         registro.add("dentibot.anexos.segredo", MINIO::getPassword);
     }
 
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
     private static final HttpClient HTTP = HttpClient.newHttpClient();
 
     @Autowired private OnboardingServico onboarding;

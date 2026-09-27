@@ -21,6 +21,51 @@ public class AuditoriaRepositorio {
     }
 
     /**
+     * O que tocou no dado de um paciente (IA-52): leituras de prontuário e de
+     * LGPD guardam o id do paciente em id_recurso, sozinho ou como prefixo
+     * ("7:12" é o anexo 12 do paciente 7); a exportação do paciente também.
+     */
+    public List<LinhaEvento> doPaciente(long idPaciente, java.time.Instant desde, int limite) {
+        return jdbc.sql("""
+                        SELECT id_evento, ocorrido_em, id_usuario, staff_papel,
+                               acao, recurso, id_recurso,
+                               host(ip_origem) AS ip_origem, correlacao_id
+                        FROM auditoria.eventos
+                        WHERE ocorrido_em >= :desde
+                          -- Só as linhas cujo id_recurso É o paciente: numa criação
+                          -- de evolução o id é o da evolução, e casar por ele
+                          -- atribuiria a outro paciente o acesso deste.
+                          AND ((acao = 'leitura' AND (recurso LIKE 'prontuario.%'
+                                    OR recurso IN ('lgpd.consentimento', 'lgpd.preferencia')))
+                               OR (acao = 'exportacao' AND recurso = 'paciente')
+                               OR (acao = 'criacao'
+                                   AND recurso IN ('lgpd.preferencia', 'lgpd.acesso_titular')))
+                          AND (id_recurso = :id OR id_recurso LIKE :prefixo)
+                        ORDER BY ocorrido_em DESC
+                        LIMIT :limite
+                        """)
+                .param("desde", java.sql.Timestamp.from(desde))
+                .param("id", String.valueOf(idPaciente))
+                .param("prefixo", idPaciente + ":%")
+                .param("limite", limite)
+                .query((rs, n) -> {
+                    long bruto = rs.getLong("id_usuario");
+                    Long usuario = rs.wasNull() ? null : bruto;
+                    return new LinhaEvento(
+                            rs.getLong("id_evento"),
+                            rs.getTimestamp("ocorrido_em").toInstant(),
+                            usuario,
+                            rs.getString("staff_papel"),
+                            rs.getString("acao"),
+                            rs.getString("recurso"),
+                            rs.getString("id_recurso"),
+                            null,
+                            null);
+                })
+                .list();
+    }
+
+    /**
      * Consulta com faixa de data obrigatória: a tabela é particionada por
      * {@code ocorrido_em}, e sem o intervalo no WHERE o planner lê todas as
      * partições. Os demais filtros são opcionais e resolvidos com

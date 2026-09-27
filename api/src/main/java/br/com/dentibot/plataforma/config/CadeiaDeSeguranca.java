@@ -104,11 +104,14 @@ public class CadeiaDeSeguranca {
                         // mais JWKS: o emissor é o Clerk.
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
-                        // Sem regra para /api/v1/webhooks/** enquanto não existir
-                        // webhook: liberada de antemão, o primeiro controller
-                        // criado ali nasceria público. Quem implementar libera a
-                        // rota junto com a verificação da assinatura HMAC, antes
-                        // do parse.
+                        // Webhook um a um, nunca /webhooks/**: liberado de
+                        // antemão, o próximo controller criado ali nasceria
+                        // público. Este confere a assinatura HMAC da Meta antes
+                        // do parse (WebhookWhatsAppController).
+                        .requestMatchers("/api/v1/webhooks/whatsapp").permitAll()
+                        // Painel do titular: a credencial é o link, conferida
+                        // pelo hash na V25 — não há conta de paciente.
+                        .requestMatchers(HttpMethod.POST, "/api/v1/titular/**").permitAll()
                         // Deny by default: o que não foi liberado acima exige
                         // autenticação, inclusive rota que ainda não existe.
                         .anyRequest().authenticated())

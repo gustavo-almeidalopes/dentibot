@@ -26,7 +26,6 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -44,8 +43,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @DisplayName("Gateway de IA com governança (Doc 03-B)")
 class GatewayDeIaTest extends TesteIntegracao {
-
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     @MockitoBean private ClienteAnthropic cliente;
     @Autowired private GatewayDeIa gateway;

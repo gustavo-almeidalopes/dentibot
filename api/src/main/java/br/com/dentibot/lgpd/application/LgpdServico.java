@@ -2,20 +2,30 @@ package br.com.dentibot.lgpd.application;
 
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.lgpd.Consentimento;
+import br.com.dentibot.lgpd.Finalidade;
 import br.com.dentibot.lgpd.LgpdApi;
 import br.com.dentibot.lgpd.NovaSolicitacao;
 import br.com.dentibot.lgpd.NovoConsentimento;
 import br.com.dentibot.lgpd.NovoTermo;
+import br.com.dentibot.lgpd.Preferencia;
 import br.com.dentibot.lgpd.RespostaSolicitacao;
 import br.com.dentibot.lgpd.SolicitacaoTitular;
 import br.com.dentibot.lgpd.Termo;
 import br.com.dentibot.lgpd.infrastructure.LgpdRepositorio;
 import br.com.dentibot.lgpd.infrastructure.LgpdRepositorio.LinhaConsentimento;
+import br.com.dentibot.lgpd.infrastructure.LgpdRepositorio.LinhaPreferencia;
+import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
 import br.com.dentibot.plataforma.seguranca.Acao;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
 import br.com.dentibot.plataforma.seguranca.Recurso;
+import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,7 +53,7 @@ public class LgpdServico implements LgpdApi {
     /** Espelha o CHECK de {@code lgpd.solicitacoes_titular.direito} (art. 18). */
     private static final Set<String> DIREITOS = Set.of(
             "confirmacao", "acesso", "correcao", "anonimizacao",
-            "portabilidade", "eliminacao", "revogacao_consentimento");
+            "portabilidade", "eliminacao", "revogacao_consentimento", "oposicao");
 
     private static final Set<String> STATUS_DE_RESPOSTA = Set.of(
             "em_analise", "atendida", "recusada", "parcialmente_atendida");
@@ -215,6 +225,90 @@ public class LgpdServico implements LgpdApi {
         }
         auditoria.registrarAlteracao("lgpd.solicitacao", String.valueOf(idSolicitacao),
                 Map.of("status", "aberta"), Map.of("status", resposta.status()));
+    }
+
+    // ─── Preferências por finalidade (IA-53) ─────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean permite(long idPaciente, Finalidade finalidade) {
+        return lgpd.preferenciasAtuais(idPaciente).stream()
+                .filter(l -> l.finalidade().equals(finalidade.valor()))
+                .findFirst()
+                .map(LinhaPreferencia::permitido)
+                .orElse(finalidade.padrao());
+    }
+
+    @Override
+    @Transactional
+    public void preferenciaPeloWhatsApp(long idPaciente, boolean permitido) {
+        gravarPreferencia(idPaciente, Finalidade.WHATSAPP, permitido, "whatsapp", null);
+    }
+
+    /** Todas as finalidades, com o padrão onde o paciente não disse nada. */
+    @Transactional
+    public List<Preferencia> preferencias(long idPaciente) {
+        permissoes.exigir(Recurso.LGPD, Acao.LER);
+        auditoria.registrarLeitura("lgpd.preferencia", String.valueOf(idPaciente));
+        return montarPreferencias(idPaciente);
+    }
+
+    /** O paciente pediu no balcão; quem registra fica na linha. */
+    @Transactional
+    public void alterarPreferencia(long idPaciente, Finalidade finalidade, boolean permitido) {
+        permissoes.exigir(Recurso.LGPD, Acao.ALTERAR);
+        gravarPreferencia(idPaciente, finalidade, permitido, "clinica",
+                ContextoAtual.obter().usuarioId());
+    }
+
+    /** Sem checagem: quem chama já provou ser o titular pelo link. */
+    public List<Preferencia> montarPreferencias(long idPaciente) {
+        Map<String, LinhaPreferencia> atuais = new HashMap<>();
+        lgpd.preferenciasAtuais(idPaciente).forEach(l -> atuais.put(l.finalidade(), l));
+        return Arrays.stream(Finalidade.values())
+                .map(f -> {
+                    LinhaPreferencia l = atuais.get(f.valor());
+                    return l == null
+                            ? new Preferencia(f.valor(), f.descricao(), f.padrao(), null, null)
+                            : new Preferencia(f.valor(), f.descricao(), l.permitido(), l.em(), l.origem());
+                })
+                .toList();
+    }
+
+    public void gravarPreferencia(long idPaciente, Finalidade finalidade, boolean permitido,
+                                  String origem, Long idUsuario) {
+        lgpd.inserirPreferencia(idPaciente, finalidade.valor(), permitido, origem, idUsuario);
+        auditoria.registrarCriacao("lgpd.preferencia", String.valueOf(idPaciente),
+                Map.of("finalidade", finalidade.valor(), "permitido", permitido, "origem", origem));
+    }
+
+    // ─── Link do titular (IA-52, IA-53) ──────────────────────────────────────
+
+    /** Trinta dias: tempo de o paciente abrir em casa, curto para não virar senha eterna. */
+    private static final Duration VALIDADE_DO_LINK = Duration.ofDays(30);
+    private static final SecureRandom ALEATORIO = new SecureRandom();
+
+    public record LinkDoTitular(String token, Instant expiraEm) {
+    }
+
+    /**
+     * Gera o link e derruba os anteriores. O token em claro sai UMA vez, nesta
+     * resposta; o banco guarda o SHA-256. Quem vazar o banco não abre o painel
+     * de ninguém.
+     */
+    @Transactional
+    public LinkDoTitular gerarLink(long idPaciente) {
+        permissoes.exigir(Recurso.LGPD, Acao.CRIAR);
+        byte[] bruto = new byte[32];
+        ALEATORIO.nextBytes(bruto);
+        String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bruto);
+        Instant expira = Instant.now().plus(VALIDADE_DO_LINK);
+        lgpd.revogarAcessosDoTitular(idPaciente);
+        lgpd.inserirAcessoDoTitular(idPaciente, TitularServico.sha256(token), expira,
+                ContextoAtual.obter().usuarioId());
+        auditoria.registrarCriacao("lgpd.acesso_titular", String.valueOf(idPaciente),
+                Map.of("expiraEm", expira.toString()));
+        return new LinkDoTitular(token, expira);
     }
 
     private Consentimento montar(LinhaConsentimento l) {

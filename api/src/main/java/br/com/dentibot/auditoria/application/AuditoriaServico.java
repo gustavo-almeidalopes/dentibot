@@ -95,6 +95,16 @@ public class AuditoriaServico implements AuditoriaApi {
                 .toList();
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventoAuditoria> acessosAoPaciente(long idPaciente, java.time.Instant desde) {
+        return repositorio.doPaciente(idPaciente, desde, 500).stream()
+                .map(l -> new EventoAuditoria(
+                        l.idEvento(), l.ocorridoEm(), l.idUsuario(), l.staffPapel(),
+                        l.acao(), l.recurso(), l.idRecurso(), null, null))
+                .toList();
+    }
+
     private void gravar(String acao, String recurso, String idRecurso,
                         String antes, String depois) {
         ContextoRequisicao ctx = ContextoAtual.obter();

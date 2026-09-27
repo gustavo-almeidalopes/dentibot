@@ -1,5 +1,6 @@
 package br.com.dentibot.pacientes.application;
 
+import br.com.dentibot.identidade.Celular;
 import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.identidade.PessoaResumo;
@@ -47,6 +48,15 @@ public class PacienteServico implements PacientesApi {
     public Map<Long, PacienteResumo> mapaDeResumos(Collection<Long> idsPaciente) {
         return montar(pacientes.buscarPorIds(List.copyOf(idsPaciente))).stream()
                 .collect(Collectors.toMap(PacienteResumo::idPaciente, Function.identity()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> porCelular(String telefone) {
+        return Celular.chave(telefone)
+                .map(identidade::pessoasPorCelular)
+                .map(pacientes::idsDasPessoas)
+                .orElse(List.of());
     }
 
     /**

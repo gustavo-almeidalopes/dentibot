@@ -82,6 +82,14 @@ dentibot:
     # que sai o custo que a clínica vê (IA-59) e o que a cota mensal consome.
     preco-entrada-usd-mtok: ${DENTIBOT_IA_PRECO_ENTRADA:5.00}
     preco-saida-usd-mtok: ${DENTIBOT_IA_PRECO_SAIDA:25.00}
+  # Doc 03-D: WhatsApp Cloud API da Meta. Sem token nada sai (as mensagens ficam
+  # programadas); sem segredo do app nenhum webhook é aceito. O modelo precisa
+  # estar aprovado no Business Manager com um único parâmetro de corpo.
+  whatsapp:
+    token: ${DENTIBOT_WHATSAPP_TOKEN:}
+    segredo-do-app: ${DENTIBOT_WHATSAPP_SEGREDO_DO_APP:}
+    token-de-verificacao: ${DENTIBOT_WHATSAPP_TOKEN_DE_VERIFICACAO:}
+    modelo: ${DENTIBOT_WHATSAPP_MODELO:dentibot_aviso}
   # Vazio = Sentry desligado. O DSN não é segredo forte, mas muda por ambiente.
   sentry:
     dsn: ${SENTRY_DSN:}

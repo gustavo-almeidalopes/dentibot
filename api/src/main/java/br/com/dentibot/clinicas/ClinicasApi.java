@@ -22,4 +22,14 @@ public interface ClinicasApi {
     long criarProcedimento(NovoProcedimento novo);
 
     void atualizarProcedimento(long idProcedimento, NovoProcedimento dados, boolean ativo);
+
+    /**
+     * Nome e fuso da clínica corrente, para falar com o paciente: a mensagem
+     * diz "às 14h" no fuso da clínica, nunca no do servidor. Sem permissão: é
+     * o que a clínica assina, não configuração.
+     */
+    Identificacao identificacao();
+
+    record Identificacao(String nome, java.time.ZoneId fuso) {
+    }
 }
