@@ -147,6 +147,9 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   padding-block: .15em;
   font-feature-settings: "ss01" 0, "ss02" 0;
+  /* A 320px uma palavra longa ("ENCONTRADO.") passa da borda; quebrar só
+     quando não cabe mantém o reflow do 1.4.10. */
+  overflow-wrap: anywhere;
 }
 
 .sub {
