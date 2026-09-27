@@ -57,7 +57,6 @@ public class CadeiaDeSeguranca {
                                         @Value("${dentibot.metricas.senha:}") String senha)
             throws Exception {
         http.securityMatcher("/actuator/prometheus")
-                .csrf(csrf -> csrf.disable())
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .formLogin(f -> f.disable())
                 .logout(l -> l.disable());

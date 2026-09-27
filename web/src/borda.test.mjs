@@ -40,7 +40,10 @@ test('os seis cabeçalhos existem', () => {
 
 test('todo script inline do index.html tem o sha256 no script-src', () => {
   const html = readFileSync(join(WEB, 'index.html'), 'utf8');
-  const inlines = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+  // Qualquer caixa e atributo: `<SCRIPT>` inline também roda e precisa do hash.
+  const inlines = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
+    .filter((m) => !/\bsrc\s*=/i.test(m[1]))
+    .map((m) => m[2]);
   assert.ok(inlines.length > 0, 'o index.html não tem mais script inline — revise a CSP');
   for (const js of inlines) {
     const hash = `'sha256-${createHash('sha256').update(js).digest('base64')}'`;

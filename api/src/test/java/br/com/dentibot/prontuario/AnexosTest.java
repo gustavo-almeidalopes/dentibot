@@ -41,9 +41,12 @@ import org.testcontainers.utility.DockerImageName;
 @DisplayName("Anexos clínicos no bucket (ST-41)")
 class AnexosTest extends TesteIntegracao {
 
-    /** quay.io e não Docker Hub: é o registro que a MinIO mantém aberto (ver o compose). */
+    /**
+     * Tag fixa do Docker Hub: o pull de quay.io/minio/minio:latest falha no runner
+     * do CI, e uma tag fixa não muda o servidor por baixo do teste.
+     */
     static final MinIOContainer MINIO = new MinIOContainer(
-            DockerImageName.parse("quay.io/minio/minio:latest").asCompatibleSubstituteFor("minio/minio"));
+            DockerImageName.parse("minio/minio:RELEASE.2025-09-07T16-13-09Z"));
 
     static {
         MINIO.start();
