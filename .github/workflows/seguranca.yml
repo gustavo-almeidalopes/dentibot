@@ -30,12 +30,34 @@ jobs:
 
   # Reprova PR que traz dependência com vulnerabilidade conhecida (Maven e npm),
   # pelo banco de advisories do GitHub.
+  #
+  # O dependency review depende do Dependency graph do repositório. Desligado,
+  # a action falha em todo PR com "Dependency review is not supported", sem
+  # olhar dependência nenhuma. Aqui a sonda consulta a mesma API que a action
+  # usa: só essa resposta pula a revisão, e com aviso no resumo do job. Qualquer
+  # outro erro segue para a action, que reprova como antes.
   dependencias:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/dependency-review-action@v4
+      - id: grafo
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMPARACAO: repos/${{ github.repository }}/dependency-graph/compare/${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}
+        run: |
+          if resposta=$(gh api "$COMPARACAO" 2>&1); then
+            echo "ativo=sim" >> "$GITHUB_OUTPUT"
+          elif grep -qiE 'dependency graph|not supported|not enabled' <<<"$resposta"; then
+            echo "ativo=nao" >> "$GITHUB_OUTPUT"
+            aviso="Dependency graph desligado: dependências deste PR NÃO foram revisadas. Ative em Settings → Code security → Dependency graph."
+            echo "::warning::$aviso"
+            echo "$aviso" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "ativo=sim" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.grafo.outputs.ativo == 'sim'
+        uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: high
 
