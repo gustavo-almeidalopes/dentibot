@@ -80,9 +80,11 @@ A primeira auditoria (27/09/2026, axe-core 4.13) deu zero violação na landing 
 no 404, e uma no `/login`: o "Secured by" do rodapé do widget, cinza sobre o
 laranja `#f36b16` que o Clerk pinta ali **só na instância de desenvolvimento**
 (1,25:1). O fundo laranja é parte do selo "Development mode", que é a única
-exclusão do axe; a exclusão cobre o rodapé do widget quando o selo está
-presente. Em produção não há selo, o rodapé é preto (5,54:1) e volta a ser
-auditado.
+exclusão do axe: sai da auditoria a faixa do selo, e o "Não possui uma conta?
+Registre-se" continua auditado — o script confere que ele existe e ficou fora
+da exclusão. O CI roda em `localhost`, onde a chave de produção do Clerk não
+vale, então essa exclusão é permanente ali; o rodapé de produção (preto,
+5,54:1) fica com o roteiro manual.
 
 ## Roteiro manual — a cada release
 
@@ -104,7 +106,8 @@ Financeiro, Equipe, Auditoria, Cadastro — e no `/login`:
    adianta; a tabela vira blocos empilhados.
 5. **Contraste de estado.** Hover e foco de botão, campo com erro, selo de
    alarme, dente do odontograma e os campos do perfil do usuário (menu do
-   `UserButton`) legíveis — o axe não mede estado.
+   `UserButton`) legíveis — o axe não mede estado. E, em produção, o rodapé do
+   widget do Clerk ("Secured by"), que o CI não alcança.
 
 ### Registro
 

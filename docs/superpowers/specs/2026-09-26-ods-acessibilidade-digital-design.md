@@ -224,7 +224,9 @@ isso nas rotas públicas e o roteiro manual nas internas.
   ausente" e o minificador descarta o app — 101 KB gzip contra os 149 KB reais.
   Depois da seção 4, a landing e o 404 deixam de depender da chave.
 - **Exclusão única:** o selo "Development mode" do Clerk, que é da instância de
-  teste e não existe em produção.
+  teste e não existe em produção — com a faixa laranja que ele pinta no rodapé
+  do widget, mas nunca o "Registre-se" (`.cl-footerAction`), que o script
+  confere estar auditado.
 - **Dois testes a mais, que o axe não faz,** no mesmo script e no mesmo
   navegador: reflow — cada rota a 320px de largura sem rolagem horizontal
   (critério 1.4.10) —; e carga que falha — com o chunk do `ComClerk` bloqueado, o
@@ -318,8 +320,10 @@ roteiro com o registro das auditorias.
 
 ## O que muda depois
 
-- **Instância de produção do Clerk:** o selo de desenvolvimento some, e a exclusão
-  do axe sai junto.
+- **Instância de produção do Clerk:** o selo some do site publicado, mas não do
+  CI — a chave de produção só vale no domínio de produção, e o CI audita
+  `localhost` com a chave de teste. A exclusão do selo fica; o rodapé de
+  produção entra no roteiro manual.
 - **Telas novas:** entram sozinhas na invariante 2 se ficarem em `paginas/`;
   componente novo montado por tela clara entra na lista do teste.
 - **Primeira auditoria manual registrada:** destrava a declaração pública de

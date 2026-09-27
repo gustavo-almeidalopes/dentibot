@@ -34,20 +34,33 @@ const TEM_CHAVE = Boolean(loadEnv('production', RAIZ, 'VITE_').VITE_CLERK_PUBLIS
 const ROTAS = [
   { nome: 'landing', caminho: '/' },
   { nome: '404', caminho: '/nao-existe' },
-  /* O widget vem de um script remoto do Clerk: espera o botão principal. */
-  { nome: 'login', caminho: '/login', precisaDaChave: true, esperar: '.cl-formButtonPrimary' },
+  /* O widget vem de um script remoto do Clerk: espera o botão principal. O
+     "Registre-se" (.cl-footerActionLink) tem de existir e ficar dentro da
+     auditoria: foi ele, em teal a 3,84:1, que motivou a Task 7. */
+  {
+    nome: 'login',
+    caminho: '/login',
+    precisaDaChave: true,
+    esperar: '.cl-formButtonPrimary',
+    auditado: '.cl-footerActionLink',
+  },
 ];
 
 /* O selo "Development mode" é da instância de teste do Clerk e não existe em
    produção. É a única coisa que o axe não olha — e o selo não é só o texto: em
-   modo de desenvolvimento o Clerk pinta o rodapé do widget de laranja
-   (#f36b16), e o "Secured by" cinza sobre ele dava 1,25:1. Em produção o
-   rodapé é preto (5,54:1) e volta a ser auditado, porque aí não há selo. */
+   modo de desenvolvimento o Clerk pinta de laranja (#f36b16) a faixa do rodapé
+   do widget, e o "Secured by" cinza sobre ela dava 1,25:1. Sai da auditoria só
+   essa faixa: o "Não possui uma conta? Registre-se" (.cl-footerAction) fica
+   dentro. O CI roda em localhost, onde a chave de produção do Clerk não vale,
+   então esta exclusão é permanente ali — o rodapé de produção fica com o
+   roteiro manual. */
 async function marcarSeloDeDesenvolvimento(pagina) {
   await pagina.evaluate(() => {
     for (const el of document.querySelectorAll('body *')) {
       if (el.children.length === 0 && el.textContent.trim() === 'Development mode') {
-        (el.closest('.cl-footer') ?? el).setAttribute('data-a11y-fora', '');
+        const rodape = el.closest('.cl-footer');
+        const alvos = rodape ? rodape.querySelectorAll(':scope > :not(.cl-footerAction)') : [el];
+        for (const alvo of alvos) alvo.setAttribute('data-a11y-fora', '');
       }
     }
   });
@@ -59,6 +72,13 @@ async function auditarRota(contexto, base, rota) {
     await pagina.goto(new URL(rota.caminho, base).href, { waitUntil: 'load' });
     if (rota.esperar) await pagina.waitForSelector(rota.esperar, { timeout: 30_000 });
     await marcarSeloDeDesenvolvimento(pagina);
+    /* null = não achou o elemento; true = a exclusão o engoliu. */
+    const auditadoFora = rota.auditado
+      ? await pagina.evaluate((sel) => {
+        const el = document.querySelector(sel);
+        return el ? Boolean(el.closest('[data-a11y-fora]')) : null;
+      }, rota.auditado)
+      : false;
 
     const r = await new AxeBuilder({ page: pagina }).withTags(TAGS).exclude('[data-a11y-fora]').analyze();
     const largura = await larguraEm320(contexto, base, rota);
@@ -79,6 +99,7 @@ async function auditarRota(contexto, base, rota) {
         detalhe: v.nodes.map((n) => (n.any[0] ?? n.all[0] ?? n.none[0])?.message ?? n.failureSummary),
       })),
       reflow: { largura, passou: largura <= 320 },
+      auditado: rota.auditado ? { seletor: rota.auditado, fora: auditadoFora } : null,
     };
   } finally {
     await pagina.close();
@@ -178,10 +199,14 @@ await writeFile(new URL('../a11y-relatorio.json', import.meta.url), `${JSON.stri
 const linhas = [];
 let falhou = false;
 for (const r of relatorio.rotas) {
-  const ok = r.violacoes.length === 0 && r.reflow.passou;
+  const auditadoOk = !r.auditado || r.auditado.fora === false;
+  const ok = r.violacoes.length === 0 && r.reflow.passou && auditadoOk;
   falhou ||= !ok;
   linhas.push(`${ok ? 'ok   ' : 'FALHA'} ${r.caminho} — ${r.violacoes.length} violação(ões), `
     + `${r.aprovadas} regras aprovadas, reflow a 320px: ${r.reflow.largura}px`);
+  if (!auditadoOk) {
+    linhas.push(`      ${r.auditado.seletor} ${r.auditado.fora === null ? 'não foi achado' : 'ficou dentro da exclusão do axe'}`);
+  }
   for (const v of r.violacoes) {
     linhas.push(`      ${v.regra} (${v.impacto}): ${v.ajuda} → ${v.onde.join(' | ')}`);
     for (const d of v.detalhe) linhas.push(`        ${d}`);
