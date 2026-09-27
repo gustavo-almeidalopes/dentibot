@@ -70,6 +70,7 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run build
+      - run: node a11y/peso.mjs
       - run: node a11y/auditar.mjs
       - uses: actions/upload-artifact@v7
         if: always()

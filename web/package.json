@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test src/*.test.mjs",
-    "a11y": "vite build && node a11y/auditar.mjs"
+    "a11y": "vite build && node a11y/peso.mjs && node a11y/auditar.mjs"
   },
   "dependencies": {
     "@clerk/localizations": "^4.16.1",
