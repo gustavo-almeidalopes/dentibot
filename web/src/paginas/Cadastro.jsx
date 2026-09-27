@@ -92,7 +92,7 @@ function Passos() {
         </label>
 
         {tipo !== null && !valido && (
-          <p className="pagamento-erro" role="alert">
+          <p className="erro-campo" role="alert">
             {tipo === 'cpf' ? 'CPF inválido' : 'CNPJ inválido'} — confira os dígitos.
           </p>
         )}
@@ -188,7 +188,7 @@ function FormularioClinica({ documento, tipo, nome, email }) {
 
       <p className="cap cap-ash">Trinta dias de teste. Sem cartão.</p>
 
-      {erro && <p className="pagamento-erro" role="alert">{erro.message}</p>}
+      {erro && <p className="erro-campo" role="alert">{erro.message}</p>}
 
       <button type="submit" className="btn btn-fill btn-lg" disabled={enviando}>
         {enviando ? 'Criando…' : 'Criar e abrir o sistema'}

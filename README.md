@@ -6,7 +6,7 @@ um tenant, e o isolamento é imposto pelo Postgres, não pelo código da aplica�
 ```text
 web/            landing page + telas web — React 19 (Vite)
 app/            app Android e iOS — um projeto Expo / React Native
-api-java/       API — Spring Boot 3, Java 25, PostgreSQL, Redis
+api/            API — Spring Boot 4, Java 25, PostgreSQL, Redis
 infrastructure/ compose local (Postgres, Redis, MinIO) e provisionamento
 docs/           decisões de arquitetura
 ```
@@ -30,7 +30,7 @@ saudável por fora. `-Recriar` apaga os volumes e começa do zero.
 Depois, cada peça:
 
 ```bash
-cd api-java && ./mvnw spring-boot:run     # http://localhost:8080
+cd api      && ./mvnw spring-boot:run     # http://localhost:8080
 cd web      && npm install && npm run dev # http://localhost:5173
 cd app      && npm install && npm start   # depois 'a' (Android) ou 'i' (iOS)
 ```
@@ -38,15 +38,28 @@ cd app      && npm install && npm start   # depois 'a' (Android) ou 'i' (iOS)
 O Postgres local escuta na **5433**, não na 5432: é comum já haver um
 PostgreSQL nativo na máquina, e o certo é o projeto se desviar.
 
+No Windows, o mesmo está em `.bat` na raiz, para abrir com dois cliques:
+
+| Arquivo | Faz |
+| --- | --- |
+| `iniciar.bat` | `init.ps1` e, se ele passar, API e web cada um na sua janela. `-Recriar` é repassado. |
+| `api.bat` | A API com as variáveis locais já definidas. O issuer do Clerk sai da chave em `web/.env.local` — nada para colar. |
+| `web.bat`, `app.bat` | `npm ci` na primeira vez, depois o servidor de dev. |
+| `testar.bat` | O "Verificar" abaixo, parando na primeira falha. |
+| `parar.bat` | Derruba a infraestrutura; os volumes ficam. |
+
+Variável já definida no ambiente ganha da local.
+
 ## Verificar
 
 ```bash
-cd api-java && ./mvnw test    # inclui os testes de isolamento e de schema
+cd api && ./mvnw test         # inclui os testes de isolamento e de schema
 cd app && npm run typecheck && npm test
 cd web && npm run build
+cd web && npm run a11y        # axe-core, reflow e peso da landing — precisa do Chrome
 ```
 
-Os testes de `api-java` que mais importam não testam regra de negócio: eles
+Os testes de `api` que mais importam não testam regra de negócio: eles
 consultam o catálogo do Postgres para provar que toda tabela com `id_clinica`
 tem RLS com `FORCE`, que partição tem política própria, que staff da plataforma
 não alcança dado clínico e que a aplicação não é dona das tabelas. A V1 deste
@@ -103,6 +116,8 @@ Clerk é publicável por definição e a secret key é do back-end.
   dados: é possível desligar o isolamento sem ver erro nenhum.
 - **[app/README.md](app/README.md)** — escopo do mobile, sessão e o que as
   lojas exigem antes de publicar.
+- **[docs/acessibilidade.md](docs/acessibilidade.md)** — o que o gate de
+  acessibilidade prova, o que não prova, e o roteiro manual de cada release.
 
 Pontos fixos do desenho:
 
@@ -120,7 +135,7 @@ Pontos fixos do desenho:
 
 ## Estado
 
-`api-java/` é a parte viva: agenda, pacientes, prontuário, identidade,
+`api/` é a parte viva: agenda, pacientes, prontuário, identidade,
 onboarding, auditoria, outbox, idempotência e rate limit, sobre 17 migrations.
 
 `app/` cobre login, agenda do dia com as transições de consulta, lista de

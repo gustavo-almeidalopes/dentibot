@@ -1,0 +1,396 @@
+/* ═══════════════════════════════════════════════════════════════
+   DENTIBOT — telas do sistema. Papel clínico, não manifesto.
+   A landing é preta e grita; a ferramenta é clara e cala.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* O tema não precisa de JavaScript. As telas do sistema são as únicas que
+   montam `.app-main`, e `:has` é vivo: troca na hora da rota, sem useEffect,
+   sem limpeza no desmonte, sem piscada. A landing e o 404 não montam
+   `.app-main` e por isso continuam pretos. */
+:root:has(.app-main) {
+  color-scheme: light;
+
+  --fundo:       #faf9f7;   /* papel, não branco de tela */
+  --superficie:  #ffffff;
+  --tinta:       #111111;
+  /* NÃO é o --ash da marca: #838383 sobre #faf9f7 dá 3,66:1, abaixo do mínimo
+     AA de 4,5:1. O cinza que funciona sobre obsidiana reprova sobre papel. */
+  --tinta-fraca: #5c5c5c;
+  --hair:        rgba(0, 0, 0, .22);
+  --hair-fraca:  rgba(0, 0, 0, .10);
+  --foco:        #111111;
+}
+
+:root:has(.app-main) body { background: var(--fundo); color: var(--tinta); }
+
+/* ── TELAS DO SISTEMA ─────────────────────────────────────────────────────── */
+.app-topo {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20, 20px);
+  flex-wrap: wrap;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--hair);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: var(--fundo);
+}
+.app-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-right: auto; }
+.app-main { padding-block: var(--spacing-30, 30px) var(--spacing-50, 50px); }
+
+.app-cabecalho {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--spacing-20, 20px);
+  flex-wrap: wrap;
+  margin-bottom: var(--spacing-30, 30px);
+}
+.display-sm { font-size: clamp(2rem, 6vw, 3.2rem); }
+
+.filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.filtros-linha {
+  align-items: flex-end;
+  padding-bottom: var(--spacing-20, 20px);
+  border-bottom: 1px solid var(--hair-fraca);
+  margin-bottom: var(--spacing-20, 20px);
+}
+
+/* Um controle só, para input, select e textarea: três estilos separados é como
+   um deles fica diferente dos outros sem ninguém decidir isso. */
+.campo-app { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.filtros input, .filtros select,
+.campo-app input, .campo-app select, .campo-app textarea {
+  appearance: none;
+  background: transparent;
+  /* Controle, não hairline: --hair dava 1,69:1 no papel (1.4.11 pede 3:1). */
+  border: 1px solid var(--tinta-fraca);
+  border-radius: 0;
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 14px;
+  padding: 9px 11px;
+  width: 100%;
+}
+.campo-app textarea { resize: vertical; font-family: inherit; line-height: 1.5; }
+.filtros input:focus-visible, .filtros select:focus-visible,
+.campo-app input:focus-visible, .campo-app select:focus-visible,
+.campo-app textarea:focus-visible { outline: 2px solid var(--tinta); outline-offset: -1px; }
+
+.form-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1px solid var(--hair);
+  padding: var(--spacing-20, 20px);
+  margin-bottom: var(--spacing-30, 30px);
+}
+.form-linha { display: flex; gap: 14px; flex-wrap: wrap; }
+.form-linha .campo-app { flex: 1 1 180px; }
+
+.lista { list-style: none; margin: 0; padding: 0; }
+.acoes { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+.selo-staff { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; border-left: 3px solid var(--alarm); padding-left: 6px; }
+
+.abas { display: flex; gap: 8px; margin-bottom: var(--spacing-20, 20px); }
+.abas [aria-selected="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
+
+/* ── ODONTOGRAMA CLÍNICO ──────────────────────────────────────────────────── */
+.odonto { display: grid; gap: 10px; margin-bottom: var(--spacing-30, 30px); }
+.odonto-arcada { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; }
+@media (max-width: 620px) { .odonto-arcada { grid-template-columns: repeat(8, 1fr); } }
+
+.odonto-dente {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--hair);
+  color: var(--tinta);
+  font-family: inherit;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  padding: 10px 2px;
+  cursor: pointer;
+  transition: background .15s linear;
+}
+.odonto-dente:hover { background: var(--hair-fraca); }
+.odonto-dente[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
+.odonto-dente:focus-visible { outline: 2px solid var(--alarm); outline-offset: 2px; }
+/* A condição é cor E borda: cor sozinha não existe para quem não a distingue.
+   E a marca precisa de 3:1 (1.4.11): no --hair ela dava 1,69:1, e a opacidade
+   do ausente apagava o número junto. */
+.odonto-dente[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
+.odonto-dente[data-condicao="ausente"] { border-style: dashed; border-color: var(--tinta-fraca); }
+.odonto-dente[data-condicao="restaurado"],
+.odonto-dente[data-condicao="coroa"],
+.odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
+
+/* ── TABELA ───────────────────────────────────────────────────────────────── */
+.tabela-rolagem { overflow-x: auto; }
+.tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+.tabela th, .tabela td {
+  text-align: left;
+  padding: 10px 14px 10px 0;
+  border-bottom: 1px solid var(--hair-fraca);
+  vertical-align: top;
+}
+.tabela th {
+  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--tinta-fraca); font-weight: 400;
+  border-bottom-color: var(--hair);
+  white-space: nowrap;
+}
+.tabela .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+/* ── SELO ─────────────────────────────────────────────────────────────────── */
+.selo {
+  display: inline-block;
+  padding: 3px 8px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  border: 1px solid var(--hair);
+  white-space: nowrap;
+}
+.selo[data-tom="cheio"]   { background: var(--tinta); color: var(--fundo); border-color: var(--tinta); }
+.selo[data-tom="fraco"]   { color: var(--tinta-fraca); }
+.selo[data-tom="alarme"]  { border-color: var(--alarm); border-left-width: 3px; }
+.selo[data-tom="riscado"] { color: var(--tinta-fraca); text-decoration: line-through; }
+
+/* ── ESQUELETO ────────────────────────────────────────────────────────────── */
+.esqueleto-linha {
+  display: flex;
+  gap: 40px;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--hair-fraca);
+}
+.esqueleto-celula {
+  height: 12px;
+  flex: 1;
+  background: var(--hair-fraca);
+}
+.esqueleto-celula:first-child { flex: 2; }
+@media (prefers-reduced-motion: no-preference) {
+  .esqueleto-celula { animation: esqueleto-pulsa 1.4s ease-in-out infinite; }
+  @keyframes esqueleto-pulsa { 50% { opacity: .45; } }
+}
+
+/* ── AVISO ────────────────────────────────────────────────────────────────── */
+.aviso {
+  margin: 0 0 var(--spacing-20, 20px);
+  padding: 12px 16px;
+  border: 1px solid var(--hair);
+  border-left-width: 4px;
+  font-size: 14px;
+}
+.aviso[data-tom="sucesso"] { border-left-color: var(--tinta); }
+.aviso[data-tom="erro"]    { border-left-color: var(--alarm); }
+
+/* Erro de campo. Antes era `.pagamento-erro`, emprestado do formulário de
+   cartão de crédito por quatro telas que não têm nada com pagamento. O texto
+   fica em tinta: o vermelho dá 4,16:1 no papel, reprova como letra, e vira o
+   filete. */
+.erro-campo { margin: 0; font-size: 12px; border-left: 3px solid var(--alarm); padding-left: 8px; }
+
+/* ── TABELA EMPILHADA ─────────────────────────────────────────────────────── */
+/* Rolagem horizontal numa tabela de trabalho esconde a coluna de ação, que é a
+   da direita. No celular a linha vira bloco e cada célula diz o próprio nome. */
+@media (max-width: 620px) {
+  .tabela, .tabela tbody, .tabela tr, .tabela td { display: block; width: 100%; }
+  .tabela thead { display: none; }
+  .tabela tr {
+    padding-block: 14px;
+    border-bottom: 1px solid var(--hair);
+  }
+  .tabela td { border: 0; padding: 3px 0; }
+  .tabela td[data-rotulo]::before {
+    content: attr(data-rotulo) " ";
+    display: inline-block;
+    min-width: 9ch;
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--tinta-fraca);
+  }
+}
+
+/* ── TABELA, CABEÇALHO FIXO ───────────────────────────────────────────────── */
+@media (min-width: 621px) {
+  .tabela thead th {
+    position: sticky;
+    top: 56px;            /* abaixo do .app-topo, que também é sticky */
+    background: var(--fundo);
+    z-index: 1;
+  }
+}
+
+/* ── DIÁLOGO ──────────────────────────────────────────────────────────────── */
+.dialogo {
+  border: 1px solid var(--tinta);
+  background: var(--superficie);
+  color: var(--tinta);
+  padding: var(--spacing-30, 30px);
+  max-width: min(46ch, calc(100vw - 32px));
+}
+.dialogo::backdrop { background: rgba(0, 0, 0, .55); }
+.dialogo .sub { margin-top: 0; }
+.dialogo-acoes {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: var(--spacing-20, 20px);
+}
+
+.btn-perigo { border-color: var(--alarm); }
+.btn-perigo::before { background: var(--alarm); }
+/* Obsidiana e não --tinta: #111 sobre o vermelho dá 4,31:1 e reprova; #000 dá 4,79:1. */
+.btn-perigo:hover, .btn-perigo:focus-visible { color: var(--obsidian); }
+
+/* ── BOTÃO NO APP ─────────────────────────────────────────────────────────── */
+/* O wipe do `.btn::before` fica na landing. Numa barra de navegação e numa
+   coluna de ações são oito varreduras simultâneas, e isso é ruído numa
+   ferramenta que a pessoa usa oito horas por dia. */
+:root:has(.app-main) .btn::before { transition: none; }
+/* Ação de linha com borda de 1px: uma coluna de caixas de 2px grita mais que o
+   dado da linha. */
+.btn-sm { padding: 6px 12px; font-size: 12px; border-width: 1px; }
+
+/* ── NAVEGAÇÃO ────────────────────────────────────────────────────────────── */
+/* Deixa de ser fileira de blocos preenchidos. Um bloco invertido para o item
+   ativo grita tanto quanto o botão de ação primária da tela, e eles competem. */
+.app-aba {
+  padding: 8px 2px;
+  margin-right: 18px;
+  border-bottom: 2px solid transparent;
+  color: var(--tinta-fraca);
+  font-size: 14px;
+  text-decoration: none;
+}
+.app-aba:hover { color: var(--tinta); }
+.app-aba-ativa { color: var(--tinta); border-bottom-color: var(--alarm); font-weight: 700; }
+
+.app-papel { font-size: 11px; letter-spacing: .1em; text-transform: capitalize; }
+
+.vazio {
+  padding-block: var(--spacing-50, 50px);
+  border-top: 1px solid var(--hair);
+}
+
+/* Anel de foco em tudo que recebe foco, no tema certo. A regra existente
+   apontava para `var(--ink, #fff)`: sobre papel, branco sobre branco. */
+:root:has(.app-main) :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+
+/* Título de tela: 51px era altura de manifesto. Numa ferramenta o título é
+   orientação, não declaração. */
+.display-sm { font-size: clamp(1.6rem, 3vw, 1.9rem); }
+:root:has(.app-main) { font-size: 15px; }
+:root:has(.app-main) .body { line-height: 1.45; }
+:root:has(.app-main) .cap { font-size: 12px; }
+
+/* ── AGENDA ───────────────────────────────────────────────────────────────── */
+/* A agenda não é tabela: o eixo é o tempo, e a hora é a coluna que o olho
+   procura primeiro. */
+.dia-degrau {
+  display: grid;
+  grid-template-columns: 5ch minmax(0, 1fr);
+  gap: 20px;
+  padding-block: 14px;
+  border-top: 1px solid var(--hair-fraca);
+}
+.dia-hora {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--tinta-fraca);
+  font-size: 13px;
+  padding-top: 14px;
+}
+/* Duas cadeiras atendendo às 14h é o caso normal de uma clínica. */
+.dia-blocos { display: flex; flex-wrap: wrap; gap: 12px; }
+.consulta {
+  flex: 1 1 22rem;
+  border: 1px solid var(--hair);
+  background: var(--superficie);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.consulta-faixa { margin: 0; font-variant-numeric: tabular-nums; font-size: 13px; }
+.consulta-tel { color: var(--tinta); font-size: 13px; text-decoration: underline; }
+.consulta .acoes { margin-top: 8px; }
+@media (max-width: 620px) {
+  .dia-degrau { grid-template-columns: 1fr; gap: 6px; }
+  .dia-hora { padding-top: 0; }
+}
+
+/* ── PRONTUÁRIO ───────────────────────────────────────────────────────────── */
+.faixa-auditoria {
+  border: 1px solid var(--hair);
+  border-left: 3px solid var(--tinta);
+  padding: 10px 14px;
+  margin-bottom: var(--spacing-20, 20px);
+  font-size: 13px;
+  color: var(--tinta-fraca);
+}
+
+.evolucao {
+  border-top: 1px solid var(--hair-fraca);
+  padding-block: 16px;
+  display: grid;
+  grid-template-columns: 14rem minmax(0, 1fr);
+  gap: 20px;
+}
+/* A retificada era `opacity: .62`, o que apagava o texto clínico junto. Marca
+   de margem: diz a mesma coisa sem custar legibilidade. */
+.evolucao[data-retificada="sim"] { border-left: 3px solid var(--alarm); padding-left: 14px; }
+@media (max-width: 620px) { .evolucao { grid-template-columns: 1fr; gap: 4px; } }
+
+.odonto-legenda {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin: 0 0 14px;
+  padding: 0;
+  font-size: 12px;
+  color: var(--tinta-fraca);
+}
+.odonto-legenda li { display: flex; align-items: center; gap: 6px; }
+.odonto-amostra { width: 16px; height: 16px; border: 1px solid var(--hair); display: inline-block; }
+.odonto-amostra[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
+.odonto-amostra[data-condicao="ausente"] { border-style: dashed; border-color: var(--tinta-fraca); }
+.odonto-amostra[data-condicao="restaurado"],
+.odonto-amostra[data-condicao="coroa"],
+.odonto-amostra[data-condicao="implante"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
+
+@media (min-width: 900px) {
+  .odonto-area {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 22rem;
+    gap: var(--spacing-30, 30px);
+    align-items: start;
+  }
+  .odonto-area .form-bloco { margin-bottom: 0; }
+}
+
+/* ── INDICADORES ──────────────────────────────────────────────────────────── */
+/* Cinco números em <li class="row"> era uma lista de linhas para o que é um
+   painel. O gap de 1px sobre o fundo hairline desenha a grade sem borda dupla. */
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1px;
+  background: var(--hair);
+  border: 1px solid var(--hair);
+  margin-bottom: var(--spacing-20, 20px);
+}
+.indicador { background: var(--superficie); padding: 16px 18px; }
+.indicador-valor {
+  margin: 6px 0;
+  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  font-variant-numeric: tabular-nums;
+}
+/* O número em vermelho dava 4,38:1 no branco. O alarme é o filete; o número, tinta. */
+.indicador[data-alarme="sim"] { border-left: 3px solid var(--alarm); padding-left: 15px; }

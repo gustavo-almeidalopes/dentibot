@@ -1,0 +1,79 @@
+# CI da V2. A da V1 saiu junto com ela (6c5d689) e nada a substituiu: a suíte
+# de integração do api-java chegou a ficar quebrada no main sem ninguém ver.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      # Os testes de integração sobem Postgres pelo Testcontainers, com o
+      # Docker que o runner já tem. Redis não sobe: o rate limit falha aberto
+      # sem ele, e nenhum teste depende do limite.
+      - run: ./mvnw -B verify
+
+  # Web e app espelham regras do back-end (rotas que exigem Idempotency-Key,
+  # máquina de estados da consulta) e conferem as cópias lendo o fonte Java.
+  # Mudar um lado sem o outro faz o cliente tomar 400 ou 409 em produção.
+  contratos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+        working-directory: web
+      - run: npm test
+        working-directory: web
+      # Sem npm ci: o teste do app só importa módulos do Node.
+      - run: npm test
+        working-directory: app
+
+  # Acessibilidade no navegador (ODS-17): axe-core nas rotas públicas, reflow a
+  # 320px e carga que falha. A chave publicável do Clerk é pública por definição
+  # e vem de uma variável do repositório; sem ela o /login é pulado e o resumo
+  # diz "AUDITORIA PARCIAL". O Chrome já vem no runner: o playwright-core não
+  # baixa navegador.
+  acessibilidade:
+    runs-on: ubuntu-latest
+    env:
+      VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: node a11y/peso.mjs
+      - run: node a11y/auditar.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: a11y-relatorio
+          path: web/a11y-relatorio.json

@@ -107,7 +107,8 @@ export function Campo({ rotulo, ...props }: CampoProps) {
           minHeight: 44,
           color: cor.osso,
           borderWidth: 1,
-          borderColor: cor.fio,
+          // Borda de campo é controle, não divisória: cor.fio dava 2,10:1.
+          borderColor: cor.cinza,
           borderRadius: 0,
           paddingHorizontal: espaco.md,
           paddingVertical: espaco.md,

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  O console padrão do Spring Boot, com uma diferença: mensagem e exceção passam
+  pelo ScrubberDePii antes de sair (ver LogSemPii). As regras redefinem as
+  palavras de conversão, então valem para qualquer padrão que as use.
+
+  O logging.pattern.console do application.yml precisa citar %wEx: sem palavra
+  de exceção no padrão, o Logback acrescenta o conversor dele por conta própria,
+  e esse não passa por aqui.
+-->
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <conversionRule conversionWord="m" class="br.com.dentibot.plataforma.telemetria.LogSemPii$Mensagem"/>
+    <conversionRule conversionWord="msg" class="br.com.dentibot.plataforma.telemetria.LogSemPii$Mensagem"/>
+    <conversionRule conversionWord="ex" class="br.com.dentibot.plataforma.telemetria.LogSemPii$Excecao"/>
+    <conversionRule conversionWord="wEx" class="br.com.dentibot.plataforma.telemetria.LogSemPii$Excecao"/>
+
+    <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

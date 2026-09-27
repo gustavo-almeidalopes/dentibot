@@ -1,0 +1,36 @@
+# Perfil de teste. url/user/password de banco vêm do Testcontainers via
+# @DynamicPropertySource — ver TesteIntegracao.
+dentibot:
+  clerk:
+    # Sem emissor o JwtDecoder recusa subir e nenhum teste de integração roda.
+    # O JWKS só é buscado no primeiro token validado, e nenhum teste daqui
+    # valida token — o endereço não precisa existir.
+    emissor: https://teste.clerk.local
+  cors:
+    origens: http://localhost:5173
+  outbox:
+    # Cada contexto Spring em cache tem o próprio agendador. A cada 2 s, o de
+    # outra classe entregaria os eventos de um teste do outbox sem os
+    # consumidores dele. Os testes chamam OutboxWorker.processarAgora().
+    intervalo: 3600000
+  ratelimit:
+    # Teste roda dezenas de logins em segundos; o limite de produção
+    # transformaria isso em 429 intermitente e num teste instável.
+    auth-por-minuto: 10000
+    geral-por-minuto: 10000
+    janela: PT1M
+
+spring:
+  data:
+    redis:
+      url: redis://localhost:6379
+      timeout: 200ms
+      connect-timeout: 200ms
+
+logging:
+  level:
+    root: WARN
+    br.com.dentibot: INFO
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN
+    org.flywaydb: INFO

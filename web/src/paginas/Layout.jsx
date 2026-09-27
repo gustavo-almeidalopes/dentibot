@@ -1,8 +1,36 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
-import { createContext, useContext } from 'react';
+import { createContext, Suspense, useContext } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Esqueleto } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
 import { CADASTRO, MENU, recursoDaTela } from '../rotas.js';
+
+/* Espelha os tokens de `:root:has(.app-main)` em app.css. O Clerk não lê
+   variável CSS nossa; se a paleta do tema claro mudar lá, muda aqui também. */
+const APARENCIA_CLARA = {
+  colorBackground: '#ffffff',
+  colorForeground: '#111111',
+  colorMuted: '#faf9f7',
+  colorMutedForeground: '#5c5c5c',
+  colorPrimary: '#111111',
+  colorPrimaryForeground: '#ffffff',
+  colorInput: '#ffffff',
+  colorInputForeground: '#111111',
+  /* Controle, não hairline: preto a 22% dava 1,69:1 nos campos do perfil.
+     #5c5c5c é a --tinta-fraca do tema claro. */
+  colorBorder: '#5c5c5c',
+  colorDanger: '#ed1c24',
+  borderRadius: '0px',
+};
+
+/* O Clerk desenha o campo com um box-shadow do colorBorder a 11%, que some no
+   branco. O anel vai declarado, opaco e com !important, como no ComClerk. */
+const CAMPOS_CLAROS = {
+  formFieldInput: {
+    boxShadow: '0 0 0 1px #5c5c5c !important',
+    '&:focus': { boxShadow: '0 0 0 2px #111111 !important' },
+  },
+};
 
 /**
  * Casca das telas autenticadas.
@@ -47,11 +75,21 @@ function Autenticado() {
   const eu = useRecurso('/eu');
   const { pathname } = useLocation();
 
-  /* 401 aqui não é erro: é o intervalo legítimo entre criar a conta no Clerk e
-     cadastrar a clínica — existe token, não existe linha em
+  /* Negativa aqui não é erro: é o intervalo legítimo entre criar a conta no
+     Clerk e cadastrar a clínica — existe token, não existe linha em
      `identidade.usuarios`. Sem este desvio a pessoa que entra com Google cai
-     numa tela de erro em vez do formulário que resolve o problema dela. */
-  if (eu.status === 'erro' && eu.erro?.status === 401) {
+     numa tela de erro em vez do formulário que resolve o problema dela.
+
+     403 e não só 401 porque a CadeiaDeSeguranca não configura
+     authenticationEntryPoint: com httpBasic e formLogin desligados, o
+     ExceptionTranslationFilter do Spring cai no Http403ForbiddenEntryPoint e
+     responde 403 para quem não tem Authentication no contexto. Medido, não
+     suposto — a primeira versão disto testava 401 e nunca desviava.
+
+     Só vale para o /eu, e só porque este componente monta apenas quando o Clerk
+     diz que há sessão: aqui 403 significa "sem conta nesta base", nunca "sem
+     permissão", porque o endpoint não consulta a matriz. */
+  if (eu.status === 'erro' && (eu.erro?.status === 401 || eu.erro?.status === 403)) {
     return <Navigate to={CADASTRO} replace />;
   }
 
@@ -83,22 +121,33 @@ function Autenticado() {
               to={item.href}
               /* aria-current vem do NavLink; a classe é só o estilo. Um item
                  ativo marcado apenas por cor não existe para leitor de tela. */
-              className={({ isActive }) => `btn${isActive ? ' btn-fill' : ''}`}
+              className={({ isActive }) => `app-aba${isActive ? ' app-aba-ativa' : ''}`}
             >
               {item.label}
             </NavLink>
           ))}
         </nav>
 
-        <UserButton />
+        {eu.dados.papel && <p className="cap cap-ash app-papel">{eu.dados.papel.toLowerCase()}</p>}
+        {/* O provider inteiro está com aparência preta, para a landing e o
+            login. Dentro do app o cabeçalho é claro, e o popover do Clerk
+            entraria preto sobre papel. */}
+        <UserButton appearance={{ variables: APARENCIA_CLARA, elements: CAMPOS_CLAROS }} />
       </header>
 
       <main id="main" className="app-main edge">
         {/* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
             viraria uma tela de erro técnica. Isto responde a mesma negativa em
             português, sem nunca ser a razão pela qual o acesso foi negado. */}
+        {/* A tela é um chunk à parte. O Suspense é daqui, e não o de fora: o de
+            fora desmontaria a casca, e o tema claro piscaria para o preto a
+            cada troca de aba. */}
         {recurso === null || pode(recurso)
-          ? <Outlet />
+          ? (
+            <Suspense fallback={<Estado status="carregando" />}>
+              <Outlet />
+            </Suspense>
+          )
           : <SemAcesso papel={eu.dados.papel} />}
       </main>
     </Permissoes.Provider>
@@ -107,7 +156,7 @@ function Autenticado() {
 
 function SemAcesso({ papel }) {
   return (
-    <div role="alert">
+    <div className="vazio" role="alert">
       <h1 className="display display-sm">Sem acesso.</h1>
       <p className="body body-ash">
         O papel {papel ? <b>{papel.toLowerCase()}</b> : 'atual'} não alcança esta tela.
@@ -118,20 +167,36 @@ function SemAcesso({ papel }) {
 }
 
 /** Os três estados de carga, num componente só. */
-export function Estado({ status, erro, vazio, children, onTentarDeNovo }) {
+export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNovo }) {
   if (status === 'carregando') {
-    return <p className="body body-ash" aria-live="polite">Carregando…</p>;
+    /* Quem passa a forma do que vai chegar não vê a página saltar quando ela
+       chega — e o salto é o que faz alguém clicar no lugar errado. Quem não
+       passa continua com o texto, então nenhuma tela quebrou na troca. */
+    return esqueleto
+      ? <Esqueleto linhas={esqueleto.linhas} colunas={esqueleto.colunas} />
+      : <p className="body body-ash" aria-live="polite">Carregando…</p>;
   }
   if (status === 'erro') {
     return (
       <div aria-live="assertive">
-        <p className="body" style={{ color: 'var(--alarm)' }}>
+        <p className="aviso" data-tom="erro">
           {erro?.message || 'Não foi possível carregar.'}
         </p>
         {/* O correlacaoId vem do ProblemDetail do back-end e é o que o suporte
             usa para achar a linha de log exata sem pedir print de tela. */}
         {erro?.data?.correlacaoId && (
-          <p className="cap cap-ash">Referência: {erro.data.correlacaoId}</p>
+          <p className="cap cap-ash">
+            Referência: <code>{erro.data.correlacaoId}</code>{' '}
+            {/* O suporte pede este número por telefone. Ler 36 caracteres de
+                UUID em voz alta é onde a pessoa desiste e desliga. */}
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => navigator.clipboard?.writeText(erro.data.correlacaoId)}
+            >
+              Copiar
+            </button>
+          </p>
         )}
         {onTentarDeNovo && (
           <button type="button" className="btn" onClick={onTentarDeNovo}>

@@ -1,5 +1,11 @@
 import { useMemo, useState } from 'react';
 import { api, query } from '../api.js';
+import {
+  STATUS_CONSULTA, agruparPorHora, contagem, faixaHoraria, hoje, porExtenso,
+  somarDias, telHref,
+} from '../apresentacao.js';
+import Confirmar from '../components/Confirmar.jsx';
+import { Aviso, Selo } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { Cabecalho, Estado } from './Layout.jsx';
 
@@ -8,20 +14,6 @@ import { Cabecalho, Estado } from './Layout.jsx';
    agenda de terça é a terça de quem está na clínica, não a de UTC. */
 const inicioDoDia = (dia) => new Date(`${dia}T00:00:00`).toISOString();
 const fimDoDia = (dia) => new Date(`${dia}T23:59:59.999`).toISOString();
-
-const hoje = () => new Date().toLocaleDateString('sv-SE'); // sv-SE dá AAAA-MM-DD
-
-const HORA = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
-
-/** Os status que a máquina de estados do back-end aceita, e o que mostrar. */
-const STATUS = {
-  agendada: 'Agendada',
-  confirmada: 'Confirmada',
-  em_atendimento: 'Em atendimento',
-  realizada: 'Realizada',
-  cancelada: 'Cancelada',
-  faltou: 'Faltou',
-};
 
 export default function Agenda() {
   const [dia, setDia] = useState(hoje);
@@ -34,7 +26,7 @@ export default function Agenda() {
 
   const consultas = useRecurso(caminho);
   const dentistas = useRecurso('/equipe/dentistas');
-  const { executar, enviando } = useAcao(consultas.recarregar);
+  const { executar, enviando, sucesso } = useAcao(consultas.recarregar);
 
   const lista = consultas.dados ?? [];
 
@@ -51,63 +43,94 @@ export default function Agenda() {
       <Cabecalho
         titulo="Agenda."
         detalhe={consultas.status === 'ok'
-          ? `${lista.length} ${lista.length === 1 ? 'consulta' : 'consultas'} neste dia`
-          : 'GET /api/v1/consultas'}
-        acao={(
-          <div className="filtros">
-            <label className="cap cap-ash" htmlFor="agenda-dia">Dia</label>
-            <input id="agenda-dia" type="date" value={dia}
-                   onChange={(e) => setDia(e.target.value || hoje())} />
-
-            <label className="cap cap-ash" htmlFor="agenda-dentista">Dentista</label>
-            <select id="agenda-dentista" value={idDentista}
-                    onChange={(e) => setIdDentista(e.target.value)}>
-              <option value="">Todos</option>
-              {(dentistas.dados ?? []).map((d) => (
-                <option key={d.idDentista} value={d.idDentista}>{d.nomeCompleto}</option>
-              ))}
-            </select>
-          </div>
-        )}
+          ? `${porExtenso(dia)} · ${contagem(lista.length, Infinity, 'consulta', 'consultas')}`
+          : porExtenso(dia)}
       />
+
+      <div className="filtros filtros-linha">
+        {/* Trocar de dia exigia abrir o date picker para andar uma casa. */}
+        <div className="acoes">
+          <button type="button" className="btn btn-sm"
+                  onClick={() => setDia((d) => somarDias(d, -1))}>← Ontem</button>
+          <button type="button" className="btn btn-sm"
+                  onClick={() => setDia(hoje())}>Hoje</button>
+          <button type="button" className="btn btn-sm"
+                  onClick={() => setDia((d) => somarDias(d, 1))}>Amanhã →</button>
+        </div>
+        <label className="campo-app">
+          <span className="cap cap-ash">Dia</span>
+          <input type="date" value={dia}
+                 onChange={(e) => setDia(e.target.value || hoje())} />
+        </label>
+        <label className="campo-app">
+          <span className="cap cap-ash">Dentista</span>
+          <select value={idDentista} onChange={(e) => setIdDentista(e.target.value)}>
+            <option value="">Todos</option>
+            {(dentistas.dados ?? []).map((d) => (
+              <option key={d.idDentista} value={d.idDentista}>{d.nomeCompleto}</option>
+            ))}
+          </select>
+        </label>
+      </div>
+
+      <Aviso texto={sucesso} />
 
       <Estado
         status={consultas.status}
         erro={consultas.erro}
         onTentarDeNovo={consultas.recarregar}
-        vazio={lista.length === 0 ? 'Nenhuma consulta neste dia.' : null}
+        esqueleto={{ linhas: 6, colunas: 3 }}
+        /* Sem dizer do filtro, "nenhuma consulta" faz a pessoa concluir que o
+           dia está livre quando ela só esqueceu um dentista selecionado. */
+        vazio={lista.length === 0
+          ? (idDentista
+            ? 'Nenhuma consulta deste dentista neste dia. O filtro de dentista está ativo.'
+            : 'Nenhuma consulta neste dia.')
+          : null}
       >
-        <ul className="lista">
-          {lista.map((c) => (
-            <li className="row row-consulta" key={c.idConsulta}>
-              <div>
-                <p className="sub">{HORA.format(new Date(c.inicioEm))}</p>
-                <p className="cap cap-ash">{STATUS[c.status] ?? c.status}</p>
+        <div className="dia">
+          {agruparPorHora(lista).map(({ hora, consultas: doHorario }) => (
+            <div className="dia-degrau" key={hora}>
+              <p className="dia-hora">{hora}h</p>
+              <div className="dia-blocos">
+                {doHorario.map((c) => (
+                  <article className="consulta" key={c.idConsulta}>
+                    <p className="consulta-faixa">{faixaHoraria(c.inicioEm, c.terminoEm)}</p>
+                    <p className="sub">{c.nomePaciente ?? `Paciente ${c.idPaciente}`}</p>
+                    <p className="body body-ash">{nomeDoDentista(c.idDentista)}</p>
+                    {/* Já vinha no ConsultaResumo e era descartado. É o dado
+                        que a recepção mais usa: ela liga para o paciente. */}
+                    {telHref(c.telefonePaciente) && (
+                      <a className="consulta-tel" href={telHref(c.telefonePaciente)}>
+                        {c.telefonePaciente}
+                      </a>
+                    )}
+                    <Selo mapa={STATUS_CONSULTA} valor={c.status} />
+                    <div className="acoes">
+                      {/* Só as transições que o estado atual permite. Mostrar
+                          um botão que o back-end recusa com 409 é ensinar o
+                          usuário a ignorar mensagem de erro. */}
+                      {c.status === 'agendada' && (
+                        <Transicao id={c.idConsulta} acao="confirmar" rotulo="Confirmar"
+                                   executar={executar} enviando={enviando} />
+                      )}
+                      {(c.status === 'agendada' || c.status === 'confirmada') && (
+                        <>
+                          <Transicao id={c.idConsulta} acao="concluir" rotulo="Concluir"
+                                     confirmacao="Concluir esta consulta?"
+                                     executar={executar} enviando={enviando} />
+                          <Transicao id={c.idConsulta} acao="falta" rotulo="Faltou"
+                                     confirmacao="Registrar falta do paciente?"
+                                     executar={executar} enviando={enviando} />
+                        </>
+                      )}
+                    </div>
+                  </article>
+                ))}
               </div>
-              <div>
-                <p className="body">{c.nomePaciente ?? `Paciente ${c.idPaciente}`}</p>
-                <p className="body body-ash">{nomeDoDentista(c.idDentista)}</p>
-              </div>
-              <div className="acoes">
-                {/* Só as transições que o estado atual permite. Mostrar um botão
-                    que o back-end vai recusar com 409 é ensinar o usuário a
-                    ignorar mensagem de erro. */}
-                {c.status === 'agendada' && (
-                  <Transicao id={c.idConsulta} acao="confirmar" rotulo="Confirmar"
-                             executar={executar} enviando={enviando} />
-                )}
-                {(c.status === 'agendada' || c.status === 'confirmada') && (
-                  <>
-                    <Transicao id={c.idConsulta} acao="concluir" rotulo="Concluir"
-                               executar={executar} enviando={enviando} />
-                    <Transicao id={c.idConsulta} acao="falta" rotulo="Faltou"
-                               executar={executar} enviando={enviando} />
-                  </>
-                )}
-              </div>
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       </Estado>
     </>
   );
@@ -120,19 +143,41 @@ export default function Agenda() {
  * clique: dois toques em "Confirmar" são a mesma requisição lógica, e uma chave
  * nova no segundo clique faria o filtro do back-end tratá-lo como operação
  * distinta — que é exatamente o que ele existe para impedir.
+ *
+ * <p>`confirmacao` marca o que não tem volta: "Faltou" e "Concluir" mudam o
+ * estado para um lugar de onde o back-end responde 409, e os dois ficavam a um
+ * clique, encostados no botão que não faz mal nenhum.
  */
-function Transicao({ id, acao, rotulo, executar, enviando }) {
+function Transicao({ id, acao, rotulo, confirmacao, executar, enviando }) {
   const [chave] = useState(() => crypto.randomUUID());
+  const [perguntando, setPerguntando] = useState(false);
+
+  const disparar = () => {
+    setPerguntando(false);
+    executar(
+      api.post(`/consultas/${id}/${acao}`, {}, { idempotencyKey: chave }),
+      `${rotulo}: consulta atualizada.`,
+    );
+  };
+
   return (
-    <button
-      type="button"
-      className="btn"
-      disabled={enviando}
-      onClick={() => executar(
-        api.post(`/consultas/${id}/${acao}`, {}, { idempotencyKey: chave }),
+    <>
+      <button type="button" className={`btn btn-sm${confirmacao ? ' btn-perigo' : ''}`}
+              disabled={enviando}
+              onClick={() => (confirmacao ? setPerguntando(true) : disparar())}>
+        {rotulo}
+      </button>
+      {confirmacao && (
+        <Confirmar
+          aberto={perguntando}
+          titulo={confirmacao}
+          corpo="Esta mudança não tem volta pela tela: o back-end recusa o caminho inverso."
+          rotuloConfirmar={rotulo}
+          perigo
+          onConfirmar={disparar}
+          onCancelar={() => setPerguntando(false)}
+        />
       )}
-    >
-      {rotulo}
-    </button>
+    </>
   );
 }

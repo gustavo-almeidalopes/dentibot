@@ -40,10 +40,14 @@ updates:
           - '@clerk/*'
 
   - package-ecosystem: maven
-    directory: /api-java
+    directory: /api
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
 
-# Sem entrada github-actions: .github/workflows está vazio no main, então não
-# há action para atualizar. Quando existir CI, adicione o ecossistema aqui.
+  # As actions de ci.yml e seguranca.yml. Tag major sobe por aqui.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
