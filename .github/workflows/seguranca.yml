@@ -57,7 +57,7 @@ jobs:
             echo "ativo=sim" >> "$GITHUB_OUTPUT"
           fi
       - if: steps.grafo.outputs.ativo == 'sim'
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
         with:
           fail-on-severity: high
 
@@ -74,8 +74,8 @@ jobs:
       - uses: actions/checkout@v6
       # build-mode none: analisa o fonte sem compilar, então não depende do
       # Testcontainers nem do Maven Central estarem de pé.
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.linguagem }}
           build-mode: none
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
