@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/*.test.mjs",
+    "test": "node --import ./src/fuso-dos-testes.mjs --test src/*.test.mjs",
     "a11y": "vite build && node a11y/peso.mjs && node a11y/auditar.mjs"
   },
   "dependencies": {
