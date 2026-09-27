@@ -3,6 +3,7 @@ package br.com.dentibot.agenda.application;
 import br.com.dentibot.agenda.AgendaApi;
 import br.com.dentibot.agenda.ConsultaResumo;
 import br.com.dentibot.agenda.NovaConsulta;
+import br.com.dentibot.agenda.SituacaoNaAgenda;
 import br.com.dentibot.agenda.infrastructure.ConsultaRepositorio;
 import br.com.dentibot.agenda.infrastructure.ConsultaRepositorio.LinhaConsulta;
 import br.com.dentibot.identidade.IdentidadeApi;
@@ -18,8 +19,10 @@ import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao.AcessoNegadoException;
 import br.com.dentibot.plataforma.seguranca.Recurso;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,6 +46,8 @@ public class AgendaServico implements AgendaApi {
     }
 
     public static class TransicaoInvalidaException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
         public TransicaoInvalidaException(String mensagem) {
             super(mensagem);
         }
@@ -92,7 +97,11 @@ public class AgendaServico implements AgendaApi {
         // id_usuario != id_dentista. Traduzir um pelo outro é obrigatório: sem
         // a tradução, o filtro casaria por coincidência numérica e mostraria a
         // agenda de outro profissional.
-        Long filtro = alcance == Alcance.PROPRIOS ? dentistaCorrente() : idDentista;
+        //
+        // Long.valueOf explícito: com `long` num lado e `Long` no outro, o
+        // ternário desembrulhava idDentista — e a agenda da clínica inteira
+        // (recepção sem filtro de dentista, que é o padrão da tela) dava NPE.
+        Long filtro = alcance == Alcance.PROPRIOS ? Long.valueOf(dentistaCorrente()) : idDentista;
 
         return montar(consultas.listar(de, ate, filtro));
     }
@@ -138,19 +147,48 @@ public class AgendaServico implements AgendaApi {
         if (linhas.isEmpty()) {
             return List.of();
         }
-        Map<Long, PacienteResumo> resumos = pacientes.mapaDeResumos(
-                linhas.stream().map(LinhaConsulta::idPaciente).distinct().toList());
+        List<Long> ids = linhas.stream().map(LinhaConsulta::idPaciente).distinct().toList();
+        Map<Long, PacienteResumo> resumos = pacientes.mapaDeResumos(ids);
+        Map<Long, int[]> faltas = consultas.historicoDeFaltas(ids);
 
         return linhas.stream()
                 .map(l -> {
                     PacienteResumo p = resumos.get(l.idPaciente());
+                    int[] f = faltas.getOrDefault(l.idPaciente(), new int[] {0, 0});
                     return new ConsultaResumo(
                             l.idConsulta(), l.idPaciente(),
                             p == null ? null : p.nomeCompleto(),
                             p == null ? null : p.telefoneCelular(),
-                            l.idDentista(), l.inicioEm(), l.terminoEm(), l.status());
+                            l.idDentista(), l.inicioEm(), l.terminoEm(), l.status(),
+                            f[0], f[1]);
                 })
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, SituacaoNaAgenda> situacaoDosPacientes(Collection<Long> idsPaciente) {
+        Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.LER);
+        if (idsPaciente.isEmpty()) {
+            return Map.of();
+        }
+        return consultas.situacao(idsPaciente,
+                alcance == Alcance.PROPRIOS ? dentistaCorrente() : null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ConsultaResumo> historicoDoPaciente(long idPaciente) {
+        Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.LER);
+        return montar(consultas.doPaciente(idPaciente,
+                alcance == Alcance.PROPRIOS ? dentistaCorrente() : null));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ConsultaResumo> buscar(long idConsulta) {
+        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.LER));
+        return consultas.buscar(idConsulta).map(l -> montar(List.of(l)).getFirst());
     }
 
     @Override

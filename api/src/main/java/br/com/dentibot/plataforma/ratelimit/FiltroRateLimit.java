@@ -46,6 +46,17 @@ public class FiltroRateLimit extends OncePerRequestFilter {
         this.janela = janela;
     }
 
+    /**
+     * Probe e métrica ficam fora. Não é só economia de cota: com o Redis fora do
+     * ar, cada consulta ao limitador espera o timeout antes de liberar, e o
+     * liveness passa a demorar segundos — o orquestrador conclui que o processo
+     * morreu e reinicia instâncias sadias por causa de um cache.
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest req) {
+        return req.getRequestURI().startsWith("/actuator/");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res,
                                     FilterChain chain) throws ServletException, IOException {

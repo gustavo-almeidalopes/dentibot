@@ -78,6 +78,14 @@ public class ClinicaServico implements ClinicasApi {
                 antes, dados);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Identificacao identificacao() {
+        return clinicas.buscarAtual()
+                .map(c -> new Identificacao(c.nomeFantasia(), c.fusoParaExibicao()))
+                .orElseThrow(() -> new RecursoNaoEncontradoException("clinica", "atual"));
+    }
+
     @Transactional(readOnly = true)
     public Clinica clinicaAtual() {
         permissoes.exigir(Recurso.CONFIGURACAO, Acao.LER);

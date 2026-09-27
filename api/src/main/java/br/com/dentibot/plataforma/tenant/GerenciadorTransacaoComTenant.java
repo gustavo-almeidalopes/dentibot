@@ -37,6 +37,8 @@ import org.springframework.jdbc.datasource.ConnectionHolder;
  */
 public class GerenciadorTransacaoComTenant extends JdbcTransactionManager {
 
+    private static final long serialVersionUID = 1L;
+
     private static final String SQL = """
             SELECT set_config('app.clinica',    ?, true),
                    set_config('app.usuario',    ?, true),

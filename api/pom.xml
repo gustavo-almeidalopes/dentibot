@@ -20,6 +20,12 @@
 	<properties>
 		<java.version>25</java.version>
 		<archunit.version>1.5.0</archunit.version>
+		<sentry.version>8.58.0</sentry.version>
+		<awssdk.version>2.55.6</awssdk.version>
+		<anthropic.version>2.65.0</anthropic.version>
+		<springdoc.version>3.1.1</springdoc.version>
+		<jacoco.version>0.8.15</jacoco.version>
+		<cobertura.minima>0.60</cobertura.minima>
 	</properties>
 
 	<dependencies>
@@ -78,6 +84,62 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
+		<!-- ST-25: sem o registry, /actuator/prometheus não existe — ele chegou a
+		     ser anunciado no application.yml sem esta dependência. -->
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-registry-prometheus</artifactId>
+		</dependency>
+		<!-- ST-28: o SDK puro, sem a integração Spring. Só o erro 500 sai, pelo
+		     TratadorGlobalDeErros, e passa pelo ScrubberDePii antes — nada de
+		     corpo de requisição, cabeçalho ou breadcrumb automático. -->
+		<dependency>
+			<groupId>io.sentry</groupId>
+			<artifactId>sentry</artifactId>
+			<version>${sentry.version}</version>
+		</dependency>
+		<!-- Doc 03-B: o gateway de IA fala com a Claude pelo SDK oficial — retries,
+		     tipos de erro e saída estruturada vêm prontos. -->
+		<dependency>
+			<groupId>com.anthropic</groupId>
+			<artifactId>anthropic-java</artifactId>
+			<version>${anthropic.version}</version>
+		</dependency>
+		<!-- ST-20: o contrato OpenAPI sai do código. Só o JSON (sem Swagger UI), e
+		     desligado em produção: ver springdoc no application.yml. -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
+			<version>${springdoc.version}</version>
+		</dependency>
+		<!-- ST-41: anexos clínicos em armazenamento S3-compatível (R2 em produção,
+		     MinIO em dev). Só o presign e o HEAD: o arquivo vai do navegador
+		     direto ao bucket, sem passar pela API. Cliente HTTP leve de propósito
+		     — Netty e Apache são peso para duas chamadas síncronas. -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+			<version>${awssdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>software.amazon.awssdk</groupId>
+					<artifactId>netty-nio-client</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>software.amazon.awssdk</groupId>
+					<artifactId>apache-client</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>software.amazon.awssdk</groupId>
+					<artifactId>apache5-client</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>url-connection-client</artifactId>
+			<version>${awssdk.version}</version>
+		</dependency>
 		<!-- Só para GuardaDeTransacao: converter "zero linhas em silêncio" em
 		     exceção quando falta @Transactional. Ver a classe.
 		     No Boot 4 este starter chama-se -aspectj; o antigo -aop não existe. -->
@@ -130,6 +192,11 @@
 			<artifactId>testcontainers-postgresql</artifactId>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>testcontainers-minio</artifactId>
+			<scope>test</scope>
+		</dependency>
 		<!-- Reprova import cruzado entre módulos (invariante 15). -->
 		<dependency>
 			<groupId>com.tngtech.archunit</groupId>
@@ -144,6 +211,66 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<!-- ST-44: cobertura medida em todo `verify` — e o CI roda verify.
+			     O piso é o que a suíte cobre hoje, arredondado para baixo: ele só
+			     sobe. Quem baixar a cobertura num PR vê o build quebrar ali, e não
+			     descobre meses depois que metade do módulo novo não tem teste. -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>${jacoco.version}</version>
+				<executions>
+					<execution>
+						<id>agente</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>relatorio</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<execution>
+						<id>piso</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>${cobertura.minima}</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<!-- ST-45: aviso do javac é bug que ainda não aconteceu (cast não
+			     checado, fallthrough, serialVersionUID). -Werror faz dele erro de
+			     build, no main e no PR. `processing` fica de fora: é o aviso do
+			     configuration-processor sobre anotação sem processador. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<showWarnings>true</showWarnings>
+					<compilerArgs>
+						<arg>-Xlint:all,-processing</arg>
+						<arg>-Werror</arg>
+					</compilerArgs>
+				</configuration>
 			</plugin>
 			<!-- Aplica migrations sem subir a aplicação: usado pelo
 			     infrastructure/init.ps1 e pelo job de deploy, onde migrar e

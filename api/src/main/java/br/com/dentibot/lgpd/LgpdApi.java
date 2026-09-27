@@ -46,4 +46,17 @@ public interface LgpdApi {
     long abrirSolicitacao(NovaSolicitacao nova);
 
     void responderSolicitacao(long idSolicitacao, RespostaSolicitacao resposta);
+
+    // ─── Preferências por finalidade (IA-53) ─────────────────────────────────
+
+    /**
+     * Pode tratar o dado deste paciente para esta finalidade AGORA? Sem
+     * permissão de propósito: quem pergunta é sistema (o despachante do
+     * WhatsApp) — e a pergunta é feita no instante do uso, que é o que torna a
+     * revogação imediata.
+     */
+    boolean permite(long idPaciente, Finalidade finalidade);
+
+    /** O paciente respondeu PARAR (ou VOLTAR) no próprio WhatsApp. */
+    void preferenciaPeloWhatsApp(long idPaciente, boolean permitido);
 }

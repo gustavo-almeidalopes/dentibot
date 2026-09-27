@@ -16,7 +16,6 @@ import br.com.dentibot.plataforma.seguranca.ProvedorDeIdentidade;
 import java.time.ZoneId;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -42,8 +41,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @DisplayName("Resolução de acesso pelo Clerk")
 class ResolucaoDeAcessoTest extends TesteIntegracao {
-
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     @Autowired
     private OnboardingServico onboarding;

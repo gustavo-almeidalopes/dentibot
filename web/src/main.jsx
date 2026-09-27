@@ -14,8 +14,10 @@ import '@fontsource/inter/400.css';
 import '@fontsource/inter/700.css';
 import './style.css';
 import './app.css';
+import { ligarErros } from './erros.js';
 import {
-  AGENDA, AUDITORIA, CADASTRO, EQUIPE, FINANCEIRO, LOGIN, PACIENTES, PRONTUARIO,
+  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CONVERSAS, EQUIPE, ESTOQUE, FINANCEIRO, IA,
+  LOGIN, PACIENTES, PRONTUARIO, TITULAR,
 } from './rotas.js';
 
 /* Router de verdade, e não o mapa de `window.location.pathname` que estava
@@ -38,6 +40,13 @@ const Prontuario = lazy(() => import('./paginas/Prontuario.jsx'));
 const Financeiro = lazy(() => import('./paginas/Financeiro.jsx'));
 const Equipe = lazy(() => import('./paginas/Equipe.jsx'));
 const Auditoria = lazy(() => import('./paginas/Auditoria.jsx'));
+const Conversas = lazy(() => import('./paginas/Conversas.jsx'));
+const Acompanhamento = lazy(() => import('./paginas/Acompanhamento.jsx'));
+const Estoque = lazy(() => import('./paginas/Estoque.jsx'));
+const Ia = lazy(() => import('./paginas/Ia.jsx'));
+const Titular = lazy(() => import('./paginas/Titular.jsx'));
+
+ligarErros(import.meta.env.VITE_SENTRY_DSN);
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -52,15 +61,20 @@ createRoot(document.getElementById('root')).render(
               {/* Fora do Layout de propósito: quem chega aqui ainda não tem clínica,
                   e o menu do Layout só aponta para telas que responderiam 401. */}
               <Route path={CADASTRO} element={<Cadastro />} />
+              <Route path={TITULAR} element={<Titular />} />
 
               {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
               <Route element={<Layout />}>
                 <Route path={AGENDA} element={<Agenda />} />
                 <Route path={PACIENTES} element={<Pacientes />} />
+                <Route path={CONVERSAS} element={<Conversas />} />
                 <Route path={PRONTUARIO} element={<Prontuario />} />
+                <Route path={ACOMPANHAMENTO} element={<Acompanhamento />} />
                 <Route path={FINANCEIRO} element={<Financeiro />} />
+                <Route path={ESTOQUE} element={<Estoque />} />
                 <Route path={EQUIPE} element={<Equipe />} />
                 <Route path={AUDITORIA} element={<Auditoria />} />
+                <Route path={IA} element={<Ia />} />
               </Route>
             </Route>
 

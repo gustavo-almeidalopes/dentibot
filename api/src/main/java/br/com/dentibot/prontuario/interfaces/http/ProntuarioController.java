@@ -1,12 +1,17 @@
 package br.com.dentibot.prontuario.interfaces.http;
 
+import br.com.dentibot.prontuario.AnexoResumo;
+import br.com.dentibot.prontuario.EnvioDeAnexo;
 import br.com.dentibot.prontuario.EvolucaoResumo;
 import br.com.dentibot.prontuario.LancamentoOdontograma;
 import br.com.dentibot.prontuario.NovaEvolucao;
+import br.com.dentibot.prontuario.NovoAnexo;
 import br.com.dentibot.prontuario.NovoLancamentoOdontograma;
 import br.com.dentibot.prontuario.ProntuarioApi;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
@@ -76,8 +81,13 @@ public class ProntuarioController {
         return prontuario.odontograma(idPaciente);
     }
 
-    public record PedidoLancamento(Integer dente, String face, String condicao,
-                                   String observacao) {
+    /** Antes sem restrição nenhuma: condição fora do vocabulário ia ao banco e voltava 409. */
+    public record PedidoLancamento(
+            @NotNull Integer dente,
+            @Pattern(regexp = "^[VLMDOIP]$") String face,
+            @NotBlank @Pattern(regexp = NovoLancamentoOdontograma.PADRAO_CONDICAO,
+                    message = "condição fora do vocabulário do odontograma") String condicao,
+            @Size(max = 300) String observacao) {
     }
 
     @PostMapping("/odontograma")
@@ -88,5 +98,35 @@ public class ProntuarioController {
                 idPaciente, pedido.dente(), pedido.face(),
                 pedido.condicao(), pedido.observacao()));
         return Map.of("idLancamento", id);
+    }
+
+    // ─── anexos (ST-41) ──────────────────────────────────────────────────────
+
+    /** Passo 1: devolve para onde o navegador manda os bytes. */
+    @PostMapping("/anexos")
+    @ResponseStatus(HttpStatus.CREATED)
+    public EnvioDeAnexo iniciarAnexo(@PathVariable long idPaciente, @Valid @RequestBody NovoAnexo novo) {
+        return prontuario.iniciarAnexo(idPaciente, novo);
+    }
+
+    public record PedidoConfirmacao(@NotBlank @Size(max = 500) String chave, @Valid NovoAnexo anexo) {
+    }
+
+    /** Passo 2: confere no bucket e registra no prontuário. */
+    @PostMapping("/anexos/confirmar")
+    @ResponseStatus(HttpStatus.CREATED)
+    public Map<String, Long> confirmarAnexo(@PathVariable long idPaciente,
+                                           @Valid @RequestBody PedidoConfirmacao pedido) {
+        return Map.of("idAnexo", prontuario.confirmarAnexo(idPaciente, pedido.chave(), pedido.anexo()));
+    }
+
+    @GetMapping("/anexos")
+    public List<AnexoResumo> anexos(@PathVariable long idPaciente) {
+        return prontuario.anexos(idPaciente);
+    }
+
+    @GetMapping("/anexos/{idAnexo}/url")
+    public Map<String, String> urlDoAnexo(@PathVariable long idPaciente, @PathVariable long idAnexo) {
+        return Map.of("url", prontuario.urlDoAnexo(idPaciente, idAnexo));
     }
 }

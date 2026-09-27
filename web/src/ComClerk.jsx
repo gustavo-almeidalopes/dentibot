@@ -2,6 +2,7 @@ import { ptBR } from '@clerk/localizations';
 import { ClerkProvider } from '@clerk/react';
 import { Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
+import SessaoOffline from './components/SessaoOffline.jsx';
 import { CRIAR, LOGIN } from './rotas.js';
 
 /* Variáveis em vez de @clerk/themes: o tema daqui é preto, branco e canto
@@ -83,6 +84,7 @@ export default function ComClerk() {
       signUpUrl={CRIAR}
       afterSignOutUrl="/"
     >
+      <SessaoOffline />
       <Suspense fallback={<p className="body body-ash edge" role="status">Carregando…</p>}>
         <Outlet />
       </Suspense>

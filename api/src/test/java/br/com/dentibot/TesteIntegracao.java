@@ -1,5 +1,6 @@
 package br.com.dentibot;
 
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Tag;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -24,6 +25,14 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 @ActiveProfiles("test")
 @Tag("integracao")
 public abstract class TesteIntegracao {
+
+    /**
+     * Um contador para TODAS as classes: o banco é um só por JVM, e CNPJ, e-mail
+     * e sub do Clerk são únicos nele. Cada classe com a própria sequência
+     * sorteada colidia de vez em quando — o AnexosTest caiu num CNPJ que outra
+     * classe já tinha usado.
+     */
+    protected static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     protected static final String SENHA_MIGRADOR = "migrador_teste";
     protected static final String SENHA_APP = "app_teste";

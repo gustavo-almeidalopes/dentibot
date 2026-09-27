@@ -43,7 +43,8 @@ const INDICADORES = [
 export default function Financeiro() {
   const resumo = useRecurso('/financeiro/resumo');
   const recebiveis = useRecurso(`/financeiro/recebiveis?limite=${LIMITE}`);
-  const lista = recebiveis.dados ?? [];
+  // useMemo e não `?? []`: um array novo a cada render invalidava a ordenação abaixo.
+  const lista = useMemo(() => recebiveis.dados ?? [], [recebiveis.dados]);
 
   /* Exceção deliberada ao "nenhum endpoint novo": RecebivelResumo traz
      idPaciente e não o nome, e uma cobrança sem nome não dá para conferir. */

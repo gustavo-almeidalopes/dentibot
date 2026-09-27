@@ -73,6 +73,25 @@ if ($naoSaudaveis.Count -gt 0) {
 }
 Ok 'postgres, redis e minio saudáveis'
 
+Etapa 'Extensões de observabilidade'
+# Aqui e não em postgres/init: aquele diretório só roda em volume novo, e o
+# banco de quem já desenvolvia nunca ganharia a extensão. IF NOT EXISTS torna
+# isto repetível a cada init.
+docker exec dentibot-postgres psql -U postgres -d dentibot -qtA `
+    -c 'CREATE EXTENSION IF NOT EXISTS pg_stat_statements' | Out-Null
+if ($LASTEXITCODE -ne 0) { Falha 'pg_stat_statements não pôde ser criada'; exit 1 }
+Ok 'pg_stat_statements (consultas mais caras: SELECT * FROM pg_stat_statements)'
+
+Etapa 'Bucket de anexos no MinIO'
+# O mc já vem na imagem, mas o alias "local" dela é anônimo (serve ao healthcheck,
+# não cria bucket): as credenciais do compose vão por MC_HOST_dev, sem gravar
+# alias no contêiner. O MinIO responde CORS para qualquer origem por padrão, que
+# é o que o PUT do navegador em dev precisa; no R2 o CORS é do bucket.
+docker exec -e MC_HOST_dev=http://dentibot_local:dentibot_local_apenas@127.0.0.1:9000 `
+    dentibot-minio mc mb --ignore-existing dev/dentibot-anexos | Out-Null
+if ($LASTEXITCODE -ne 0) { Falha 'não foi possível criar o bucket dentibot-anexos'; exit 1 }
+Ok 'bucket dentibot-anexos'
+
 Etapa 'Aplicando migrations (Flyway, como dentibot_migrador)'
 
 # JAVA_HOME costuma estar definido na máquina mas ausente NESTE processo, quando
@@ -126,7 +145,7 @@ WITH t AS (
   SELECT c.oid, n.nspname s, c.relname r, c.relrowsecurity, c.relforcerowsecurity
   FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
   WHERE c.relkind='r' AND n.nspname IN ('clinicas','identidade','pacientes','agenda',
-        'prontuario','orcamento','financeiro','billing','estoque','lgpd','auditoria','plataforma'))
+        'prontuario','orcamento','financeiro','billing','estoque','lgpd','auditoria','plataforma','ia'))
 SELECT count(*) FROM t
 WHERE EXISTS (SELECT 1 FROM pg_attribute a WHERE a.attrelid=t.oid
               AND a.attname IN ('id_clinica','clinica_id') AND a.attnum>0 AND NOT a.attisdropped)

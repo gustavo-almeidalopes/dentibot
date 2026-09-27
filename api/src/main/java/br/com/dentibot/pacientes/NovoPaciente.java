@@ -70,7 +70,7 @@ public record NovoPaciente(
             @Size(max = 255) String medicamentoContinuo,
             @Size(max = 255) String alergia,
             Boolean condicaoSistemica,
-            /** Nulo para quem a pergunta não se aplica. */
+            // Nulo para quem a pergunta não se aplica.
             Boolean gravidez,
             @Pattern(regexp = "^(dor|estetica|limpeza|rotina)$") String motivoConsulta,
             Boolean sensibilidade,

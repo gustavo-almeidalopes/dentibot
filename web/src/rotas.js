@@ -14,6 +14,12 @@ export const PACIENTES = '/pacientes';
 export const EQUIPE = '/equipe';
 export const AUDITORIA = '/auditoria';
 export const FINANCEIRO = '/financeiro';
+export const ACOMPANHAMENTO = '/acompanhamento';
+export const ESTOQUE = '/estoque';
+export const IA = '/ia';
+export const CONVERSAS = '/conversas';
+/* Público: o paciente, sem conta, pelo link que a clínica entregou. */
+export const TITULAR = '/titular';
 
 /** O prontuário é a única rota com parâmetro — e o motivo de haver um router. */
 export const PRONTUARIO = '/pacientes/:idPaciente/prontuario';
@@ -30,9 +36,18 @@ export const prontuarioDe = (idPaciente) => PRONTUARIO.replace(':idPaciente', id
 export const MENU = [
   { href: AGENDA, label: 'Agenda', recurso: 'AGENDA' },
   { href: PACIENTES, label: 'Pacientes', recurso: 'PACIENTE' },
+  // AGENDA: responder paciente no WhatsApp é parte de cuidar da agenda.
+  { href: CONVERSAS, label: 'Conversas', recurso: 'AGENDA' },
+  // ORCAMENTO porque o radar é sobre plano aprovado; a parte clínica da tela
+  // (registro pendente) pergunta PRONTUARIO por conta própria.
+  { href: ACOMPANHAMENTO, label: 'Acompanhamento', recurso: 'ORCAMENTO' },
   { href: FINANCEIRO, label: 'Financeiro', recurso: 'FINANCEIRO' },
+  { href: ESTOQUE, label: 'Estoque', recurso: 'ESTOQUE' },
   { href: EQUIPE, label: 'Equipe', recurso: 'EQUIPE' },
   { href: AUDITORIA, label: 'Auditoria', recurso: 'AUDITORIA' },
+  // BILLING porque a tela é sobre o que a clínica paga; a configuração, que o
+  // back-end guarda em CONFIGURACAO, também é de quem paga.
+  { href: IA, label: 'IA', recurso: 'BILLING' },
 ];
 
 /* Único caminho com parâmetro, então uma regex resolve — e ela é conferida

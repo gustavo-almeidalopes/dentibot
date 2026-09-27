@@ -20,6 +20,12 @@ public interface AuditoriaApi {
      */
     void registrarLeitura(String recurso, String idRecurso);
 
+    /**
+     * Dado que saiu do sistema — portabilidade (LGPD art. 18) e afins. A trilha
+     * guarda o resumo do que saiu (o hash, o tamanho), nunca o conteúdo.
+     */
+    void registrarExportacao(String recurso, String idRecurso, Object resumo);
+
     void registrarCriacao(String recurso, String idRecurso, Object dadosPosteriores);
 
     void registrarAlteracao(String recurso, String idRecurso,
@@ -40,4 +46,11 @@ public interface AuditoriaApi {
      * investigação faz.
      */
     java.util.List<EventoAuditoria> consultar(FiltroDeTrilha filtro);
+
+    /**
+     * Quem acessou o dado deste paciente desde {@code desde} (IA-52). Sem
+     * permissão de matriz: quem chama é o módulo LGPD, depois de provar que é
+     * o próprio titular pelo link. Mais recentes primeiro.
+     */
+    java.util.List<EventoAuditoria> acessosAoPaciente(long idPaciente, java.time.Instant desde);
 }

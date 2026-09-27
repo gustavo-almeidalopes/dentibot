@@ -38,6 +38,12 @@ public class AuditoriaServico implements AuditoriaApi {
 
     @Override
     @Transactional
+    public void registrarExportacao(String recurso, String idRecurso, Object resumo) {
+        gravar("exportacao", recurso, idRecurso, null, serializar(resumo));
+    }
+
+    @Override
+    @Transactional
     public void registrarCriacao(String recurso, String idRecurso, Object dadosPosteriores) {
         gravar("criacao", recurso, idRecurso, null, serializar(dadosPosteriores));
     }
@@ -86,6 +92,16 @@ public class AuditoriaServico implements AuditoriaApi {
                 .map(l -> new EventoAuditoria(
                         l.idEvento(), l.ocorridoEm(), l.idUsuario(), l.staffPapel(),
                         l.acao(), l.recurso(), l.idRecurso(), l.ipOrigem(), l.correlacaoId()))
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<EventoAuditoria> acessosAoPaciente(long idPaciente, java.time.Instant desde) {
+        return repositorio.doPaciente(idPaciente, desde, 500).stream()
+                .map(l -> new EventoAuditoria(
+                        l.idEvento(), l.ocorridoEm(), l.idUsuario(), l.staffPapel(),
+                        l.acao(), l.recurso(), l.idRecurso(), null, null))
                 .toList();
     }
 

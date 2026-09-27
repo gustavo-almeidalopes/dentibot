@@ -27,7 +27,7 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
     /** Schemas cujas tabelas pertencem a uma clínica. */
     private static final String SCHEMAS_DE_DOMINIO = """
             'clinicas','identidade','pacientes','agenda','prontuario','orcamento',
-            'financeiro','billing','estoque','lgpd','auditoria','plataforma'
+            'financeiro','billing','estoque','lgpd','auditoria','plataforma','ia','comunicacao'
             """;
 
     @Autowired
@@ -133,7 +133,8 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
         List<String> vazamentos = jdbc.sql("""
                         SELECT schemaname || '.' || tablename || ' / ' || policyname
                         FROM pg_policies
-                        WHERE schemaname IN ('pacientes','prontuario','agenda','lgpd','orcamento')
+                        WHERE schemaname IN ('pacientes','prontuario','agenda','lgpd','orcamento','ia',
+                                             'comunicacao')
                           AND (COALESCE(qual, '') LIKE '%staff_atual%'
                                OR COALESCE(with_check, '') LIKE '%staff_atual%')
                         ORDER BY 1
@@ -146,6 +147,34 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
                     "Suporte N1 com zero dado clínico" precisa ser regra de banco, não \
                     promessa de código. Se uma política de dado clínico consultar \
                     plataforma.staff_atual(), o eixo B ganhou acesso a prontuário.""")
+                .isEmpty();
+    }
+
+    @Test
+    @Transactional(readOnly = true)
+    @DisplayName("a aplicação lê toda tabela de domínio — schema novo não nasce sem GRANT")
+    void aplicacaoLeTodaTabelaDeDominio() {
+        List<String> semLeitura = jdbc.sql("""
+                        SELECT n.nspname || '.' || c.relname
+                        FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+                        WHERE c.relkind IN ('r', 'p') AND n.nspname IN (%s)
+                          AND NOT has_table_privilege('dentibot_app', c.oid, 'SELECT')
+                          -- Sem leitura DE PROPÓSITO: pre_cadastros é ficha de
+                          -- saúde sem dono, só escrita até existir o vínculo por
+                          -- CPF (V20); o histórico do Flyway é do migrador.
+                          AND (n.nspname, c.relname) NOT IN (
+                                ('pacientes', 'pre_cadastros'),
+                                ('plataforma', 'flyway_schema_history'))
+                        ORDER BY 1
+                        """.formatted(SCHEMAS_DE_DOMINIO))
+                .query(String.class)
+                .list();
+
+        assertThat(semLeitura)
+                .as("""
+                    O ALTER DEFAULT PRIVILEGES da V1 lista os schemas um a um. Schema criado \
+                    depois precisa do próprio — sem ele a tabela nasce sem GRANT, e o erro \
+                    só aparece no primeiro request ("permission denied").""")
                 .isEmpty();
     }
 
@@ -164,7 +193,10 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
                                 ('prontuario','evolucoes'),
                                 ('prontuario','odontograma_lancamentos'),
                                 ('financeiro','lancamentos'),
-                                ('estoque','movimentacoes'))
+                                ('estoque','movimentacoes'),
+                                ('ia','chamadas'),
+                                ('ia','confirmacoes'),
+                                ('lgpd','preferencias'))
                         ORDER BY 1
                         """)
                 .query(String.class)

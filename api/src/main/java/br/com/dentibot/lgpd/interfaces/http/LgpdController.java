@@ -1,15 +1,20 @@
 package br.com.dentibot.lgpd.interfaces.http;
 
 import br.com.dentibot.lgpd.Consentimento;
+import br.com.dentibot.lgpd.Finalidade;
 import br.com.dentibot.lgpd.LgpdApi;
 import br.com.dentibot.lgpd.NovaSolicitacao;
 import br.com.dentibot.lgpd.NovoConsentimento;
 import br.com.dentibot.lgpd.NovoTermo;
+import br.com.dentibot.lgpd.Preferencia;
 import br.com.dentibot.lgpd.RespostaSolicitacao;
 import br.com.dentibot.lgpd.SolicitacaoTitular;
 import br.com.dentibot.lgpd.Termo;
+import br.com.dentibot.lgpd.application.LgpdServico;
+import br.com.dentibot.lgpd.application.LgpdServico.LinkDoTitular;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,9 +43,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class LgpdController {
 
     private final LgpdApi lgpd;
+    private final LgpdServico servico;
 
-    public LgpdController(LgpdApi lgpd) {
+    public LgpdController(LgpdApi lgpd, LgpdServico servico) {
         this.lgpd = lgpd;
+        this.servico = servico;
     }
 
     // ─── Termos ──────────────────────────────────────────────────────────────
@@ -95,6 +103,31 @@ public class LgpdController {
     public ResponseEntity<Void> revogar(@PathVariable long id) {
         lgpd.revogarConsentimento(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // ─── Preferências e link do titular (IA-52, IA-53) ───────────────────────
+
+    @GetMapping("/pacientes/{idPaciente}/preferencias")
+    public List<Preferencia> preferencias(@PathVariable long idPaciente) {
+        return servico.preferencias(idPaciente);
+    }
+
+    public record NovaPreferencia(@NotNull Boolean permitido) {
+    }
+
+    @PutMapping("/pacientes/{idPaciente}/preferencias/{finalidade}")
+    public List<Preferencia> alterarPreferencia(@PathVariable long idPaciente,
+                                                @PathVariable String finalidade,
+                                                @Valid @RequestBody NovaPreferencia nova) {
+        servico.alterarPreferencia(idPaciente, Finalidade.de(finalidade), nova.permitido());
+        return servico.preferencias(idPaciente);
+    }
+
+    /** O token sai uma vez; o web monta o link com ele no fragmento (#), que não vai a servidor nenhum. */
+    @PostMapping("/pacientes/{idPaciente}/link-titular")
+    @ResponseStatus(HttpStatus.CREATED)
+    public LinkDoTitular linkDoTitular(@PathVariable long idPaciente) {
+        return servico.gerarLink(idPaciente);
     }
 
     // ─── Solicitações do titular ─────────────────────────────────────────────

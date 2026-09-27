@@ -37,6 +37,8 @@ public class GuardaDeTransacao {
 
     /** Erro de programação, não condição de runtime: falta um {@code @Transactional}. */
     public static class AcessoForaDeTransacaoException extends IllegalStateException {
+        private static final long serialVersionUID = 1L;
+
         public AcessoForaDeTransacaoException() {
             super("""
                   Acesso a repositório fora de transação. O contexto de tenant (app.clinica) \

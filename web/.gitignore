@@ -2,4 +2,6 @@ node_modules/
 dist/
 .env
 .env.local
+test-results/
+playwright-report/
 a11y-relatorio.json

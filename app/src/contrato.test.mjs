@@ -122,3 +122,27 @@ test('a janela do dia cobre 24h a partir da meia-noite local', () => {
   // 23 ou 25 em dia de mudança de horário de verão; 2026 no Brasil não tem.
   assert.equal(horas, 24);
 });
+
+test('o app só chama o que existe no contrato da API (ST-55)', () => {
+  // api/openapi.json é gerado do código e travado pelo ContratoOpenApiTest.
+  // Foi este teste que achou o /api/v1/auth/me, removido na V19 e ainda
+  // chamado pelo Perfil — que mostrava "—" em silêncio.
+  const contrato = JSON.parse(ler(AQUI, '..', '..', 'api', 'openapi.json'));
+  const forma = (c) => c.split('?')[0].replace(/\$\{[^}]*\}|\{[^}]+\}/g, '{}');
+  const rotas = Object.entries(contrato.paths)
+    .map(([c, ops]) => [forma(c), new Set(Object.keys(ops))]);
+
+  const ts = ler(AQUI, 'api.ts');
+  const chamadas = [...ts.matchAll(/pedir<[^>]*>\(\s*[`']([^`']+)[`']([^;]*?)\)\s*[,;]/g)]
+    .map(([, caminho, resto]) => ({
+      caminho,
+      metodo: (resto.match(/metodo:\s*'(\w+)'/)?.[1] ?? 'GET').toLowerCase(),
+    }));
+  assert.ok(chamadas.length >= 6, `achei só ${chamadas.length} chamadas em api.ts`);
+
+  const fora = chamadas.filter(({ caminho, metodo }) => {
+    const re = new RegExp(`^${forma(caminho).replace(/\{\}/g, '[^/]+')}$`);
+    return !rotas.some(([c, ops]) => re.test(c) && ops.has(metodo));
+  }).map((c) => `${c.metodo.toUpperCase()} ${c.caminho}`);
+  assert.deepEqual(fora, [], 'chamadas do app sem endpoint no contrato');
+});

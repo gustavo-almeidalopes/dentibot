@@ -45,10 +45,6 @@ export default function Perfil() {
         <Dado rotulo="Conta" valor={user?.primaryEmailAddress?.emailAddress ?? '—'} />
         <Divisoria />
         <Dado rotulo="Papel" valor={identidade?.papel ?? '—'} />
-        <Divisoria />
-        <Dado rotulo="Clínica" valor={identidade?.clinicaId ? `#${identidade.clinicaId}` : '—'} />
-        <Divisoria />
-        <Dado rotulo="Usuário" valor={identidade?.usuarioId ? `#${identidade.usuarioId}` : '—'} />
       </View>
 
       <Botao

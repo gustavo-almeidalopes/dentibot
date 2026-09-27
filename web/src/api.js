@@ -112,3 +112,27 @@ export function query(params) {
   const s = q.toString();
   return s ? `?${s}` : '';
 }
+
+/**
+ * Download autenticado (IA-47, portabilidade).
+ *
+ * <p>Fora do `req` porque a resposta é arquivo, não JSON: quem chama precisa
+ * dos bytes, do nome que o back-end deu e do SHA-256 que ele calculou — o
+ * paciente confere o arquivo recebido com `sha256sum`.
+ */
+export async function baixar(caminho) {
+  const token = await tokenDeSessao();
+  const res = await fetch(`${BASE}${caminho}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (!res.ok) {
+    const data = await res.json().catch(() => null);
+    throw new ApiError(data?.detail || `Erro ${res.status}`, res.status, data);
+  }
+  const disposicao = res.headers.get('Content-Disposition') ?? '';
+  return {
+    blob: await res.blob(),
+    nomeArquivo: /filename="?([^";]+)"?/.exec(disposicao)?.[1] ?? 'exportacao.json',
+    sha256: res.headers.get('X-Conteudo-Sha256'),
+  };
+}

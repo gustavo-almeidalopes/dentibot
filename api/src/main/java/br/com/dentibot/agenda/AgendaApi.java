@@ -1,7 +1,10 @@
 package br.com.dentibot.agenda;
 
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /** Porta pública do módulo agenda. */
 public interface AgendaApi {
@@ -27,4 +30,17 @@ public interface AgendaApi {
      * direto é a fronteira sumindo em silêncio, mesmo sem JOIN.
      */
     boolean pacienteAtendidoPor(long idPaciente, long idDentista);
+
+    /**
+     * Última consulta realizada e próxima marcada de cada paciente, respeitando o
+     * alcance de quem pergunta — o dentista enxerga só as consultas dele.
+     * Paciente sem nenhuma das duas não aparece no mapa.
+     */
+    Map<Long, SituacaoNaAgenda> situacaoDosPacientes(Collection<Long> idsPaciente);
+
+    /** Todas as consultas de um paciente, da mais recente para a mais antiga. */
+    List<ConsultaResumo> historicoDoPaciente(long idPaciente);
+
+    /** Uma consulta, com o mesmo alcance da listagem: a de um colega é 404 para o dentista. */
+    Optional<ConsultaResumo> buscar(long idConsulta);
 }

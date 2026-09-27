@@ -163,11 +163,11 @@ export async function pedir<T>(caminho: string, o: Opcoes = {}): Promise<T> {
 // Espelham os records do backend. Nomes idênticos de propósito: a tradução
 // acontece na tela, não aqui, para que uma mudança de DTO apareça no typecheck.
 
+/** O /eu (EuController): papel e o que ele alcança, calculado pelo backend. */
 export type Identidade = {
-  usuarioId: number | null;
-  clinicaId: number | null;
   papel: string | null;
   staffPapel: string | null;
+  permissoes: Record<string, Record<string, string>>;
 };
 
 export type StatusConsulta =
@@ -187,6 +187,9 @@ export type Consulta = {
   inicioEm: string;
   terminoEm: string;
   status: StatusConsulta;
+  /** IA-15: das últimas consultas encerradas (até dez), quantas foram falta. */
+  faltasRecentes: number;
+  consultasRecentes: number;
 };
 
 export type Paciente = {
@@ -197,12 +200,25 @@ export type Paciente = {
   status: string;
 };
 
+/** Parte do resumo: `permitido=false` é "sem acesso", `dados=null` é "nada aqui". */
+export type Secao<T> = { permitido: boolean; dados: T | null };
+
+export type ResumoDoPaciente = {
+  idPaciente: number;
+  nomePaciente: string;
+  alertas: Secao<{ avisos: string[] }>;
+  ultimaEvolucao: Secao<{ descricao: string; registradoEm: string }>;
+  planoEmAberto: Secao<{ nomeProcedimento: string | null; dente: number | null }[]>;
+  financeiro: Secao<{ emAberto: number; vencido: number }>;
+  agenda: Secao<{ ultimaRealizada: string | null; proximaMarcada: string | null }>;
+};
+
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
 export const api = {
   // login/logout saíram: quem cria e derruba sessão é o Clerk. O eu() fica —
   // papel e clínica são do domínio, não da identidade, e só o backend os sabe.
-  eu: () => pedir<Identidade>('/api/v1/auth/me'),
+  eu: () => pedir<Identidade>('/api/v1/eu'),
 
   /** `de`/`ate` em ISO-8601 UTC — o backend os recebe como Instant. */
   agenda: (de: Date, ate: Date) =>
@@ -216,6 +232,9 @@ export const api = {
   registrarFalta: (id: number) => pedir<void>(`/api/v1/consultas/${id}/falta`, { metodo: 'POST' }),
   cancelar: (id: number, motivo: string) =>
     pedir<void>(`/api/v1/consultas/${id}/cancelar`, { metodo: 'POST', corpo: { motivo } }),
+
+  /** IA-06: resumo de retorno, com os alertas que o app fala (IA-27). */
+  resumo: (idPaciente: number) => pedir<ResumoDoPaciente>(`/api/v1/pacientes/${idPaciente}/resumo`),
 
   /** Keyset: `apos` é o último idPaciente recebido, não um número de página. */
   pacientes: (apos = 0, limite = 50) =>

@@ -1,6 +1,8 @@
 package br.com.dentibot.prontuario;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Porta pública do módulo prontuário — o núcleo regulado (CFO-226/2020, LGPD
@@ -22,4 +24,31 @@ public interface ProntuarioApi {
     List<LancamentoOdontograma> odontograma(long idPaciente);
 
     long lancarOdontograma(NovoLancamentoOdontograma lancamento);
+
+    /** Alergia, anticoagulante, gestação: o que falar antes de chamar o paciente. */
+    AlertasClinicos alertas(long idPaciente);
+
+    /**
+     * Das consultas informadas, quais têm evolução registrada. Só ids — nenhum
+     * conteúdo clínico sai daqui —, para achar atendimento sem registro (IA-05).
+     */
+    Set<Long> consultasComEvolucao(Collection<Long> idsConsulta);
+
+    /**
+     * IA-01: organiza o ditado do dentista em rascunho de evolução e sugestões
+     * de odontograma. Exige poder ESCREVER no prontuário do paciente; não grava
+     * nada — quem grava é o dentista, pelo fluxo normal.
+     */
+    RascunhoDeNota rascunhoDeNota(long idPaciente, String ditado);
+
+    /** ST-41, passo 1: URL pré-assinada para o navegador enviar direto ao bucket. */
+    EnvioDeAnexo iniciarAnexo(long idPaciente, NovoAnexo novo);
+
+    /** ST-41, passo 2: confere tamanho e hash no bucket e só então registra. */
+    long confirmarAnexo(long idPaciente, String chave, NovoAnexo novo);
+
+    List<AnexoResumo> anexos(long idPaciente);
+
+    /** URL de leitura de cinco minutos. Cada pedido deixa rastro na auditoria. */
+    String urlDoAnexo(long idPaciente, long idAnexo);
 }

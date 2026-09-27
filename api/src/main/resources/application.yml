@@ -57,6 +57,43 @@ dentibot:
     partes-autorizadas: ${DENTIBOT_CLERK_ORIGINS:http://localhost:5173}
   cors:
     origens: ${DENTIBOT_CORS_ORIGINS:http://localhost:5173}
+  # Credencial do Prometheus em /actuator/prometheus (usuário "prometheus").
+  # Vazia = endpoint fechado para todos: não existe senha padrão.
+  metricas:
+    senha: ${DENTIBOT_METRICAS_SENHA:}
+  # ST-41: anexos clínicos num bucket S3-compatível — R2 em produção (região
+  # "auto"), MinIO em dev. Sem endpoint ou credencial, anexo responde 503 e o
+  # resto sobe normal. O bucket precisa aceitar CORS de PUT da origem do web.
+  anexos:
+    endpoint: ${DENTIBOT_S3_ENDPOINT:}
+    regiao: ${DENTIBOT_S3_REGIAO:auto}
+    bucket: ${DENTIBOT_S3_BUCKET:dentibot-anexos}
+    chave-acesso: ${DENTIBOT_S3_CHAVE:}
+    segredo: ${DENTIBOT_S3_SEGREDO:}
+  # Doc 03-B: gateway de IA (ST-61). Sem chave, todo recurso de IA responde 503
+  # e o resto do sistema não percebe. Ver docs/ia/politica.md.
+  ia:
+    chave: ${DENTIBOT_IA_CHAVE:}
+    # claude-opus-5 por padrão. Trocar por um modelo mais barato (claude-sonnet-5:
+    # US$ 2 / 10) é decisão de custo da operação: mude o modelo E os dois preços.
+    modelo: ${DENTIBOT_IA_MODELO:claude-opus-5}
+    url: ${DENTIBOT_IA_URL:https://api.anthropic.com}
+    # US$ por milhão de tokens do modelo acima (tabela da Anthropic). É daqui
+    # que sai o custo que a clínica vê (IA-59) e o que a cota mensal consome.
+    preco-entrada-usd-mtok: ${DENTIBOT_IA_PRECO_ENTRADA:5.00}
+    preco-saida-usd-mtok: ${DENTIBOT_IA_PRECO_SAIDA:25.00}
+  # Doc 03-D: WhatsApp Cloud API da Meta. Sem token nada sai (as mensagens ficam
+  # programadas); sem segredo do app nenhum webhook é aceito. O modelo precisa
+  # estar aprovado no Business Manager com um único parâmetro de corpo.
+  whatsapp:
+    token: ${DENTIBOT_WHATSAPP_TOKEN:}
+    segredo-do-app: ${DENTIBOT_WHATSAPP_SEGREDO_DO_APP:}
+    token-de-verificacao: ${DENTIBOT_WHATSAPP_TOKEN_DE_VERIFICACAO:}
+    modelo: ${DENTIBOT_WHATSAPP_MODELO:dentibot_aviso}
+  # Vazio = Sentry desligado. O DSN não é segredo forte, mas muda por ambiente.
+  sentry:
+    dsn: ${SENTRY_DSN:}
+    ambiente: ${DENTIBOT_AMBIENTE:local}
   # Camada de DENTRO do rate limit. A camada de borda (Cloudflare) barra volume
   # antes de consumir thread da aplicação — as duas existem e fazem coisas
   # diferentes (camada 12).
@@ -86,15 +123,24 @@ management:
   endpoints:
     web:
       exposure:
-        # Só health. prometheus estava listado sem a dependência do registry
-        # (o endpoint nem existia), e info não tem conteúdo.
-        include: health
+        # prometheus agora com o registry no pom (ST-25) e atrás de credencial
+        # própria — ver CadeiaDeSeguranca.metricas. info não tem conteúdo.
+        include: health,prometheus
   endpoint:
     health:
       # never, e não when-authorized: sem papel configurado, "autorizado" é
       # qualquer usuário autenticado — a recepcionista de qualquer clínica via
       # banco, Redis e disco. Diagnóstico é pelo log, não pela API pública.
       show-details: never
+      # ST-26: /health/liveness pergunta "o processo está vivo?" e não toca em
+      # nada externo — senão um banco lento faz o orquestrador matar instância
+      # sadia. /health/readiness pergunta "pode receber tráfego?" e aí o banco
+      # entra. Redis fica fora das duas: o rate limit falha aberto sem ele.
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,db
   health:
     redis:
       enabled: true
@@ -110,3 +156,14 @@ logging:
     # que tira CPF e e-mail da exceção. Sem ela no padrão, o Logback anexa o
     # próprio conversor de exceção, sem limpeza.
     console: "%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%X{correlacaoId:-}] %logger{36} - %msg%n%wEx"
+
+# ST-20: o contrato OpenAPI. Desligado por padrão — em produção /v3/api-docs dá
+# 404 e não mapa da API a quem bate na porta. O teste de contrato liga, gera e
+# compara com api/openapi.json; o dev liga com DENTIBOT_OPENAPI=true.
+springdoc:
+  api-docs:
+    enabled: ${DENTIBOT_OPENAPI:false}
+    version: openapi_3_1
+  writer-with-order-by-keys: true
+  writer-with-default-pretty-printer: true
+  packages-to-scan: br.com.dentibot

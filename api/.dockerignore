@@ -1,0 +1,9 @@
+# O contexto de build é api/. Sem isto, target/ (centenas de MB de build local)
+# e segredo de IDE iriam para o daemon a cada build.
+target/
+.idea/
+.vscode/
+*.iml
+.env
+.env.*
+HELP.md

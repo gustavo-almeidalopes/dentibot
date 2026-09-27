@@ -1,5 +1,6 @@
 package br.com.dentibot.orcamento;
 
+import java.time.Instant;
 import java.util.List;
 
 /**
@@ -36,4 +37,10 @@ public interface OrcamentoApi {
 
     /** Marca um item como executado, normalmente ao concluir a consulta. */
     void concluirItem(long idOrcamento, long idItem, Long idConsulta);
+
+    /** Itens pendentes ou em andamento de orçamentos aprovados; paciente nulo = todos. */
+    List<ItemDePlano> itensEmAberto(Long idPaciente);
+
+    /** Itens concluídos no intervalo, de orçamentos aprovados. */
+    List<ItemDePlano> itensConcluidos(Instant de, Instant ate);
 }

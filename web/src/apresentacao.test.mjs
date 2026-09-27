@@ -87,3 +87,11 @@ test('o dia por extenso é o dia civil, não o de UTC', () => {
   assert.match(porExtenso('2026-09-13'), /domingo/i);
   assert.match(porExtenso('2026-09-13'), /13 de setembro/i);
 });
+
+test('dinheiro, quantidade e data curta não quebram com ausente', async () => {
+  const { reais, quantidade, dataCurta } = await import('./apresentacao.js');
+  assert.match(reais(200), /R\$\s?200,00/);
+  assert.match(reais(null), /R\$\s?0,00/);
+  assert.equal(quantidade(0.3333333), '0,333');
+  assert.equal(dataCurta(null), '—');
+});

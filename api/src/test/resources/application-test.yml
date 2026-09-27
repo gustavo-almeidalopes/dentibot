@@ -13,6 +13,9 @@ dentibot:
     # outra classe entregaria os eventos de um teste do outbox sem os
     # consumidores dele. Os testes chamam OutboxWorker.processarAgora().
     intervalo: 3600000
+  comunicacao:
+    # Idem: o despachante de WhatsApp roda quando o teste manda.
+    intervalo: 3600000
   ratelimit:
     # Teste roda dezenas de logins em segundos; o limite de produção
     # transformaria isso em 429 intermitente e num teste instável.

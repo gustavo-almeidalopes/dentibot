@@ -118,13 +118,19 @@
 .odonto-dente[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
 .odonto-dente:focus-visible { outline: 2px solid var(--alarm); outline-offset: 2px; }
 /* A condição é cor E borda: cor sozinha não existe para quem não a distingue.
-   E a marca precisa de 3:1 (1.4.11): no --hair ela dava 1,69:1, e a opacidade
+   Os valores são os do CHECK do banco (web/src/odontograma.js), não os rótulos.
+   A marca precisa de 3:1 (1.4.11): no --hair ela dava 1,69:1, e a opacidade
    do ausente apagava o número junto. */
-.odonto-dente[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
-.odonto-dente[data-condicao="ausente"] { border-style: dashed; border-color: var(--tinta-fraca); }
-.odonto-dente[data-condicao="restaurado"],
+.odonto-dente[data-condicao="carie"],
+.odonto-dente[data-condicao="fratura"] { border-color: var(--alarm); border-bottom-width: 3px; }
+.odonto-dente[data-condicao="ausente"],
+.odonto-dente[data-condicao="extraido"] { border-style: dashed; border-color: var(--tinta-fraca); }
+.odonto-dente[data-condicao="restauracao"],
 .odonto-dente[data-condicao="coroa"],
-.odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
+.odonto-dente[data-condicao="implante"],
+.odonto-dente[data-condicao="canal"],
+.odonto-dente[data-condicao="selante"],
+.odonto-dente[data-condicao="protese"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
 
 /* ── TABELA ───────────────────────────────────────────────────────────────── */
 .tabela-rolagem { overflow-x: auto; }
@@ -359,11 +365,16 @@
 }
 .odonto-legenda li { display: flex; align-items: center; gap: 6px; }
 .odonto-amostra { width: 16px; height: 16px; border: 1px solid var(--hair); display: inline-block; }
-.odonto-amostra[data-condicao="cárie"] { border-color: var(--alarm); border-bottom-width: 3px; }
-.odonto-amostra[data-condicao="ausente"] { border-style: dashed; border-color: var(--tinta-fraca); }
-.odonto-amostra[data-condicao="restaurado"],
+.odonto-amostra[data-condicao="carie"],
+.odonto-amostra[data-condicao="fratura"] { border-color: var(--alarm); border-bottom-width: 3px; }
+.odonto-amostra[data-condicao="ausente"],
+.odonto-amostra[data-condicao="extraido"] { border-style: dashed; border-color: var(--tinta-fraca); }
+.odonto-amostra[data-condicao="restauracao"],
 .odonto-amostra[data-condicao="coroa"],
-.odonto-amostra[data-condicao="implante"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
+.odonto-amostra[data-condicao="implante"],
+.odonto-amostra[data-condicao="canal"],
+.odonto-amostra[data-condicao="selante"],
+.odonto-amostra[data-condicao="protese"] { border-bottom-width: 3px; border-bottom-color: var(--tinta-fraca); }
 
 @media (min-width: 900px) {
   .odonto-area {
@@ -394,3 +405,73 @@
 }
 /* O número em vermelho dava 4,38:1 no branco. O alarme é o filete; o número, tinta. */
 .indicador[data-alarme="sim"] { border-left: 3px solid var(--alarm); padding-left: 15px; }
+
+/* ── COPILOTO (Doc 03-A) ──────────────────────────────────────────────────── */
+/* O resumo abre dentro do bloco da consulta: mesma superfície, fio acima. */
+.resumo {
+  border-top: 1px solid var(--hair);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+/* Alerta clínico é o caso "alarmante" do brutalismo: o único vermelho da tela,
+   em barra e texto — nunca só cor, a palavra "Alertas" vai junto. */
+.resumo-alertas {
+  border-left: 3px solid var(--alarm);
+  padding: 8px 0 8px 14px;
+  margin-bottom: var(--spacing-20, 20px);
+}
+.resumo-alertas .cap { color: var(--alarm); margin: 0 0 6px; }
+.resumo-alertas ul { margin: 0 0 10px; padding-left: 18px; font-weight: 700; }
+/* Faltas recentes: aviso de operação, não de saúde — tinta, não vermelho. */
+.consulta-faltas {
+  margin: 4px 0 0;
+  border-left: 3px solid var(--tinta);
+  padding-left: 8px;
+  font-weight: 700;
+}
+.secao-titulo { margin: var(--spacing-30, 30px) 0 12px; }
+
+/* ── IA generativa (Doc 03-C): rascunho é sempre rascunho ─────────────────── */
+/* Fio tracejado: a forma diz "provisório" antes de qualquer palavra. */
+.ditado-rascunho,
+.plano-explicado {
+  border: 1px dashed var(--hair);
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+.ditado-sugestao { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.plano-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 16px; }
+.plano-texto { white-space: pre-wrap; }
+
+/* Liga/desliga de recurso de IA: checkbox nativo, canto vivo, sem cor além da tinta. */
+.campo-check { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.campo-check input { accent-color: var(--tinta); border-radius: 0; }
+
+/* Conversas (Doc 03-D). Urgência é o único vermelho da tela, e como borda e
+   marcador — nunca como cor de texto, que no papel não passa em contraste. */
+.conversas { display: grid; gap: 12px; }
+.conversa { border: 1px solid var(--hair); border-left-width: 6px; padding: 14px 16px; background: var(--superficie); }
+.conversa[data-alarme="sim"] { border-left-color: var(--alarm); }
+.conversa-urgente { font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.conversa-urgente::before { content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 6px; background: var(--alarm); }
+.conversa-texto, .mensagem-texto { white-space: pre-wrap; overflow-wrap: anywhere; }
+.conversa-resposta { margin-top: 10px; }
+.form-linha { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
+.orientacao-previa { border-left: 1px solid var(--hair); padding-left: 12px; max-width: 72ch; }
+.preferencia { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-block: 10px; border-bottom: 1px solid var(--hair-fraca); }
+.link-titular { overflow-wrap: anywhere; font-family: ui-monospace, monospace; font-size: 13px; }
+
+/* Página do titular: pública, preta como a landing, uma coluna só. */
+.titular-texto { max-width: 60ch; }
+.titular-secao { margin-top: var(--spacing-50, 50px); max-width: 72ch; }
+.titular-lista { list-style: none; margin: 16px 0 0; padding: 0; }
+.titular-lista > li { padding-block: 16px; border-top: 1px solid var(--tinta-fraca); display: grid; gap: 8px; justify-items: start; }
+.titular-form { display: grid; gap: 8px; width: 100%; }
+.titular-form textarea { width: 100%; background: transparent; color: inherit; border: 1px solid var(--tinta-fraca); border-radius: 0; padding: 10px; font: inherit; }
+.titular-erro { border-left: 3px solid var(--alarm); padding-left: 10px; }
+.titular-form button { justify-self: start; }
+.titular-texto { margin-top: 12px; }
+.titular-secao > .sub { margin-bottom: 4px; }
+
+/* Sem conexão (ST-54): alarme de verdade — o vermelho é a borda, não o texto. */
+.faixa-offline { border: 1px solid var(--hair); border-left: 6px solid var(--alarm); padding: 10px 14px; margin: 0 0 var(--spacing-20, 20px); }

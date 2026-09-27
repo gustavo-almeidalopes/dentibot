@@ -18,7 +18,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.ZoneId;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,7 +54,6 @@ import org.springframework.web.servlet.function.ServerResponse;
 @DisplayName("Borda pública")
 class BordaPublicaTest extends TesteIntegracao {
 
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
     private static final String TOKEN_ADMIN = "token-do-admin";
 
     @TestConfiguration

@@ -1,6 +1,9 @@
 package br.com.dentibot.plataforma.erro;
 
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
+import br.com.dentibot.plataforma.contexto.ContextoRequisicao;
+import io.sentry.Sentry;
+import io.sentry.protocol.User;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao.AcessoNegadoException;
 import br.com.dentibot.plataforma.tenant.GuardaDeTransacao.AcessoForaDeTransacaoException;
 import java.net.URI;
@@ -42,6 +45,24 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
         log.info("Acesso negado: {} em {}", e.acao(), e.recurso());
         return problema(HttpStatus.FORBIDDEN, "acesso-negado",
                 "Seu perfil não permite esta operação.");
+    }
+
+    @ExceptionHandler(ServicoIndisponivelException.class)
+    public ProblemDetail indisponivel(ServicoIndisponivelException e) {
+        // A frase diz qual variável falta — é para quem opera, e não cita dado de ninguém.
+        log.warn("Serviço indisponível: {}", e.getMessage());
+        return problema(HttpStatus.SERVICE_UNAVAILABLE, "servico-indisponivel", e.getMessage());
+    }
+
+    @ExceptionHandler(LimiteExcedidoException.class)
+    public ProblemDetail limite(LimiteExcedidoException e) {
+        return problema(HttpStatus.TOO_MANY_REQUESTS, "limite-excedido", e.getMessage());
+    }
+
+    @ExceptionHandler(FalhaExternaException.class)
+    public ProblemDetail falhaExterna(FalhaExternaException e) {
+        log.warn("Falha em serviço externo: {}", e.getMessage(), e.getCause());
+        return problema(HttpStatus.BAD_GATEWAY, "falha-externa", e.getMessage());
     }
 
     @ExceptionHandler(RecursoNaoEncontradoException.class)
@@ -168,6 +189,23 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ProblemDetail inesperado(Exception e) {
         log.error("Erro não tratado", e);
+        // ST-28. Ids e não nomes: o Sentry precisa agrupar por clínica e achar
+        // a linha de log, não saber quem é a pessoa. Sem DSN, é no-op.
+        ContextoRequisicao ctx = ContextoAtual.obter();
+        Sentry.withScope(escopo -> {
+            if (ctx.clinicaId() != null) {
+                escopo.setTag("clinica", ctx.clinicaId().toString());
+            }
+            if (ctx.usuarioId() != null) {
+                User usuario = new User();
+                usuario.setId(ctx.usuarioId().toString());
+                escopo.setUser(usuario);
+            }
+            if (ctx.correlacaoId() != null) {
+                escopo.setTag("correlacaoId", ctx.correlacaoId().toString());
+            }
+            Sentry.captureException(e);
+        });
         return problema(HttpStatus.INTERNAL_SERVER_ERROR, "erro-interno", "Erro interno.");
     }
 
