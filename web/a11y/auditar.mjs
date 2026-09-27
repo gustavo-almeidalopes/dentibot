@@ -172,12 +172,41 @@ async function cargaQueFalha(contexto, base) {
   }
 }
 
+/* 2.2.2: o letreiro corre em loop, e o hover não serve a quem usa teclado ou
+   toque. Só com Tab o botão tem de ser alcançado — e exposto: o getByRole não
+   acha o que está sob aria-hidden — e parar e retomar a animação. Sem movimento
+   reduzido: com ele o letreiro já nasce parado e o botão sai de cena. */
+async function letreiroPausavel(navegador, base) {
+  const contexto = await navegador.newContext({ reducedMotion: 'no-preference' });
+  const pagina = await contexto.newPage();
+  pagina.setDefaultTimeout(5_000);
+  const estado = () => pagina.evaluate(() => getComputedStyle(document.querySelector('.ticker-track')).animationPlayState);
+  const focado = (nome) => pagina.getByRole('button', { name: nome }).evaluate((b) => b === document.activeElement);
+  try {
+    await pagina.goto(new URL('/', base).href, { waitUntil: 'load' });
+    for (let i = 0; i < 40 && await pagina.evaluate(() => document.activeElement?.textContent !== 'Pausar letreiro'); i++) {
+      await pagina.keyboard.press('Tab');
+    }
+    if (!await focado('Pausar letreiro')) throw new Error('o Tab não chegou a "Pausar letreiro"');
+    if (await estado() !== 'running') throw new Error('o letreiro já estava parado');
+    await pagina.keyboard.press('Enter');
+    if (await estado() !== 'paused' || !await focado('Retomar letreiro')) throw new Error('Enter não pausou');
+    await pagina.keyboard.press('Space');
+    if (await estado() !== 'running' || !await focado('Pausar letreiro')) throw new Error('Espaço não retomou');
+    return { passou: true };
+  } catch (erro) {
+    return { passou: false, erro: erro.message.split('\n')[0] };
+  } finally {
+    await contexto.close();
+  }
+}
+
 const servidor = await preview({ root: RAIZ, preview: { port: 4173, strictPort: true }, logLevel: 'warn' });
 const base = servidor.resolvedUrls.local[0];
 const navegador = await chromium.launch({ channel: 'chrome' });
 
 const relatorio = {
-  gerado: new Date().toISOString(), tags: TAGS, parcial: !TEM_CHAVE, rotas: [], calibracaoReflow: null, cargaQueFalha: null,
+  gerado: new Date().toISOString(), tags: TAGS, parcial: !TEM_CHAVE, rotas: [], calibracaoReflow: null, cargaQueFalha: null, letreiroPausavel: null,
 };
 try {
   /* Movimento reduzido: o [data-reveal] da landing aparece de uma vez, e o axe
@@ -189,6 +218,7 @@ try {
   }
   relatorio.calibracaoReflow = await calibrarReflow(contexto, base);
   relatorio.cargaQueFalha = await cargaQueFalha(contexto, base);
+  relatorio.letreiroPausavel = await letreiroPausavel(navegador, base);
 } finally {
   await navegador.close();
   await servidor.close();
@@ -219,6 +249,9 @@ linhas.push(`${calibracao.passou ? 'ok   ' : 'FALHA'} o medidor de reflow enxerg
 const carga = relatorio.cargaQueFalha;
 falhou ||= !carga.passou;
 linhas.push(`${carga.passou ? 'ok   ' : 'FALHA'} carga que falha no /login${carga.erro ? ` — ${carga.erro}` : ''}`);
+const letreiro = relatorio.letreiroPausavel;
+falhou ||= !letreiro.passou;
+linhas.push(`${letreiro.passou ? 'ok   ' : 'FALHA'} letreiro pausa e retoma pelo teclado${letreiro.erro ? ` — ${letreiro.erro}` : ''}`);
 if (relatorio.parcial) {
   linhas.push('AUDITORIA PARCIAL: /login pulado — o build não tem VITE_CLERK_PUBLISHABLE_KEY.');
 }

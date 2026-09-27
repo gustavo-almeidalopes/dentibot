@@ -582,6 +582,7 @@ html:not(.no-js) #odontograma.visible .fdi {
 
 /* ── TICKER — the day running past, ending in the word the wall shouts ── */
 .ticker {
+  position: relative;
   border-block: 1px solid var(--hair);
   padding-block: var(--spacing-16);
   overflow: hidden;
@@ -593,7 +594,16 @@ html:not(.no-js) #odontograma.visible .fdi {
 }
 .ticker-set { white-space: nowrap; padding-right: .6em; }
 .ticker b { color: var(--alarm); font-weight: 700; }
-.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker:hover .ticker-track,
+.ticker[data-parado] .ticker-track { animation-play-state: paused; }
+/* Por cima do texto, sem mudar a altura da faixa: o fundo cobre o que passa. */
+.ticker-pausa {
+  position: absolute;
+  top: 50%;
+  right: var(--edge);
+  translate: 0 -50%;
+  background: var(--fundo);
+}
 
 @keyframes ticker-run { to { transform: translateX(-50%); } }
 
@@ -608,6 +618,7 @@ html:not(.no-js) #odontograma.visible .fdi {
   html:not(.no-js) [data-reveal].has-lines .ln > i { transform: none; }
   html:not(.no-js) #odontograma .fdi { opacity: 1; transform: none; }
   .ticker-track { animation: none; }
+  .ticker-pausa { display: none; }
 }
 
 /* ── RESPONSIVE ──────────────────────────────────────────────── */

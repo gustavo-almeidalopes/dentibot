@@ -9,7 +9,7 @@ resto à mão.
 | Camada | Onde | Prova | Não prova |
 |---|---|---|---|
 | Invariantes | `web/src/acessibilidade.test.mjs`, `web/src/legibilidade.test.mjs`, `app/src/acessibilidade.test.mjs` — em todo PR, no job `contratos` | contraste de todo token de texto e de foco nos dois temas; borda de campo a 3:1; nenhum literal da marca pintando o papel; vermelho nunca como texto no tema claro; idioma, zoom, foco, `h1`; marca de condição do odontograma a 3:1; token do JSX existe no CSS; anel do campo do Clerk declarado; landing sem Clerk; fontes do próprio domínio; triagem com Flesch ≥ 75 | nada que dependa do DOM renderizado |
-| Navegador | `web/a11y/auditar.mjs` — job `acessibilidade` | axe-core (A e AA das WCAG 2.0, 2.1 e 2.2) em `/`, `/login` e no 404; reflow a 320px; carga que falha vira mensagem | as telas autenticadas; o que o axe não mede — contraste de não-texto, foco, estado —, cerca de dois terços dos problemas reais |
+| Navegador | `web/a11y/auditar.mjs` — job `acessibilidade` | axe-core (A e AA das WCAG 2.0, 2.1 e 2.2) em `/`, `/login` e no 404; reflow a 320px; carga que falha vira mensagem; o letreiro da landing pausa e retoma só com teclado (2.2.2) | as telas autenticadas; o que o axe não mede — contraste de não-texto, foco, estado —, cerca de dois terços dos problemas reais |
 | Peso | `web/a11y/peso.mjs` — job `acessibilidade` | JS e CSS que a landing carrega de cara abaixo de 104 KB em gzip | tempo de carga em rede real |
 | Roteiro manual | este documento, a cada release | as telas autenticadas, com teclado, NVDA, zoom e reflow | — |
 
