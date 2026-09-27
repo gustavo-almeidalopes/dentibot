@@ -1,5 +1,5 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
-import { createContext, useContext } from 'react';
+import { createContext, Suspense, useContext } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSemConexao } from '../components/SessaoOffline.jsx';
 import { Esqueleto } from '../components/primitivos.jsx';
@@ -17,9 +17,20 @@ const APARENCIA_CLARA = {
   colorPrimaryForeground: '#ffffff',
   colorInput: '#ffffff',
   colorInputForeground: '#111111',
-  colorBorder: 'rgba(0, 0, 0, .22)',
+  /* Controle, não hairline: preto a 22% dava 1,69:1 nos campos do perfil.
+     #5c5c5c é a --tinta-fraca do tema claro. */
+  colorBorder: '#5c5c5c',
   colorDanger: '#ed1c24',
   borderRadius: '0px',
+};
+
+/* O Clerk desenha o campo com um box-shadow do colorBorder a 11%, que some no
+   branco. O anel vai declarado, opaco e com !important, como no ComClerk. */
+const CAMPOS_CLAROS = {
+  formFieldInput: {
+    boxShadow: '0 0 0 1px #5c5c5c !important',
+    '&:focus': { boxShadow: '0 0 0 2px #111111 !important' },
+  },
 };
 
 /**
@@ -123,7 +134,7 @@ function Autenticado() {
         {/* O provider inteiro está com aparência preta, para a landing e o
             login. Dentro do app o cabeçalho é claro, e o popover do Clerk
             entraria preto sobre papel. */}
-        <UserButton appearance={{ variables: APARENCIA_CLARA }} />
+        <UserButton appearance={{ variables: APARENCIA_CLARA, elements: CAMPOS_CLAROS }} />
       </header>
 
       <main id="main" className="app-main edge">
@@ -131,8 +142,15 @@ function Autenticado() {
         {/* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
             viraria uma tela de erro técnica. Isto responde a mesma negativa em
             português, sem nunca ser a razão pela qual o acesso foi negado. */}
+        {/* A tela é um chunk à parte. O Suspense é daqui, e não o de fora: o de
+            fora desmontaria a casca, e o tema claro piscaria para o preto a
+            cada troca de aba. */}
         {recurso === null || pode(recurso)
-          ? <Outlet />
+          ? (
+            <Suspense fallback={<Estado status="carregando" />}>
+              <Outlet />
+            </Suspense>
+          )
           : <SemAcesso papel={eu.dados.papel} />}
       </main>
     </Permissoes.Provider>
@@ -164,7 +182,7 @@ export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNov
   if (status === 'erro') {
     return (
       <div aria-live="assertive">
-        <p className="body" style={{ color: 'var(--alarm)' }}>
+        <p className="aviso" data-tom="erro">
           {erro?.message || 'Não foi possível carregar.'}
         </p>
         {/* O correlacaoId vem do ProblemDetail do back-end e é o que o suporte

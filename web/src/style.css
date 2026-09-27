@@ -107,10 +107,10 @@ a { color: inherit; text-decoration: none; }
   top: -100px;
   z-index: 200;
   padding: 7px 20px;
-  border: 1px solid var(--bone);
+  border: 1px solid var(--tinta);
   border-radius: 0;
-  background: var(--bone);
-  color: var(--obsidian);
+  background: var(--tinta);
+  color: var(--fundo);
   font-size: 19px;
   transition: top .15s;
 }
@@ -147,6 +147,9 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
   padding-block: .15em;
   font-feature-settings: "ss01" 0, "ss02" 0;
+  /* A 320px uma palavra longa ("ENCONTRADO.") passa da borda; quebrar só
+     quando não cabe mantém o reflow do 1.4.10. */
+  overflow-wrap: anywhere;
 }
 
 .sub {
@@ -162,10 +165,12 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.25;
   text-transform: uppercase;
 }
-.cap-ash { color: var(--ash); }
+/* --tinta-fraca e não --ash: no preto são o mesmo cinza, mas no papel o --ash
+   dá 3,6:1 e reprova. As telas do sistema usam estas duas classes 67 vezes. */
+.cap-ash { color: var(--tinta-fraca); }
 
 .body { line-height: 1.32; max-width: 56ch; }
-.body-ash { color: var(--ash); }
+.body-ash { color: var(--tinta-fraca); }
 
 /* Editorial credit — classical serif small caps against the brutalism. */
 .credit {
@@ -186,7 +191,10 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 10px;
   padding: 13px var(--spacing-20);
-  border: 2px solid var(--bone);
+  /* Token semântico, não literal: no preto --tinta é osso e --fundo é
+     obsidiana, e a landing não muda. No papel o botão vira a caixa preta de
+     canto vivo, em vez de uma borda branca que sumia. */
+  border: 2px solid var(--tinta);
   border-radius: var(--radius-buttons);
   font-size: var(--text-body-sm, 19px);
   font-weight: 700;
@@ -206,19 +214,19 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--bone);
+  background: var(--tinta);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform .34s var(--ease-brut);
 }
 .btn:hover::before,
 .btn:focus-visible::before { transform: scaleX(1); }
-.btn:hover, .btn:focus-visible { color: var(--obsidian); }
+.btn:hover, .btn:focus-visible { color: var(--fundo); }
 
 /* Filled block starts flipped, so its sweep runs the other way. */
-.btn-fill { background: var(--bone); color: var(--obsidian); }
-.btn-fill::before { background: var(--obsidian); transform-origin: right center; }
-.btn-fill:hover, .btn-fill:focus-visible { color: var(--bone); }
+.btn-fill { background: var(--tinta); color: var(--fundo); }
+.btn-fill::before { background: var(--fundo); transform-origin: right center; }
+.btn-fill:hover, .btn-fill:focus-visible { color: var(--tinta); }
 
 .btn-lg { padding: 16px var(--spacing-30); font-size: 20px; }
 
@@ -577,6 +585,7 @@ html:not(.no-js) #odontograma.visible .fdi {
 
 /* ── TICKER — the day running past, ending in the word the wall shouts ── */
 .ticker {
+  position: relative;
   border-block: 1px solid var(--hair);
   padding-block: var(--spacing-16);
   overflow: hidden;
@@ -588,7 +597,16 @@ html:not(.no-js) #odontograma.visible .fdi {
 }
 .ticker-set { white-space: nowrap; padding-right: .6em; }
 .ticker b { color: var(--alarm); font-weight: 700; }
-.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker:hover .ticker-track,
+.ticker[data-parado] .ticker-track { animation-play-state: paused; }
+/* Por cima do texto, sem mudar a altura da faixa: o fundo cobre o que passa. */
+.ticker-pausa {
+  position: absolute;
+  top: 50%;
+  right: var(--edge);
+  translate: 0 -50%;
+  background: var(--fundo);
+}
 
 @keyframes ticker-run { to { transform: translateX(-50%); } }
 
@@ -603,6 +621,7 @@ html:not(.no-js) #odontograma.visible .fdi {
   html:not(.no-js) [data-reveal].has-lines .ln > i { transform: none; }
   html:not(.no-js) #odontograma .fdi { opacity: 1; transform: none; }
   .ticker-track { animation: none; }
+  .ticker-pausa { display: none; }
 }
 
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
@@ -664,11 +683,11 @@ html:not(.no-js) #odontograma.visible .fdi {
 .auth-swap { margin-top: var(--spacing-30); }
 .auth-swap a, .auth-swap button {
   cursor: pointer;
-  color: var(--ash);
+  color: var(--tinta-fraca);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.auth-swap a:hover, .auth-swap button:hover { color: var(--bone); }
+.auth-swap a:hover, .auth-swap button:hover { color: var(--tinta); }
 
 /* Bloco inerte não deve prometer o wipe que não vai acontecer. */
 .btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -864,7 +883,8 @@ html:not(.no-js) #odontograma.visible .fdi {
 .pagamento-campo input {
   appearance: none;
   background: transparent;
-  border: 1px solid var(--hair);
+  /* Controle, não hairline: --hair dava 2,10:1 no preto (1.4.11 pede 3:1). */
+  border: 1px solid var(--tinta-fraca);
   border-radius: 0;
   color: var(--tinta);
   font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   cpfValido, formatarCep, formatarCpf, formatarTelefone, menorDeIdade, somenteDigitos,
 } from '../documento.js';
+import { TRIAGEM } from '../triagem.js';
 
 /**
  * Ficha do paciente: identificação, endereço e a triagem de saúde.
@@ -211,18 +212,16 @@ export default function FichaPaciente({
       </div>
 
       <h2 className="sub">3 · Triagem de saúde</h2>
-      <p className="cap cap-ash">
-        Dado de saúde é sensível (LGPD art. 11) e só a equipe clínica lê.
-      </p>
+      <p className="cap cap-ash">{TRIAGEM.aviso}</p>
 
       <div className="form-linha">
         <SimNao
-          rotulo="Está em tratamento médico atualmente?"
+          rotulo={TRIAGEM.emTratamentoMedico}
           valor={f.emTratamentoMedico}
           aoMudar={mudar('emTratamentoMedico')}
         />
         <SimNao
-          rotulo="Problemas cardíacos, diabetes ou hipertensão?"
+          rotulo={TRIAGEM.condicaoSistemica}
           valor={f.condicaoSistemica}
           aoMudar={mudar('condicaoSistemica')}
         />
@@ -230,7 +229,7 @@ export default function FichaPaciente({
 
       <div className="form-linha">
         <label className="campo-app">
-          <span className="cap cap-ash">Medicamento de uso contínuo — qual?</span>
+          <span className="cap cap-ash">{TRIAGEM.medicamentoContinuo}</span>
           <input maxLength={255} placeholder="deixe em branco se não usa"
                  value={f.medicamentoContinuo} onChange={mudar('medicamentoContinuo')} />
         </label>
@@ -238,7 +237,7 @@ export default function FichaPaciente({
             não muda conduta nenhuma — o que importa é ler "penicilina" ou
             "látex" antes de escolher o material. */}
         <label className="campo-app">
-          <span className="cap cap-ash">Alergia a medicamento ou látex — qual?</span>
+          <span className="cap cap-ash">{TRIAGEM.alergia}</span>
           <input maxLength={255} placeholder="ex.: penicilina, látex"
                  value={f.alergia} onChange={mudar('alergia')} />
         </label>
@@ -246,7 +245,7 @@ export default function FichaPaciente({
 
       <div className="form-linha">
         <label className="campo-app">
-          <span className="cap cap-ash">Está grávida?</span>
+          <span className="cap cap-ash">{TRIAGEM.gravidez}</span>
           <select value={f.gravidez} onChange={mudar('gravidez')}>
             <option value="nao_se_aplica">Não se aplica</option>
             <option value="sim">Sim</option>
@@ -254,7 +253,7 @@ export default function FichaPaciente({
           </select>
         </label>
         <label className="campo-app">
-          <span className="cap cap-ash">Motivo principal da consulta</span>
+          <span className="cap cap-ash">{TRIAGEM.motivoConsulta}</span>
           <select value={f.motivoConsulta} onChange={mudar('motivoConsulta')}>
             <option value="">—</option>
             {MOTIVOS.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
@@ -264,12 +263,12 @@ export default function FichaPaciente({
 
       <div className="form-linha">
         <SimNao
-          rotulo="Sente sensibilidade (frio, calor, doces)?"
+          rotulo={TRIAGEM.sensibilidade}
           valor={f.sensibilidade}
           aoMudar={mudar('sensibilidade')}
         />
         <SimNao
-          rotulo="Sangra ao escovar ou passar fio dental?"
+          rotulo={TRIAGEM.sangramentoGengival}
           valor={f.sangramentoGengival}
           aoMudar={mudar('sangramentoGengival')}
         />

@@ -214,8 +214,10 @@ function Evolucoes({ idPaciente, recurso, onOdontograma }) {
                 <p className="cap cap-ash">{nomeDoDentista(e.idDentista)}</p>
               </div>
               <div>
+                {/* A retificação já tem a marca vermelha na margem da evolução;
+                    o texto dela é tinta, que se lê. */}
                 {e.retificaEvolucao && (
-                  <p className="cap" style={{ color: 'var(--alarm)' }}>
+                  <p className="cap">
                     Retifica a evolução #{e.retificaEvolucao} · {e.motivoRetificacao}
                   </p>
                 )}

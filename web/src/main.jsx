@@ -1,30 +1,22 @@
-import { ptBR } from '@clerk/localizations';
-import { ClerkProvider } from '@clerk/react';
-import { StrictMode } from 'react';
+import { StrictMode, Suspense, lazy } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';
-import Login from './components/Login.jsx';
-import SessaoOffline from './components/SessaoOffline.jsx';
-import Acompanhamento from './paginas/Acompanhamento.jsx';
-import Agenda from './paginas/Agenda.jsx';
-import Auditoria from './paginas/Auditoria.jsx';
-import Cadastro from './paginas/Cadastro.jsx';
-import Conversas from './paginas/Conversas.jsx';
-import Equipe from './paginas/Equipe.jsx';
-import Estoque from './paginas/Estoque.jsx';
-import Financeiro from './paginas/Financeiro.jsx';
-import Ia from './paginas/Ia.jsx';
-import Layout from './paginas/Layout.jsx';
+import RecuperaCarga from './components/RecuperaCarga.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
-import Pacientes from './paginas/Pacientes.jsx';
-import Prontuario from './paginas/Prontuario.jsx';
-import Titular from './paginas/Titular.jsx';
+/* As fontes vêm do próprio domínio, e não do Google Fonts: duas negociações de
+   DNS e TLS a menos no 3G, e o IP de quem abre o site não vai para um terceiro.
+   Os mesmos pesos do <link> que saiu do index.html. */
+import '@fontsource/antonio/400.css';
+import '@fontsource/antonio/700.css';
+import '@fontsource/cormorant-sc/400.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/700.css';
 import './style.css';
 import './app.css';
 import { ligarErros } from './erros.js';
 import {
-  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CONVERSAS, CRIAR, EQUIPE, ESTOQUE, FINANCEIRO, IA,
+  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CONVERSAS, EQUIPE, ESTOQUE, FINANCEIRO, IA,
   LOGIN, PACIENTES, PRONTUARIO, TITULAR,
 } from './rotas.js';
 
@@ -34,84 +26,62 @@ import {
    404: qualquer caminho desconhecido caía na landing com 200, então um link
    errado parecia funcionar. */
 
-/* Variáveis em vez de @clerk/themes: o tema daqui é preto, branco e canto
-   vivo — sete tokens cobrem isso e não entra dependência para reescrevê-los
-   depois. */
-const aparencia = {
-  variables: {
-    colorBackground: '#000000',
-    colorForeground: '#ffffff',
-    colorMuted: '#000000',
-    colorMutedForeground: '#838383',
-    colorPrimary: '#ffffff',
-    colorPrimaryForeground: '#000000',
-    colorInput: '#000000',
-    colorInputForeground: '#ffffff',
-    colorBorder: 'rgba(255, 255, 255, .26)',
-    colorDanger: '#ed1c24',
-    borderRadius: '0px',
-    fontFamily: "'Inter', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica, sans-serif",
-  },
-};
-
-/* Sem a chave o ClerkProvider não carrega NADA e não reclama: o próprio SDK faz
-   `else if (this.#publishableKey) this.getEntryChunks()` — chave ausente é um
-   ramo vazio. Aí todo <Show> devolve null para sempre e /login sobe com a
-   metade direita em branco, sem os botões do Google/Microsoft/Apple. Era um
-   sintoma sem nenhuma mensagem em lugar nenhum; agora a falta da variável no
-   build aparece na tela em vez de virar depuração de página vazia. */
-const chaveClerk = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+/* A landing e o 404 entram de cara; todo o resto, sob demanda. Quem abre o site
+   num 3G baixa só a página de vendas — nem o Clerk, nem Agenda, Prontuário e
+   Odontograma. O Clerk mora no ComClerk, que só monta nas rotas que precisam de
+   sessão. */
+const ComClerk = lazy(() => import('./ComClerk.jsx'));
+const Login = lazy(() => import('./components/Login.jsx'));
+const Cadastro = lazy(() => import('./paginas/Cadastro.jsx'));
+const Layout = lazy(() => import('./paginas/Layout.jsx'));
+const Agenda = lazy(() => import('./paginas/Agenda.jsx'));
+const Pacientes = lazy(() => import('./paginas/Pacientes.jsx'));
+const Prontuario = lazy(() => import('./paginas/Prontuario.jsx'));
+const Financeiro = lazy(() => import('./paginas/Financeiro.jsx'));
+const Equipe = lazy(() => import('./paginas/Equipe.jsx'));
+const Auditoria = lazy(() => import('./paginas/Auditoria.jsx'));
+const Conversas = lazy(() => import('./paginas/Conversas.jsx'));
+const Acompanhamento = lazy(() => import('./paginas/Acompanhamento.jsx'));
+const Estoque = lazy(() => import('./paginas/Estoque.jsx'));
+const Ia = lazy(() => import('./paginas/Ia.jsx'));
+const Titular = lazy(() => import('./paginas/Titular.jsx'));
 
 ligarErros(import.meta.env.VITE_SENTRY_DSN);
 
 createRoot(document.getElementById('root')).render(
-  !chaveClerk ? (
-    <main className="edge" style={{ padding: 'var(--spacing-30)' }} role="alert">
-      <h1 className="display display-sm">Configuração ausente.</h1>
-      <p className="body body-ash">
-        Este build subiu sem <code>VITE_CLERK_PUBLISHABLE_KEY</code>. Sem ela não há login:
-        defina a variável no ambiente do build (Vercel → Environment Variables, ou
-        <code> web/.env.local</code> em dev) e publique de novo.
-      </p>
-    </main>
-  ) : (
   <StrictMode>
     <BrowserRouter>
-      <ClerkProvider
-        localization={ptBR}
-        publishableKey={chaveClerk}
-        appearance={aparencia}
-        signInUrl={LOGIN}
-        signUpUrl={CRIAR}
-        afterSignOutUrl="/"
-      >
-        <SessaoOffline />
-        <Routes>
-          <Route path="/" element={<App />} />
-          <Route path={LOGIN} element={<Login />} />
-          {/* Fora do Layout de propósito: quem chega aqui ainda não tem clínica,
-              e o menu do Layout só aponta para telas que responderiam 401. */}
-          <Route path={CADASTRO} element={<Cadastro />} />
-          <Route path={TITULAR} element={<Titular />} />
+      <RecuperaCarga>
+        <Suspense fallback={<p className="body body-ash edge" role="status">Carregando…</p>}>
+          <Routes>
+            <Route path="/" element={<App />} />
 
-          {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
-          <Route element={<Layout />}>
-            <Route path={AGENDA} element={<Agenda />} />
-            <Route path={PACIENTES} element={<Pacientes />} />
-            <Route path={CONVERSAS} element={<Conversas />} />
-            <Route path={PRONTUARIO} element={<Prontuario />} />
-            <Route path={ACOMPANHAMENTO} element={<Acompanhamento />} />
-            <Route path={FINANCEIRO} element={<Financeiro />} />
-            <Route path={ESTOQUE} element={<Estoque />} />
-            <Route path={EQUIPE} element={<Equipe />} />
-            <Route path={AUDITORIA} element={<Auditoria />} />
-            <Route path={IA} element={<Ia />} />
-          </Route>
+            <Route element={<ComClerk />}>
+              <Route path={LOGIN} element={<Login />} />
+              {/* Fora do Layout de propósito: quem chega aqui ainda não tem clínica,
+                  e o menu do Layout só aponta para telas que responderiam 401. */}
+              <Route path={CADASTRO} element={<Cadastro />} />
+              <Route path={TITULAR} element={<Titular />} />
 
-          <Route path="*" element={<NaoEncontrada />} />
-        </Routes>
-      </ClerkProvider>
+              {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
+              <Route element={<Layout />}>
+                <Route path={AGENDA} element={<Agenda />} />
+                <Route path={PACIENTES} element={<Pacientes />} />
+                <Route path={CONVERSAS} element={<Conversas />} />
+                <Route path={PRONTUARIO} element={<Prontuario />} />
+                <Route path={ACOMPANHAMENTO} element={<Acompanhamento />} />
+                <Route path={FINANCEIRO} element={<Financeiro />} />
+                <Route path={ESTOQUE} element={<Estoque />} />
+                <Route path={EQUIPE} element={<Equipe />} />
+                <Route path={AUDITORIA} element={<Auditoria />} />
+                <Route path={IA} element={<Ia />} />
+              </Route>
+            </Route>
+
+            <Route path="*" element={<NaoEncontrada />} />
+          </Routes>
+        </Suspense>
+      </RecuperaCarga>
     </BrowserRouter>
-  </StrictMode>
-  ),
+  </StrictMode>,
 );
