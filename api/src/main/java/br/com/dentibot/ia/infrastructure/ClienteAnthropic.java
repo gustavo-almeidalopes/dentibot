@@ -2,55 +2,68 @@ package br.com.dentibot.ia.infrastructure;
 
 import br.com.dentibot.plataforma.erro.FalhaExternaException;
 import br.com.dentibot.plataforma.erro.ServicoIndisponivelException;
-import java.io.IOException;
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
+import com.anthropic.client.AnthropicClient;
+import com.anthropic.client.okhttp.AnthropicOkHttpClient;
+import com.anthropic.core.JsonValue;
+import com.anthropic.errors.AnthropicException;
+import com.anthropic.errors.AnthropicServiceException;
+import com.anthropic.models.messages.JsonOutputFormat;
+import com.anthropic.models.messages.Message;
+import com.anthropic.models.messages.MessageCreateParams;
+import com.anthropic.models.messages.OutputConfig;
+import com.anthropic.models.messages.StopReason;
+import com.anthropic.models.messages.TextBlock;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.JsonNode;
-import tools.jackson.databind.ObjectMapper;
 
 /**
- * A API de Messages da Anthropic, por HTTP puro. Sem SDK: é um POST, e o que
- * importa controlar aqui — timeout, o que sai, o que se lê de volta — fica à
- * vista em trinta linhas.
+ * A Claude, pelo SDK oficial da Anthropic. Só o gateway chama isto, e nenhum
+ * texto chega aqui sem ter passado pela redação de PII do {@code GatewayDeIa}.
  *
- * <p>Só o gateway chama isto. Nenhum texto chega aqui sem ter passado pela
- * redação de PII do {@code GatewayDeIa}.
+ * <p>Três escolhas que vêm da orientação da Anthropic para os modelos atuais:
+ * <ul>
+ *   <li>saída estruturada ({@code output_config.format}): o JSON que o recurso
+ *       espera é garantido pelo schema, não pedido no prompt;</li>
+ *   <li>{@code max_tokens} folgado: com raciocínio adaptativo, pensar também
+ *       consome o teto, e resposta cortada é JSON inválido;</li>
+ *   <li>fallback no servidor para recusa do classificador de segurança — sem
+ *       ele, a chamada recusada simplesmente para. Recusa que sobra é tratada
+ *       como falha, nunca como texto.</li>
+ * </ul>
  */
 @Component
-public class ClienteAnthropic {
+public class ClienteAnthropic implements DisposableBean {
 
     public record Resultado(String texto, int tokensEntrada, int tokensSaida, String modelo) {
     }
 
-    private static final String VERSAO_DA_API = "2023-06-01";
+    private static final long MAX_TOKENS = 16_000L;
+    private static final String BETA_FALLBACK = "server-side-fallback-2026-07-01";
 
-    private final ObjectMapper json;
-    private final String chave;
+    private final AnthropicClient cliente;
     private final String modelo;
-    private final URI base;
-    private final HttpClient http = HttpClient.newBuilder()
-            .connectTimeout(Duration.ofSeconds(5))
-            .build();
 
-    public ClienteAnthropic(ObjectMapper json,
-                            @Value("${dentibot.ia.chave:}") String chave,
-                            @Value("${dentibot.ia.modelo:claude-sonnet-5}") String modelo,
+    public ClienteAnthropic(@Value("${dentibot.ia.chave:}") String chave,
+                            @Value("${dentibot.ia.modelo:claude-opus-5}") String modelo,
                             @Value("${dentibot.ia.url:https://api.anthropic.com}") String base) {
-        this.json = json;
-        this.chave = chave;
         this.modelo = modelo;
-        this.base = URI.create(base);
+        this.cliente = chave.isBlank() ? null : AnthropicOkHttpClient.builder()
+                .apiKey(chave)
+                .baseUrl(base)
+                // O dentista espera na tela: mais de 90 s e o recurso parece
+                // quebrado. As duas novas tentativas do SDK (429, 5xx, rede)
+                // ficam dentro desse orçamento na prática.
+                .timeout(Duration.ofSeconds(90))
+                .maxRetries(2)
+                .build();
     }
 
     public boolean configurado() {
-        return !chave.isBlank();
+        return cliente != null;
     }
 
     public String provedor() {
@@ -61,50 +74,64 @@ public class ClienteAnthropic {
         return modelo;
     }
 
-    public Resultado chamar(String instrucoes, String entrada, int maxTokens) {
-        if (!configurado()) {
+    public Resultado chamar(String instrucoes, String entrada, Map<String, Object> esquema,
+                            String esforco) {
+        if (cliente == null) {
             throw new ServicoIndisponivelException(
                     "Provedor de IA não configurado nesta instância (DENTIBOT_IA_CHAVE).");
         }
-        byte[] corpo = json.writeValueAsBytes(Map.of(
-                "model", modelo,
-                "max_tokens", maxTokens,
-                "system", instrucoes,
-                "messages", List.of(Map.of("role", "user", "content", entrada))));
-        HttpRequest pedido = HttpRequest.newBuilder(base.resolve("/v1/messages"))
-                // Nota clínica cabe em segundos; um minuto é o teto antes de o
-                // dentista desistir e o recurso parecer quebrado.
-                .timeout(Duration.ofSeconds(60))
-                .header("x-api-key", chave)
-                .header("anthropic-version", VERSAO_DA_API)
-                .header("content-type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofByteArray(corpo))
+        OutputConfig.Builder saida = OutputConfig.builder().effort(OutputConfig.Effort.of(esforco));
+        if (esquema != null) {
+            saida.format(JsonOutputFormat.builder()
+                    .schema(JsonOutputFormat.Schema.builder()
+                            .additionalProperties(esquema.entrySet().stream().collect(
+                                    Collectors.toMap(Map.Entry::getKey, e -> JsonValue.from(e.getValue()))))
+                            .build())
+                    .build());
+        }
+        MessageCreateParams params = MessageCreateParams.builder()
+                .model(modelo)
+                .maxTokens(MAX_TOKENS)
+                .system(instrucoes)
+                .addUserMessage(entrada)
+                .outputConfig(saida.build())
+                .putAdditionalHeader("anthropic-beta", BETA_FALLBACK)
+                .putAdditionalBodyProperty("fallbacks", JsonValue.from("default"))
                 .build();
 
-        HttpResponse<String> resposta;
+        Message resposta;
         try {
-            resposta = http.send(pedido, HttpResponse.BodyHandlers.ofString());
-        } catch (IOException e) {
-            throw new FalhaExternaException("O provedor de IA não respondeu.", e);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new FalhaExternaException("A chamada ao provedor de IA foi interrompida.", e);
-        }
-        if (resposta.statusCode() != 200) {
-            // O corpo do erro não vai para a mensagem: pode ecoar a entrada.
+            resposta = cliente.messages().create(params);
+        } catch (AnthropicServiceException e) {
+            // A mensagem do provedor não vai adiante: pode ecoar a entrada.
             throw new FalhaExternaException(
-                    "O provedor de IA recusou a chamada (HTTP " + resposta.statusCode() + ").", null);
+                    "O provedor de IA recusou a chamada (HTTP " + e.statusCode() + ").", e);
+        } catch (AnthropicException e) {
+            throw new FalhaExternaException("O provedor de IA não respondeu.", e);
         }
 
-        JsonNode raiz = json.readTree(resposta.body());
-        StringBuilder texto = new StringBuilder();
-        for (JsonNode bloco : raiz.path("content")) {
-            if ("text".equals(bloco.path("type").asString())) {
-                texto.append(bloco.path("text").asString());
-            }
+        StopReason motivo = resposta.stopReason().orElse(null);
+        if (StopReason.REFUSAL.equals(motivo)) {
+            String categoria = resposta.stopDetails()
+                    .flatMap(d -> d.category().map(Object::toString)).orElse("sem categoria");
+            throw new FalhaExternaException(
+                    "O modelo recusou esta solicitação (" + categoria + "). Escreva o texto à mão.", null);
         }
-        JsonNode uso = raiz.path("usage");
-        return new Resultado(texto.toString(), uso.path("input_tokens").asInt(),
-                uso.path("output_tokens").asInt(), raiz.path("model").asString(modelo));
+        if (StopReason.MAX_TOKENS.equals(motivo)) {
+            throw new FalhaExternaException("A resposta do modelo foi cortada no limite de tokens.", null);
+        }
+        String texto = resposta.content().stream()
+                .flatMap(bloco -> bloco.text().stream())
+                .map(TextBlock::text)
+                .collect(Collectors.joining());
+        return new Resultado(texto, Math.toIntExact(resposta.usage().inputTokens()),
+                Math.toIntExact(resposta.usage().outputTokens()), resposta.model().asString());
+    }
+
+    @Override
+    public void destroy() {
+        if (cliente != null) {
+            cliente.close();
+        }
     }
 }

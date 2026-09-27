@@ -2,9 +2,15 @@ package br.com.dentibot.copiloto.interfaces.http;
 
 import br.com.dentibot.copiloto.Exportacao;
 import br.com.dentibot.copiloto.Pendencia;
+import br.com.dentibot.copiloto.PlanoExplicado;
 import br.com.dentibot.copiloto.ResumoDoPaciente;
 import br.com.dentibot.copiloto.TratamentoParado;
 import br.com.dentibot.copiloto.application.CopilotoServico;
+import br.com.dentibot.prontuario.RascunhoDeNota;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
@@ -13,6 +19,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,6 +51,28 @@ public class CopilotoController {
     @GetMapping("/copiloto/pendencias")
     public List<Pendencia> pendencias(@RequestParam(defaultValue = "30") int dias) {
         return copiloto.pendencias(Math.min(dias, 365));
+    }
+
+    public record PedidoDeNota(@NotNull Long idPaciente, @NotBlank @Size(max = 8000) String ditado) {
+    }
+
+    /**
+     * IA-01: rascunho de evolução a partir do ditado. Sob /copiloto e não sob
+     * /pacientes: POST em /pacientes passa pelo armazém de idempotência, que
+     * guardaria a resposta — texto clínico — em cache.
+     */
+    @PostMapping("/copiloto/nota-clinica")
+    public RascunhoDeNota notaClinica(@Valid @RequestBody PedidoDeNota pedido) {
+        return copiloto.rascunhoDeNota(pedido.idPaciente(), pedido.ditado());
+    }
+
+    public record PedidoDePlano(@NotNull Long idOrcamento) {
+    }
+
+    /** IA-04: o plano do orçamento em duas linguagens, para o dentista revisar. */
+    @PostMapping("/copiloto/plano-explicado")
+    public PlanoExplicado planoExplicado(@Valid @RequestBody PedidoDePlano pedido) {
+        return copiloto.explicarPlano(pedido.idOrcamento());
     }
 
     /**

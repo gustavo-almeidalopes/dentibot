@@ -6,6 +6,7 @@ import br.com.dentibot.agenda.SituacaoNaAgenda;
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.copiloto.Exportacao;
 import br.com.dentibot.copiloto.Pendencia;
+import br.com.dentibot.copiloto.PlanoExplicado;
 import br.com.dentibot.copiloto.ResumoDoPaciente;
 import br.com.dentibot.copiloto.Secao;
 import br.com.dentibot.copiloto.SituacaoFinanceira;
@@ -13,10 +14,14 @@ import br.com.dentibot.copiloto.TratamentoParado;
 import br.com.dentibot.financeiro.FiltroFinanceiro;
 import br.com.dentibot.financeiro.FinanceiroApi;
 import br.com.dentibot.financeiro.RecebivelResumo;
+import br.com.dentibot.ia.IaApi;
+import br.com.dentibot.ia.PedidoDeIa;
+import br.com.dentibot.ia.RespostaDeIa;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.lgpd.LgpdApi;
 import br.com.dentibot.orcamento.ItemDePlano;
 import br.com.dentibot.orcamento.OrcamentoApi;
+import br.com.dentibot.orcamento.OrcamentoDetalhado;
 import br.com.dentibot.pacientes.PacienteResumo;
 import br.com.dentibot.pacientes.PacientesApi;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
@@ -24,6 +29,7 @@ import br.com.dentibot.plataforma.seguranca.Acao;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
 import br.com.dentibot.plataforma.seguranca.Recurso;
 import br.com.dentibot.prontuario.ProntuarioApi;
+import br.com.dentibot.prontuario.RascunhoDeNota;
 import java.math.BigDecimal;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -64,12 +70,14 @@ public class CopilotoServico {
     private final AuditoriaApi auditoria;
     private final AvaliadorDePermissao permissoes;
     private final ObjectMapper json;
+    private final IaApi ia;
     private final Clock relogio;
 
     public CopilotoServico(PacientesApi pacientes, ProntuarioApi prontuario, OrcamentoApi orcamento,
                            FinanceiroApi financeiro, AgendaApi agenda, IdentidadeApi identidade,
                            LgpdApi lgpd, AuditoriaApi auditoria, AvaliadorDePermissao permissoes,
-                           ObjectMapper json) {
+                           ObjectMapper json, IaApi ia) {
+        this.ia = ia;
         this.pacientes = pacientes;
         this.prontuario = prontuario;
         this.orcamento = orcamento;
@@ -257,6 +265,26 @@ public class CopilotoServico {
 
         String data = agora.atOffset(ZoneOffset.UTC).toLocalDate().toString();
         return new Exportacao(conteudo, sha256, "paciente-%d-%s.json".formatted(idPaciente, data));
+    }
+
+    // ─── Doc 03-C: IA generativa, sempre como rascunho ──────────────────────
+
+    /** IA-01. A regra e a checagem de acesso são do prontuário. */
+    public RascunhoDeNota rascunhoDeNota(long idPaciente, String ditado) {
+        return prontuario.rascunhoDeNota(idPaciente, ditado);
+    }
+
+    /**
+     * IA-04. O orçamento vem pela porta, que aplica o alcance de quem pede; a
+     * entrada leva procedimento, dente e valor — nenhum dado de identificação.
+     */
+    public PlanoExplicado explicarPlano(long idOrcamento) {
+        OrcamentoDetalhado detalhado = orcamento.detalhar(idOrcamento);
+        RespostaDeIa resposta = ia.executar(new PedidoDeIa("plano_duas_linguagens",
+                PlanoEmDuasLinguagens.INSTRUCOES, PlanoEmDuasLinguagens.entrada(detalhado),
+                List.of(), PlanoEmDuasLinguagens.ESQUEMA, "medium"));
+        return PlanoEmDuasLinguagens.interpretar(resposta.idChamada(), resposta.texto(),
+                PlanoEmDuasLinguagens.procedimentos(detalhado), json);
     }
 
     // ─── apoio ───────────────────────────────────────────────────────────────

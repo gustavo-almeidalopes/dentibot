@@ -16,6 +16,7 @@ export const AUDITORIA = '/auditoria';
 export const FINANCEIRO = '/financeiro';
 export const ACOMPANHAMENTO = '/acompanhamento';
 export const ESTOQUE = '/estoque';
+export const IA = '/ia';
 
 /** O prontuário é a única rota com parâmetro — e o motivo de haver um router. */
 export const PRONTUARIO = '/pacientes/:idPaciente/prontuario';
@@ -39,6 +40,9 @@ export const MENU = [
   { href: ESTOQUE, label: 'Estoque', recurso: 'ESTOQUE' },
   { href: EQUIPE, label: 'Equipe', recurso: 'EQUIPE' },
   { href: AUDITORIA, label: 'Auditoria', recurso: 'AUDITORIA' },
+  // BILLING porque a tela é sobre o que a clínica paga; a configuração, que o
+  // back-end guarda em CONFIGURACAO, também é de quem paga.
+  { href: IA, label: 'IA', recurso: 'BILLING' },
 ];
 
 /* Único caminho com parâmetro, então uma regex resolve — e ela é conferida

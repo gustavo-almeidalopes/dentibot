@@ -2,6 +2,9 @@ package br.com.dentibot.prontuario.application;
 
 import br.com.dentibot.agenda.AgendaApi;
 import br.com.dentibot.auditoria.AuditoriaApi;
+import br.com.dentibot.ia.IaApi;
+import br.com.dentibot.ia.PedidoDeIa;
+import br.com.dentibot.ia.RespostaDeIa;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.pacientes.PacientesApi;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
@@ -22,6 +25,7 @@ import br.com.dentibot.prontuario.NovaEvolucao;
 import br.com.dentibot.prontuario.NovoAnexo;
 import br.com.dentibot.prontuario.NovoLancamentoOdontograma;
 import br.com.dentibot.prontuario.ProntuarioApi;
+import br.com.dentibot.prontuario.RascunhoDeNota;
 import br.com.dentibot.prontuario.infrastructure.ArmazemDeAnexos;
 import br.com.dentibot.prontuario.infrastructure.ProntuarioRepositorio;
 import java.time.Duration;
@@ -33,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -46,12 +51,17 @@ public class ProntuarioServico implements ProntuarioApi {
     private final AvaliadorDePermissao permissao;
     private final Outbox outbox;
     private final ArmazemDeAnexos armazem;
+    private final IaApi ia;
+    private final ObjectMapper json;
 
     public ProntuarioServico(ProntuarioRepositorio prontuario, AuditoriaApi auditoria,
                              IdentidadeApi identidade, AgendaApi agenda,
                              PacientesApi pacientes, AvaliadorDePermissao permissao,
-                             Outbox outbox, ArmazemDeAnexos armazem) {
+                             Outbox outbox, ArmazemDeAnexos armazem, IaApi ia,
+                             ObjectMapper json) {
         this.armazem = armazem;
+        this.ia = ia;
+        this.json = json;
         this.prontuario = prontuario;
         this.auditoria = auditoria;
         this.identidade = identidade;
@@ -250,6 +260,24 @@ public class ProntuarioServico implements ProntuarioApi {
     /** O S3 compara o SHA-256 em base64; o cliente e a trilha usam hex. */
     private static String base64(String sha256Hex) {
         return Base64.getEncoder().encodeToString(HexFormat.of().parseHex(sha256Hex));
+    }
+
+    // ─── IA-01: nota a partir do ditado ──────────────────────────────────────
+
+    /**
+     * Sem {@code @Transactional}, de propósito: o modelo leva segundos, e uma
+     * transação aberta aqui seguraria a conexão do pool esse tempo todo. A
+     * checagem de acesso chama portas, cada uma com a própria transação.
+     */
+    @Override
+    public RascunhoDeNota rascunhoDeNota(long idPaciente, String ditado) {
+        exigirAcessoAoPaciente(idPaciente, Acao.CRIAR);
+        var paciente = pacientes.mapaDeResumos(List.of(idPaciente)).get(idPaciente);
+        List<String> nomes = paciente == null || paciente.nomeCompleto() == null
+                ? List.of() : List.of(paciente.nomeCompleto());
+        RespostaDeIa resposta = ia.executar(new PedidoDeIa("nota_clinica", NotaDitada.INSTRUCOES,
+                ditado, nomes, NotaDitada.ESQUEMA, "low"));
+        return NotaDitada.interpretar(resposta.idChamada(), resposta.texto(), json);
     }
 
     // ─── consultas de apoio ao copiloto ──────────────────────────────────────

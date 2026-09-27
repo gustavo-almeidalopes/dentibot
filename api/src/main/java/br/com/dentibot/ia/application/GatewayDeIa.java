@@ -66,8 +66,8 @@ public class GatewayDeIa implements IaApi {
 
     public GatewayDeIa(IaRepositorio repositorio, ClienteAnthropic cliente, ScrubberDePii scrubber,
                        AvaliadorDePermissao permissoes, TransactionTemplate transacao,
-                       @Value("${dentibot.ia.preco-entrada-usd-mtok:3.00}") BigDecimal precoEntradaMtok,
-                       @Value("${dentibot.ia.preco-saida-usd-mtok:15.00}") BigDecimal precoSaidaMtok) {
+                       @Value("${dentibot.ia.preco-entrada-usd-mtok:5.00}") BigDecimal precoEntradaMtok,
+                       @Value("${dentibot.ia.preco-saida-usd-mtok:25.00}") BigDecimal precoSaidaMtok) {
         this.repositorio = repositorio;
         this.cliente = cliente;
         this.scrubber = scrubber;
@@ -91,7 +91,8 @@ public class GatewayDeIa implements IaApi {
         String redigida = redigir(scrubber, pedido.entrada(), pedido.identificadores());
         ClienteAnthropic.Resultado resultado;
         try {
-            resultado = cliente.chamar(pedido.instrucoes(), redigida, pedido.maxTokens());
+            resultado = cliente.chamar(pedido.instrucoes(), redigida, pedido.esquema(),
+                    pedido.esforco() == null ? "low" : pedido.esforco());
         } catch (FalhaExternaException e) {
             transacao.executeWithoutResult(s -> gravar(pedido.recurso(), cliente.modelo(), redigida,
                     null, 0, 0, "erro", e.getMessage()));

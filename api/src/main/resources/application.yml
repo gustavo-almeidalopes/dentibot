@@ -74,12 +74,14 @@ dentibot:
   # e o resto do sistema não percebe. Ver docs/ia/politica.md.
   ia:
     chave: ${DENTIBOT_IA_CHAVE:}
-    modelo: ${DENTIBOT_IA_MODELO:claude-sonnet-5}
+    # claude-opus-5 por padrão. Trocar por um modelo mais barato (claude-sonnet-5:
+    # US$ 2 / 10) é decisão de custo da operação: mude o modelo E os dois preços.
+    modelo: ${DENTIBOT_IA_MODELO:claude-opus-5}
     url: ${DENTIBOT_IA_URL:https://api.anthropic.com}
-    # US$ por milhão de tokens. Confira com a tabela vigente do provedor: é daqui
+    # US$ por milhão de tokens do modelo acima (tabela da Anthropic). É daqui
     # que sai o custo que a clínica vê (IA-59) e o que a cota mensal consome.
-    preco-entrada-usd-mtok: ${DENTIBOT_IA_PRECO_ENTRADA:3.00}
-    preco-saida-usd-mtok: ${DENTIBOT_IA_PRECO_SAIDA:15.00}
+    preco-entrada-usd-mtok: ${DENTIBOT_IA_PRECO_ENTRADA:5.00}
+    preco-saida-usd-mtok: ${DENTIBOT_IA_PRECO_SAIDA:25.00}
   # Vazio = Sentry desligado. O DSN não é segredo forte, mas muda por ambiente.
   sentry:
     dsn: ${SENTRY_DSN:}

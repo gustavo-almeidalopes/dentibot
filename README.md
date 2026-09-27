@@ -76,6 +76,7 @@ clínicas sem um único teste vermelho.
 | Sentry (web) | O SDK só baixa se houver DSN. O host exato do projeto entra em `connect-src` nos dois `vercel.json`. | `VITE_SENTRY_DSN` |
 | `pg_stat_statements` | Consultas mais caras no total; `auto_explain` grava o plano das que passam de 500 ms. O `init.ps1` cria a extensão. | — |
 | Anexos (ST-41) | Bucket S3-compatível; o arquivo vai do navegador direto a ele, com SHA-256 amarrado na URL assinada. Sem as variáveis, anexo responde 503 e o resto sobe. O bucket precisa de CORS para PUT da origem do web. | `DENTIBOT_S3_ENDPOINT`, `DENTIBOT_S3_REGIAO`, `DENTIBOT_S3_BUCKET`, `DENTIBOT_S3_CHAVE`, `DENTIBOT_S3_SEGREDO` |
+| IA (Doc 03) | Claude pela API da Anthropic. Nome de paciente sai como `[PACIENTE]`; cada chamada fica em `ia.chamadas` com custo, e a clínica liga/desliga e põe cota em `/ia`. Sem a chave, os recursos de IA respondem 503 e o resto sobe. Os preços precisam acompanhar o modelo (Opus 5: 5/25; Sonnet 5: 2/10 US$ por MTok). Política: `docs/ia/politica.md`. | `DENTIBOT_IA_CHAVE`, `DENTIBOT_IA_MODELO`, `DENTIBOT_IA_PRECO_ENTRADA`, `DENTIBOT_IA_PRECO_SAIDA` |
 
 ## Publicar o `web/` na Vercel
 

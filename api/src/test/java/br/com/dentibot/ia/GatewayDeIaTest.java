@@ -2,7 +2,7 @@ package br.com.dentibot.ia;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.never;
@@ -70,9 +70,9 @@ class GatewayDeIaTest extends TesteIntegracao {
 
         given(cliente.configurado()).willReturn(true);
         given(cliente.provedor()).willReturn("anthropic");
-        given(cliente.modelo()).willReturn("claude-sonnet-5");
-        given(cliente.chamar(anyString(), anyString(), anyInt()))
-                .willReturn(new ClienteAnthropic.Resultado("{\"ok\":true}", 1000, 500, "claude-sonnet-5"));
+        given(cliente.modelo()).willReturn("claude-opus-5");
+        given(cliente.chamar(anyString(), anyString(), any(), anyString()))
+                .willReturn(new ClienteAnthropic.Resultado("{\"ok\":true}", 1000, 500, "claude-opus-5"));
     }
 
     @AfterEach
@@ -87,7 +87,7 @@ class GatewayDeIaTest extends TesteIntegracao {
                 "Ana Souza, CPF 123.456.789-09, restauração no 36. Ana voltou bem.", "Ana Souza"));
 
         ArgumentCaptor<String> enviado = ArgumentCaptor.forClass(String.class);
-        verify(cliente).chamar(anyString(), enviado.capture(), anyInt());
+        verify(cliente).chamar(anyString(), enviado.capture(), any(), anyString());
         assertThat(enviado.getValue())
                 .doesNotContain("Ana", "Souza", "123.456.789-09")
                 .contains("[PACIENTE]", "restauração no 36");
@@ -100,8 +100,8 @@ class GatewayDeIaTest extends TesteIntegracao {
                 .single());
         assertThat((String) trilha.get(0)).isEqualTo(enviado.getValue());
         assertThat(trilha.get(1)).isEqualTo(1000);
-        // 1000 × US$3/M + 500 × US$15/M = 0,003 + 0,0075.
-        assertThat((BigDecimal) trilha.get(2)).isEqualByComparingTo("0.010500");
+        // 1000 × US$5/M + 500 × US$25/M = 0,005 + 0,0125 (Opus 5).
+        assertThat((BigDecimal) trilha.get(2)).isEqualByComparingTo("0.017500");
         assertThat(trilha.get(3)).isEqualTo("sucesso");
     }
 
@@ -112,7 +112,7 @@ class GatewayDeIaTest extends TesteIntegracao {
 
         assertThatThrownBy(() -> gateway.executar(pedido("texto", null)))
                 .isInstanceOf(ServicoIndisponivelException.class);
-        verify(cliente, never()).chamar(anyString(), anyString(), anyInt());
+        verify(cliente, never()).chamar(anyString(), anyString(), any(), anyString());
     }
 
     @Test
@@ -148,7 +148,7 @@ class GatewayDeIaTest extends TesteIntegracao {
             assertThat(c.chamadas()).isEqualTo(2);
             assertThat(c.aceitas()).isEqualTo(1);
             assertThat(c.descartadas()).isEqualTo(1);
-            assertThat(c.custoUsd()).isEqualByComparingTo("0.021000");
+            assertThat(c.custoUsd()).isEqualByComparingTo("0.035000");
         });
     }
 
@@ -164,7 +164,7 @@ class GatewayDeIaTest extends TesteIntegracao {
 
     private static PedidoDeIa pedido(String entrada, String nome) {
         return new PedidoDeIa("nota_clinica", "instrucoes", entrada,
-                nome == null ? List.of() : List.of(nome), 500);
+                nome == null ? List.of() : List.of(nome), null, "low");
     }
 
     private void como(Papel papel) {

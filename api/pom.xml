@@ -22,6 +22,7 @@
 		<archunit.version>1.5.0</archunit.version>
 		<sentry.version>8.58.0</sentry.version>
 		<awssdk.version>2.55.6</awssdk.version>
+		<anthropic.version>2.65.0</anthropic.version>
 		<jacoco.version>0.8.15</jacoco.version>
 		<cobertura.minima>0.60</cobertura.minima>
 	</properties>
@@ -95,6 +96,13 @@
 			<groupId>io.sentry</groupId>
 			<artifactId>sentry</artifactId>
 			<version>${sentry.version}</version>
+		</dependency>
+		<!-- Doc 03-B: o gateway de IA fala com a Claude pelo SDK oficial — retries,
+		     tipos de erro e saída estruturada vêm prontos. -->
+		<dependency>
+			<groupId>com.anthropic</groupId>
+			<artifactId>anthropic-java</artifactId>
+			<version>${anthropic.version}</version>
 		</dependency>
 		<!-- ST-41: anexos clínicos em armazenamento S3-compatível (R2 em produção,
 		     MinIO em dev). Só o presign e o HEAD: o arquivo vai do navegador

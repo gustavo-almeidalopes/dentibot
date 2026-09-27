@@ -12,6 +12,7 @@ import Cadastro from './paginas/Cadastro.jsx';
 import Equipe from './paginas/Equipe.jsx';
 import Estoque from './paginas/Estoque.jsx';
 import Financeiro from './paginas/Financeiro.jsx';
+import Ia from './paginas/Ia.jsx';
 import Layout from './paginas/Layout.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
 import Pacientes from './paginas/Pacientes.jsx';
@@ -20,7 +21,7 @@ import './style.css';
 import './app.css';
 import { ligarErros } from './erros.js';
 import {
-  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, ESTOQUE, FINANCEIRO, LOGIN,
+  ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, ESTOQUE, FINANCEIRO, IA, LOGIN,
   PACIENTES, PRONTUARIO,
 } from './rotas.js';
 
@@ -98,6 +99,7 @@ createRoot(document.getElementById('root')).render(
             <Route path={ESTOQUE} element={<Estoque />} />
             <Route path={EQUIPE} element={<Equipe />} />
             <Route path={AUDITORIA} element={<Auditoria />} />
+            <Route path={IA} element={<Ia />} />
           </Route>
 
           <Route path="*" element={<NaoEncontrada />} />

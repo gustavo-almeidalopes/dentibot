@@ -421,3 +421,19 @@
   font-weight: 700;
 }
 .secao-titulo { margin: var(--spacing-30, 30px) 0 12px; }
+
+/* ── IA generativa (Doc 03-C): rascunho é sempre rascunho ─────────────────── */
+/* Fio tracejado: a forma diz "provisório" antes de qualquer palavra. */
+.ditado-rascunho,
+.plano-explicado {
+  border: 1px dashed var(--hair);
+  padding: 12px 14px;
+  margin: 12px 0;
+}
+.ditado-sugestao { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.plano-colunas { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 16px; }
+.plano-texto { white-space: pre-wrap; }
+
+/* Liga/desliga de recurso de IA: checkbox nativo, canto vivo, sem cor além da tinta. */
+.campo-check { display: flex; align-items: center; gap: 8px; margin: 6px 0; }
+.campo-check input { accent-color: var(--tinta); border-radius: 0; }

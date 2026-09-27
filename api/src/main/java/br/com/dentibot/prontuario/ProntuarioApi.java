@@ -34,6 +34,13 @@ public interface ProntuarioApi {
      */
     Set<Long> consultasComEvolucao(Collection<Long> idsConsulta);
 
+    /**
+     * IA-01: organiza o ditado do dentista em rascunho de evolução e sugestões
+     * de odontograma. Exige poder ESCREVER no prontuário do paciente; não grava
+     * nada — quem grava é o dentista, pelo fluxo normal.
+     */
+    RascunhoDeNota rascunhoDeNota(long idPaciente, String ditado);
+
     /** ST-41, passo 1: URL pré-assinada para o navegador enviar direto ao bucket. */
     EnvioDeAnexo iniciarAnexo(long idPaciente, NovoAnexo novo);
 
