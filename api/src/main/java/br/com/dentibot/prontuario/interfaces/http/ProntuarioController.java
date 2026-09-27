@@ -10,6 +10,8 @@ import br.com.dentibot.prontuario.NovoLancamentoOdontograma;
 import br.com.dentibot.prontuario.ProntuarioApi;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.Map;
@@ -79,8 +81,13 @@ public class ProntuarioController {
         return prontuario.odontograma(idPaciente);
     }
 
-    public record PedidoLancamento(Integer dente, String face, String condicao,
-                                   String observacao) {
+    /** Antes sem restrição nenhuma: condição fora do vocabulário ia ao banco e voltava 409. */
+    public record PedidoLancamento(
+            @NotNull Integer dente,
+            @Pattern(regexp = "^[VLMDOIP]$") String face,
+            @NotBlank @Pattern(regexp = NovoLancamentoOdontograma.PADRAO_CONDICAO,
+                    message = "condição fora do vocabulário do odontograma") String condicao,
+            @Size(max = 300) String observacao) {
     }
 
     @PostMapping("/odontograma")

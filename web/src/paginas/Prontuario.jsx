@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api, baixar } from '../api.js';
 import { enviarAnexo } from '../anexos.js';
+import { CONDICOES, rotuloDaCondicao } from '../odontograma.js';
 import ResumoPaciente from '../components/ResumoPaciente.jsx';
 import { Aviso, Celula, Tabela } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
@@ -23,7 +24,6 @@ const TIPOS_DE_ANEXO = [
   ['documento', 'Documento'], ['laudo', 'Laudo'], ['modelo_3d', 'Modelo 3D'],
 ];
 
-const CONDICOES = ['hígido', 'cárie', 'restaurado', 'ausente', 'implante', 'coroa', 'fraturado'];
 const FACES = ['V', 'L', 'M', 'D', 'O', 'I', 'P'];
 
 export default function Prontuario() {
@@ -200,11 +200,13 @@ function Odontograma({ idPaciente, recurso }) {
 
   return (
     <>
-      {/* Sete condições codificadas em borda e nenhuma legenda: ninguém sabia
-          ler o que a tela estava dizendo. */}
+      {/* Condições codificadas em borda e nenhuma legenda: ninguém sabia ler o
+          que a tela estava dizendo. */}
       <ul className="odonto-legenda">
         {CONDICOES.map((c) => (
-          <li key={c}><span className="odonto-amostra" data-condicao={c} />{c}</li>
+          <li key={c.valor}>
+            <span className="odonto-amostra" data-condicao={c.valor} />{c.rotulo}
+          </li>
         ))}
       </ul>
 
@@ -226,7 +228,7 @@ function Odontograma({ idPaciente, recurso }) {
                       className="odonto-dente"
                       data-condicao={l?.condicao ?? 'higido'}
                       aria-pressed={selecionado === dente}
-                      aria-label={`Dente ${dente}${l ? `: ${l.condicao}` : ''}`}
+                      aria-label={`Dente ${dente}${l ? `: ${rotuloDaCondicao(l.condicao)}` : ''}`}
                       onClick={() => setSelecionado(selecionado === dente ? null : dente)}
                     >
                       {dente}
@@ -257,7 +259,7 @@ function Odontograma({ idPaciente, recurso }) {
 }
 
 function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
-  const [condicao, setCondicao] = useState(CONDICOES[1]);
+  const [condicao, setCondicao] = useState('carie');
   const [face, setFace] = useState('');
   const [observacao, setObservacao] = useState('');
 
@@ -272,7 +274,7 @@ function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
       <p className="sub">Dente {dente}</p>
       {atual && (
         <p className="cap cap-ash">
-          Hoje: {atual.condicao}{atual.face ? ` · face ${atual.face}` : ''}
+          Hoje: {rotuloDaCondicao(atual.condicao)}{atual.face ? ` · face ${atual.face}` : ''}
           {atual.observacao ? ` · ${atual.observacao}` : ''}
         </p>
       )}
@@ -281,7 +283,7 @@ function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
         <label className="campo-app">
           <span className="cap cap-ash">Condição</span>
           <select value={condicao} onChange={(e) => setCondicao(e.target.value)}>
-            {CONDICOES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {CONDICOES.map((c) => <option key={c.valor} value={c.valor}>{c.rotulo}</option>)}
           </select>
         </label>
         <label className="campo-app">
