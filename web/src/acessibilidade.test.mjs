@@ -305,3 +305,13 @@ test('a borda de campo do Clerk se enxerga nos dois temas', () => {
     assert.ok(ra >= 3, `${f}: o anel do campo ${anel[1]} dá ${ra.toFixed(2)}:1`);
   }
 });
+
+test('as fontes vêm do próprio domínio', () => {
+  // O Google Fonts custava duas negociações de DNS e TLS no 3G e mandava o IP
+  // de cada visitante para um terceiro.
+  assert.ok(!/fonts\.(googleapis|gstatic)\.com/.test(indexHtml()), 'o index.html ainda chama o Google Fonts');
+  const main = ler('main.jsx');
+  for (const familia of ['antonio', 'cormorant-sc', 'inter']) {
+    assert.match(main, new RegExp(`^import '@fontsource/${familia}/`, 'm'), `falta a fonte ${familia}`);
+  }
+});

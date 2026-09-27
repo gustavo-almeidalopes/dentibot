@@ -4,6 +4,14 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';
 import RecuperaCarga from './components/RecuperaCarga.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
+/* As fontes vêm do próprio domínio, e não do Google Fonts: duas negociações de
+   DNS e TLS a menos no 3G, e o IP de quem abre o site não vai para um terceiro.
+   Os mesmos pesos do <link> que saiu do index.html. */
+import '@fontsource/antonio/400.css';
+import '@fontsource/antonio/700.css';
+import '@fontsource/cormorant-sc/400.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/700.css';
 import './style.css';
 import './app.css';
 import {
