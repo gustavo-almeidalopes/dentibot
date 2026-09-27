@@ -38,12 +38,29 @@ test('os seis cabeçalhos existem', () => {
   }
 });
 
+/**
+ * Conteúdo dos `<script>` sem `src`. Varredura por índice e não regex: regex de
+ * HTML sempre esquece um caso (`<SCRIPT>`, `</script\t>`), e um script inline
+ * esquecido aqui é um script sem hash na CSP.
+ */
+function scriptsInline(html) {
+  const baixo = html.toLowerCase();
+  const achados = [];
+  let i = 0;
+  for (;;) {
+    const abre = baixo.indexOf('<script', i);
+    if (abre < 0) return achados;
+    const fimAbre = baixo.indexOf('>', abre);
+    const fecha = baixo.indexOf('</script', fimAbre);
+    if (fimAbre < 0 || fecha < 0) return achados;
+    if (!/\bsrc\s*=/.test(baixo.slice(abre, fimAbre))) achados.push(html.slice(fimAbre + 1, fecha));
+    i = fecha + 1;
+  }
+}
+
 test('todo script inline do index.html tem o sha256 no script-src', () => {
   const html = readFileSync(join(WEB, 'index.html'), 'utf8');
-  // Qualquer caixa e atributo: `<SCRIPT>` inline também roda e precisa do hash.
-  const inlines = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
-    .filter((m) => !/\bsrc\s*=/i.test(m[1]))
-    .map((m) => m[2]);
+  const inlines = scriptsInline(html);
   assert.ok(inlines.length > 0, 'o index.html não tem mais script inline — revise a CSP');
   for (const js of inlines) {
     const hash = `'sha256-${createHash('sha256').update(js).digest('base64')}'`;
