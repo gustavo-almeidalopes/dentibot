@@ -56,6 +56,7 @@ Variável já definida no ambiente ganha da local.
 cd api && ./mvnw test         # inclui os testes de isolamento e de schema
 cd app && npm run typecheck && npm test
 cd web && npm run build
+cd web && npm run a11y        # axe-core, reflow e peso da landing — precisa do Chrome
 ```
 
 Os testes de `api` que mais importam não testam regra de negócio: eles
@@ -115,6 +116,8 @@ Clerk é publicável por definição e a secret key é do back-end.
   dados: é possível desligar o isolamento sem ver erro nenhum.
 - **[app/README.md](app/README.md)** — escopo do mobile, sessão e o que as
   lojas exigem antes de publicar.
+- **[docs/acessibilidade.md](docs/acessibilidade.md)** — o que o gate de
+  acessibilidade prova, o que não prova, e o roteiro manual de cada release.
 
 Pontos fixos do desenho:
 
