@@ -16,9 +16,20 @@ const APARENCIA_CLARA = {
   colorPrimaryForeground: '#ffffff',
   colorInput: '#ffffff',
   colorInputForeground: '#111111',
-  colorBorder: 'rgba(0, 0, 0, .22)',
+  /* Controle, não hairline: preto a 22% dava 1,69:1 nos campos do perfil.
+     #5c5c5c é a --tinta-fraca do tema claro. */
+  colorBorder: '#5c5c5c',
   colorDanger: '#ed1c24',
   borderRadius: '0px',
+};
+
+/* O Clerk desenha o campo com um box-shadow do colorBorder a 11%, que some no
+   branco. O anel vai declarado, opaco e com !important, como no ComClerk. */
+const CAMPOS_CLAROS = {
+  formFieldInput: {
+    boxShadow: '0 0 0 1px #5c5c5c !important',
+    '&:focus': { boxShadow: '0 0 0 2px #111111 !important' },
+  },
 };
 
 /**
@@ -121,7 +132,7 @@ function Autenticado() {
         {/* O provider inteiro está com aparência preta, para a landing e o
             login. Dentro do app o cabeçalho é claro, e o popover do Clerk
             entraria preto sobre papel. */}
-        <UserButton appearance={{ variables: APARENCIA_CLARA }} />
+        <UserButton appearance={{ variables: APARENCIA_CLARA, elements: CAMPOS_CLAROS }} />
       </header>
 
       <main id="main" className="app-main edge">

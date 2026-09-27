@@ -267,3 +267,41 @@ test('a landing mantém Entrar sem depender de sessão', () => {
   // No menu e na barra: é o caminho de quem já tem conta, logado ou não.
   assert.equal((ler('components/Nav.jsx').match(/href=\{LOGIN\}/g) ?? []).length, 2);
 });
+
+test('todo token que o JSX usa existe no CSS', () => {
+  // A APARENCIA do Login pedia --brand, --ink, --surface e --line, de outro
+  // design system. Nenhum existe aqui, e o fallback pintou o link de teal.
+  const css = semComentario(ler('style.css') + ler('app.css'));
+  const definidos = new Set([...css.matchAll(/(--[\w-]+)\s*:/g)].map((m) => m[1]));
+  const orfaos = new Set();
+  for (const f of arquivosJs()) {
+    for (const m of ler(f).matchAll(/var\(\s*(--[\w-]+)/g)) {
+      if (!definidos.has(m[1])) orfaos.add(`${f}: ${m[1]}`);
+    }
+  }
+  assert.deepEqual([...orfaos], []);
+});
+
+test('a borda de campo do Clerk se enxerga nos dois temas', () => {
+  // O widget não lê o nosso CSS: a cor vem do appearance. Branco a 26% sobre o
+  // preto dava 2,10:1; preto a 22% sobre o branco, 1,69:1.
+  for (const f of ['ComClerk.jsx', 'paginas/Layout.jsx']) {
+    const fonte = ler(f);
+    const fundo = fonte.match(/colorBackground:\s*'([^']+)'/)?.[1];
+    const borda = fonte.match(/colorBorder:\s*'([^']+)'/)?.[1];
+    assert.ok(fundo && borda, `${f}: não achei colorBackground e colorBorder`);
+    const r = contraste(cor(borda, {}), cor(fundo, {}));
+    assert.ok(r >= 3, `${f}: colorBorder ${borda} dá ${r.toFixed(2)}:1`);
+
+    // Medido no navegador: o Clerk não pinta o campo com o colorBorder puro,
+    // e sim com um box-shadow dele a 11% — perto de 1,1:1, qualquer que seja a
+    // cor. O anel do campo precisa ser declarado à parte, e com !important: a
+    // regra de variante do Clerk (.cl-internal-…[data-variant]) tem mais
+    // especificidade que o elements e ganharia calada.
+    const anel = fonte.match(/formFieldInput:\s*\{[^}]*?boxShadow:\s*'0 0 0 1px (#[0-9a-f]{6})( !important)?'/i);
+    assert.ok(anel, `${f}: o formFieldInput não declara o anel do campo`);
+    assert.ok(anel[2], `${f}: o anel do campo sem !important perde para o Clerk`);
+    const ra = contraste(cor(anel[1], {}), cor(fundo, {}));
+    assert.ok(ra >= 3, `${f}: o anel do campo ${anel[1]} dá ${ra.toFixed(2)}:1`);
+  }
+});

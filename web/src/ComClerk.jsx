@@ -17,10 +17,28 @@ const aparencia = {
     colorPrimaryForeground: '#000000',
     colorInput: '#000000',
     colorInputForeground: '#ffffff',
-    colorBorder: 'rgba(255, 255, 255, .26)',
+    /* Borda de campo é controle, não decoração: branco a 26% dava 2,10:1 sobre
+       o preto, e o 1.4.11 pede 3:1. #838383 é o cinza da marca, 5,54:1. */
+    colorBorder: '#838383',
     colorDanger: '#ed1c24',
     borderRadius: '0px',
     fontFamily: "'Inter', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica, sans-serif",
+  },
+  /* Medido no navegador: o Clerk desenha o campo com um box-shadow do
+     colorBorder a 11% (28% no foco) — perto de 1,1:1 no preto, qualquer que
+     seja a cor. O anel vai declarado aqui, opaco: 1px cinza em repouso
+     (5,54:1) e 2px osso no foco. O !important é porque a regra de variante do
+     Clerk (.cl-internal-…[data-variant]) tem mais especificidade que o
+     elements, e sem ele o anel perde calado. */
+  elements: {
+    formFieldInput: {
+      boxShadow: '0 0 0 1px #838383 !important',
+      '&:focus': { boxShadow: '0 0 0 2px #ffffff !important' },
+    },
+    otpCodeFieldInput: {
+      boxShadow: '0 0 0 1px #838383 !important',
+      '&:focus': { boxShadow: '0 0 0 2px #ffffff !important' },
+    },
   },
 };
 

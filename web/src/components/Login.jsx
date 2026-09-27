@@ -25,22 +25,12 @@ const CRIAR_CONTA = { ...COMUM, forceRedirectUrl: CADASTRO };
    que já vem. Se um dia precisar esconder um provedor pontual sem mexer no
    dashboard, dá pra fazer via elements: { socialButtonsBlockButton__apple:
    { display: 'none' } }. */
+/* Só encaixe. Cor, fonte e canto vêm do `aparencia` do ComClerk — preto, osso
+   e canto vivo. A versão anterior repintava o widget com tokens de outro design
+   system (--brand, --ink, --surface, --line) que aqui não existem: o fallback
+   deixava o "Registre-se" em teal a 3,84:1, abaixo do AA, e o campo com canto de
+   10px. */
 const APARENCIA = {
-  variables: {
-    /* Tokens da marca — caem para valores sóbrios se o token não existir. */
-    colorPrimary: 'var(--brand, #0f766e)',
-    colorText: 'var(--ink, #111418)',
-    colorTextSecondary: 'var(--ash, #6b7280)',
-    colorBackground: 'transparent',
-    colorInputBackground: 'var(--surface, #ffffff)',
-    colorInputText: 'var(--ink, #111418)',
-    colorDanger: 'var(--danger, #b42318)',
-    colorSuccess: 'var(--brand, #0f766e)',
-    /* Nada de border-radius por variável: cada elemento arredonda por conta
-       própria em `elements`, senão o card e o botão brigam pelo mesmo token. */
-    fontFamily: 'inherit',
-    fontSize: '1rem',
-  },
   elements: {
     /* O widget monta em volta do card; tiramos a sombra e a moldura dele para
        ele se fundir com a coluna .who-half. */
@@ -58,27 +48,12 @@ const APARENCIA = {
 
     /* Botões OAuth — reaproveitam .btn para herdar borda, altura e foco. */
     socialButtonsBlockButton: 'btn btn-lg',
-    socialButtonsBlockButtonText: {
-      fontFamily: 'inherit',
-      fontWeight: '500',
-      color: 'var(--ink, #111418)',
-    },
     socialButtonsIconButton: 'btn btn-lg',
 
-    dividerRow: { marginBlock: 'var(--spacing-30, 1.5rem)' },
-    dividerLine: { background: 'var(--line, #e5e7eb)' },
+    dividerRow: { marginBlock: 'var(--spacing-30)' },
     dividerText: 'credit',
 
     formFieldLabel: 'credit',
-    formFieldInput: {
-      fontFamily: 'inherit',
-      fontSize: '1rem',
-      background: 'var(--surface, #ffffff)',
-      color: 'var(--ink, #111418)',
-      border: '1px solid var(--line, #e5e7eb)',
-      borderRadius: 'var(--radius-sm, 10px)',
-      padding: '0.75rem 0.9rem',
-    },
     formFieldInputShowPasswordButton: 'credit',
 
     formButtonPrimary: 'btn btn-lg btn-fill',
@@ -89,19 +64,10 @@ const APARENCIA = {
     formFieldAction: 'credit',
     formResendCodeLink: 'credit',
     identityPreviewEditButton: 'credit',
-    footerAction: { marginTop: 'var(--spacing-20, 1rem)' },
+    footerAction: { marginTop: 'var(--spacing-20)' },
     footerActionText: 'body body-ash',
     footerActionLink: 'credit',
 
-    otpCodeFieldInput: {
-      fontFamily: 'inherit',
-      fontSize: '1.125rem',
-      textAlign: 'center',
-      border: '1px solid var(--line, #e5e7eb)',
-      borderRadius: 'var(--radius-sm, 10px)',
-    },
-
-    alert: { borderRadius: 'var(--radius-sm, 10px)' },
     alertText: 'body',
     formFieldErrorText: 'credit',
   },
