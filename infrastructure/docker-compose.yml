@@ -87,10 +87,9 @@ services:
       retries: 10
 
   minio:
-    # quay.io e não Docker Hub: a MinIO restringiu as imagens lá, e
-    # `docker pull minio/minio` responde "pull access denied". O registro
-    # oficial documentado é este.
-    image: quay.io/minio/minio:latest
+    # A MinIO parou de publicar imagens (minio/minio saiu do Docker Hub e o
+    # quay.io não baixa mais). pgsty/minio é o fork mantido, mesmo servidor.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     container_name: dentibot-minio
     # Faz o papel do Cloudflare R2 em dev: mesma API S3, mesmas URLs assinadas.
     command: server /data --console-address ":9001"

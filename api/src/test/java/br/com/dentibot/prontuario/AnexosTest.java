@@ -42,11 +42,13 @@ import org.testcontainers.utility.DockerImageName;
 class AnexosTest extends TesteIntegracao {
 
     /**
-     * Tag fixa do Docker Hub: o pull de quay.io/minio/minio:latest falha no runner
-     * do CI, e uma tag fixa não muda o servidor por baixo do teste.
+     * pgsty/minio com tag fixa: a MinIO parou de publicar imagens (quay.io não
+     * baixa mais no CI e minio/minio saiu do Docker Hub). O fork da Pigsty é o
+     * mesmo servidor, com o mesmo {@code minio server}.
      */
     static final MinIOContainer MINIO = new MinIOContainer(
-            DockerImageName.parse("minio/minio:RELEASE.2025-09-07T16-13-09Z"));
+            DockerImageName.parse("pgsty/minio:RELEASE.2026-08-04T00-00-00Z")
+                    .asCompatibleSubstituteFor("minio/minio"));
 
     static {
         MINIO.start();
