@@ -61,9 +61,7 @@ async function auditarRota(contexto, base, rota) {
     await marcarSeloDeDesenvolvimento(pagina);
 
     const r = await new AxeBuilder({ page: pagina }).withTags(TAGS).exclude('[data-a11y-fora]').analyze();
-
-    await pagina.setViewportSize({ width: 320, height: 640 });
-    const largura = await pagina.evaluate(() => document.documentElement.scrollWidth);
+    const largura = await larguraEm320(contexto, base, rota);
 
     return {
       rota: rota.nome,
@@ -82,6 +80,56 @@ async function auditarRota(contexto, base, rota) {
       })),
       reflow: { largura, passou: largura <= 320 },
     };
+  } finally {
+    await pagina.close();
+  }
+}
+
+/* A largura que o conteúdo ocupa, para o reflow (1.4.10). O html e o body têm
+   overflow-x: clip (style.css): o que passa da borda é cortado, sem barra de
+   rolagem, e o scrollWidth devolve sempre a largura da janela. O corte sai antes
+   da medida — o que reprova o 1.4.10 aqui é conteúdo cortado, não barra. */
+async function larguraDoConteudo(pagina) {
+  return pagina.evaluate(() => {
+    document.documentElement.style.overflowX = 'visible';
+    document.body.style.overflowX = 'visible';
+    return document.documentElement.scrollWidth;
+  });
+}
+
+/* O reflow se mede numa página nova, já aberta a 320px — o cenário do 1.4.10 —,
+   e não na que o axe acabou de auditar: o axe rola a página e mexe no DOM para
+   medir contraste, e a mesma landing que dá 320px limpa dava 518px depois
+   dele. Abrir largo e estreitar depois (o zoom de quem já estava na página)
+   também dá 320px sem o axe no meio — conferido. */
+async function larguraEm320(contexto, base, rota) {
+  const pagina = await contexto.newPage();
+  try {
+    await pagina.setViewportSize({ width: 320, height: 640 });
+    await pagina.goto(new URL(rota.caminho, base).href, { waitUntil: 'load' });
+    if (rota.esperar) await pagina.waitForSelector(rota.esperar, { timeout: 30_000 });
+    return await larguraDoConteudo(pagina);
+  } finally {
+    await pagina.close();
+  }
+}
+
+/* O medidor precisa enxergar transbordo — senão "320px" não prova nada. Antes
+   de valer a medida das rotas, um bloco de 2000px numa página real tem de
+   aparecer nela. */
+async function calibrarReflow(contexto, base) {
+  const pagina = await contexto.newPage();
+  try {
+    await pagina.setViewportSize({ width: 320, height: 640 });
+    await pagina.goto(new URL('/', base).href, { waitUntil: 'load' });
+    await pagina.evaluate(() => {
+      const largo = document.createElement('div');
+      largo.style.width = '2000px';
+      largo.style.height = '1px';
+      document.body.appendChild(largo);
+    });
+    const largura = await larguraDoConteudo(pagina);
+    return { passou: largura > 320, largura };
   } finally {
     await pagina.close();
   }
@@ -107,7 +155,9 @@ const servidor = await preview({ root: RAIZ, preview: { port: 4173, strictPort: 
 const base = servidor.resolvedUrls.local[0];
 const navegador = await chromium.launch({ channel: 'chrome' });
 
-const relatorio = { gerado: new Date().toISOString(), tags: TAGS, parcial: !TEM_CHAVE, rotas: [], cargaQueFalha: null };
+const relatorio = {
+  gerado: new Date().toISOString(), tags: TAGS, parcial: !TEM_CHAVE, rotas: [], calibracaoReflow: null, cargaQueFalha: null,
+};
 try {
   /* Movimento reduzido: o [data-reveal] da landing aparece de uma vez, e o axe
      avalia o estado final, não o meio de uma animação. */
@@ -116,6 +166,7 @@ try {
     if (rota.precisaDaChave && !TEM_CHAVE) continue;
     relatorio.rotas.push(await auditarRota(contexto, base, rota));
   }
+  relatorio.calibracaoReflow = await calibrarReflow(contexto, base);
   relatorio.cargaQueFalha = await cargaQueFalha(contexto, base);
 } finally {
   await navegador.close();
@@ -136,6 +187,10 @@ for (const r of relatorio.rotas) {
     for (const d of v.detalhe) linhas.push(`        ${d}`);
   }
 }
+const calibracao = relatorio.calibracaoReflow;
+falhou ||= !calibracao.passou;
+linhas.push(`${calibracao.passou ? 'ok   ' : 'FALHA'} o medidor de reflow enxerga transbordo `
+  + `(um bloco de 2000px mediu ${calibracao.largura}px)`);
 const carga = relatorio.cargaQueFalha;
 falhou ||= !carga.passou;
 linhas.push(`${carga.passou ? 'ok   ' : 'FALHA'} carga que falha no /login${carga.erro ? ` — ${carga.erro}` : ''}`);

@@ -99,8 +99,9 @@ Financeiro, Equipe, Auditoria, Cadastro — e no `/login`:
    é lido sem interromper; o erro interrompe; o selo de status é lido com o texto
    dele; cada campo diz o próprio rótulo.
 3. **Zoom a 200%** (Ctrl +). Nada cortado nem sobreposto.
-4. **Reflow a 320px** (DevTools, largura 320). Sem rolagem horizontal no corpo; a
-   tabela vira blocos empilhados.
+4. **Reflow a 320px** (DevTools, largura 320). Nada cortado na borda direita — o
+   `html` corta o que passa, sem barra de rolagem, então procurar barra não
+   adianta; a tabela vira blocos empilhados.
 5. **Contraste de estado.** Hover e foco de botão, campo com erro, selo de
    alarme, dente do odontograma e os campos do perfil do usuário (menu do
    `UserButton`) legíveis — o axe não mede estado.
