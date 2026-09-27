@@ -52,8 +52,8 @@ jobs:
       - uses: actions/checkout@v6
       # build-mode none: analisa o fonte sem compilar, então não depende do
       # Testcontainers nem do Maven Central estarem de pé.
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.linguagem }}
           build-mode: none
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
