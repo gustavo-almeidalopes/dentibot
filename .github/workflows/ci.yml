@@ -48,3 +48,31 @@ jobs:
       # Sem npm ci: o teste do app só importa módulos do Node.
       - run: npm test
         working-directory: app
+
+  # Acessibilidade no navegador (ODS-17): axe-core nas rotas públicas, reflow a
+  # 320px e carga que falha. A chave publicável do Clerk é pública por definição
+  # e vem de uma variável do repositório; sem ela o /login é pulado e o resumo
+  # diz "AUDITORIA PARCIAL". O Chrome já vem no runner: o playwright-core não
+  # baixa navegador.
+  acessibilidade:
+    runs-on: ubuntu-latest
+    env:
+      VITE_CLERK_PUBLISHABLE_KEY: ${{ vars.VITE_CLERK_PUBLISHABLE_KEY }}
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      - run: node a11y/auditar.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: a11y-relatorio
+          path: web/a11y-relatorio.json
