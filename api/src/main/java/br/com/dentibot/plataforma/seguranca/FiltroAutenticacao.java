@@ -67,13 +67,24 @@ public class FiltroAutenticacao extends OncePerRequestFilter {
         }
     }
 
-    private ContextoRequisicao resolver(HttpServletRequest req, UUID correlacao) {
+    /**
+     * A requisição traz a única credencial que esta API aceita — e que o
+     * navegador nunca anexa sozinho, ao contrário de cookie. A
+     * {@code CadeiaDeSeguranca} dispensa o CSRF pela mesma pergunta: a dispensa
+     * vale exatamente para o que se autentica por cabeçalho, e para nada que o
+     * navegador mande por conta própria.
+     */
+    public static boolean trazBearer(HttpServletRequest req) {
         String cabecalho = req.getHeader("Authorization");
-        if (cabecalho == null || !cabecalho.startsWith(PREFIXO)) {
+        return cabecalho != null && cabecalho.startsWith(PREFIXO);
+    }
+
+    private ContextoRequisicao resolver(HttpServletRequest req, UUID correlacao) {
+        if (!trazBearer(req)) {
             return ContextoRequisicao.anonimo(correlacao);
         }
         try {
-            Jwt jwt = decoder.decode(cabecalho.substring(PREFIXO.length()).trim());
+            Jwt jwt = decoder.decode(req.getHeader("Authorization").substring(PREFIXO.length()).trim());
             String sujeito = jwt.getSubject();
             if (sujeito == null || sujeito.isBlank()) {
                 return ContextoRequisicao.anonimo(correlacao);

@@ -17,6 +17,7 @@ import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
@@ -88,11 +89,22 @@ public class CadeiaDeSeguranca {
             throws Exception {
         return http
                 .cors(cors -> cors.configurationSource(fonteCors()))
-                // API stateless com Bearer: não há sessão de servidor para o
-                // atacante sequestrar, e o cookie de refresh é SameSite=Lax, que
-                // impede o POST cross-site. O CSRF token clássico protegeria um
-                // formulário com sessão — não é este desenho.
-                .csrf(csrf -> csrf.disable())
+                // CSRF é o navegador anexando sozinho uma credencial (cookie,
+                // Basic) ao POST que outro site montou. Fica ligado, e só é
+                // dispensado onde a requisição traz a própria prova — a regra que
+                // o Spring aplica ao resource server: o Bearer, que o navegador
+                // nunca anexa sozinho; o HMAC do corpo no webhook; o token do link
+                // no corpo do titular. Escrita sem Bearer fora disso toma 403,
+                // inclusive a de um login por cookie que venha a existir. Rota
+                // pública nova que grava sem Bearer entra na lista com o motivo,
+                // como no permitAll abaixo.
+                // Token em cookie e não na sessão: no repositório padrão, cada
+                // POST anônimo recusado abria uma sessão no servidor (medido na
+                // BordaPublicaTest).
+                .csrf(csrf -> csrf
+                        .csrfTokenRepository(new CookieCsrfTokenRepository())
+                        .ignoringRequestMatchers(FiltroAutenticacao::trazBearer)
+                        .ignoringRequestMatchers("/api/v1/webhooks/whatsapp", "/api/v1/titular/**"))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()

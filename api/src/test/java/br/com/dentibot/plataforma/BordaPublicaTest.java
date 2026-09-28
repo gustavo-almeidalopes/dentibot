@@ -57,7 +57,7 @@ class BordaPublicaTest extends TesteIntegracao {
     private static final String TOKEN_ADMIN = "token-do-admin";
 
     @TestConfiguration
-    static class EcoDoIp {
+    static class RotasDeTeste {
 
         /**
          * Sob /auth porque é a rota pública — a mesma do rate limit por IP.
@@ -70,6 +70,19 @@ class BordaPublicaTest extends TesteIntegracao {
             return RouterFunctions.route()
                     .GET("/api/v1/auth/teste/ip",
                             req -> ServerResponse.ok().body(req.servletRequest().getRemoteAddr()))
+                    .build();
+        }
+
+        /**
+         * Escrita numa rota pública que não confere nada: quem decide se ela
+         * roda é só a cadeia. Nas rotas de verdade o 403 da autorização
+         * esconderia o do CSRF — toda escrita delas já exige Bearer ou prova
+         * própria.
+         */
+        @Bean
+        RouterFunction<ServerResponse> escritaPublica() {
+            return RouterFunctions.route()
+                    .POST("/api/v1/auth/teste/escrita", req -> ServerResponse.ok().body("gravado"))
                     .build();
         }
     }
@@ -153,6 +166,45 @@ class BordaPublicaTest extends TesteIntegracao {
     }
 
     @Test
+    @DisplayName("escrita sem Bearer para no CSRF, mesmo com o cookie que o navegador anexaria")
+    void escritaSemBearerParaNoCsrf() throws Exception {
+        HttpResponse<String> r = escrever("Cookie", "__session=do-navegador");
+
+        assertThat(r.statusCode())
+                .as("""
+                    É o POST que outro site monta: o navegador anexa o cookie sozinho, nunca o \
+                    Authorization. Com o CSRF desligado, a rota pública gravava.""")
+                .isEqualTo(403);
+        assertThat(r.headers().allValues("Set-Cookie"))
+                .as("recusa de CSRF não abre sessão: numa API sem estado, seria memória por POST anônimo")
+                .noneMatch(c -> c.startsWith("JSESSIONID="));
+    }
+
+    @Test
+    @DisplayName("com Bearer, a escrita não depende de token CSRF")
+    void bearerDispensaCsrf() throws Exception {
+        HttpResponse<String> r = escrever("Authorization", "Bearer " + TOKEN_ADMIN);
+
+        assertThat(r.statusCode())
+                .as("o navegador não anexa Authorization sozinho: quem o manda é página que o CORS liberou")
+                .isEqualTo(200);
+    }
+
+    @Test
+    @DisplayName("o link do titular chega ao serviço sem Bearer e sem token CSRF")
+    void titularDispensaCsrf() throws Exception {
+        HttpResponse<String> r = http.send(HttpRequest.newBuilder(url("/api/v1/titular/painel"))
+                        .header("Content-Type", "application/json")
+                        .POST(HttpRequest.BodyPublishers.ofString("{\"token\":\"link-que-nao-existe\"}"))
+                        .build(),
+                HttpResponse.BodyHandlers.ofString());
+
+        assertThat(r.statusCode())
+                .as("404 é o serviço dizendo que o link não existe; 403 seria o CSRF barrando o paciente")
+                .isEqualTo(404);
+    }
+
+    @Test
     @DisplayName("o e-mail do admin cadastrado é o verificado no Clerk, não o do corpo")
     void emailDoAdminVemDoToken() throws Exception {
         long n = SEQ.incrementAndGet();
@@ -214,5 +266,12 @@ class BordaPublicaTest extends TesteIntegracao {
 
     private HttpResponse<String> enviar(HttpRequest.Builder req) throws Exception {
         return http.send(req.GET().build(), HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> escrever(String cabecalho, String valor) throws Exception {
+        return http.send(HttpRequest.newBuilder(url("/api/v1/auth/teste/escrita"))
+                        .header(cabecalho, valor)
+                        .POST(HttpRequest.BodyPublishers.noBody()).build(),
+                HttpResponse.BodyHandlers.ofString());
     }
 }
