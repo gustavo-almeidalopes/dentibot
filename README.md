@@ -121,14 +121,16 @@ Vercel não tem como herdar entre os dois.
 
 ### Rewrites
 
-As duas telas fora da landing (`/login` e `/clientes`) são a mesma
-`index.html`: o `main.jsx` escolhe o componente por `window.location.pathname`,
-sem router. Em servidor estático isso só funciona com rewrite — abrir `/login`
-direto procuraria um arquivo `/login`, que não existe, e daria o mesmo 404.
+Toda tela é a mesma `index.html`: quem escolhe o componente é o React Router,
+em `web/src/main.jsx`. Em servidor estático isso só funciona com rewrite —
+abrir `/agenda` direto procuraria um arquivo `/agenda`, que não existe. Por
+isso os dois arquivos mandam para a `index.html` todo caminho que não começa
+com `/api/`, e rota nova no router não pede rewrite novo. Endereço inexistente
+cai na rota `*`, que responde "Não encontrado." — o 404 é da aplicação.
 
-Rota nova em `web/src/main.jsx` pede rewrite novo nos dois arquivos. O
-catch-all `/(.*)` ficou de fora de propósito: com ele, URL inexistente
-devolveria a landing com 200 em vez de um 404 de verdade.
+`/api/` fica de fora de propósito: com o rewrite, a chamada à API receberia
+HTML em vez de um 404. O efeito é que, na Vercel, `/api/v1/...` só responde se
+houver API em algum lugar — ver "A API não vai junto", abaixo.
 
 ### Cabeçalhos de segurança
 
@@ -155,10 +157,27 @@ Em **Settings > Environment Variables** do projeto:
 | Variável | Quando | Para quê |
 | --- | --- | --- |
 | `VITE_CLERK_PUBLISHABLE_KEY` | sempre | Chave pública do Clerk. O `ClerkProvider` não recebe `publishableKey` por prop — o `@clerk/react` cai em `import.meta.env`. O Vite resolve isso **no build**, então quem precisa da variável é a Vercel, não o browser. Sem ela a landing sobe normal e `/login` aparece sem o widget: some o formulário, não a página. |
-| `VITE_API_BASE` | se a API estiver em outro domínio | Precisa incluir o `/api`. Vazio = `/api` do mesmo host, o que só serve se algo estiver fazendo proxy. |
+| `VITE_API_BASE` | na Vercel, sempre: a API não está no mesmo domínio | Precisa incluir o `/api/v1`. Vazio = `/api/v1` do mesmo host, o que só serve se algo estiver fazendo proxy. |
 
 `VITE_*` entra no bundle, que é público. Nenhum segredo aqui — a chave do
 Clerk é publicável por definição e a secret key é do back-end.
+
+### A API não vai junto
+
+A Vercel publica só o `web/`. O back-end (Spring Boot, Postgres e Redis) roda
+em outro lugar, e o build precisa saber onde: sem `VITE_API_BASE`, o front
+chama `/api/v1` no próprio domínio da Vercel, que responde 404. O login
+funciona, porque é do Clerk, mas nenhuma tela depois dele tem dado — o app
+mostra "API ausente." com o menu no lugar, para ninguém ficar preso numa tela.
+
+Para ligar os dois:
+
+1. Publique a API com a origem do site em `DENTIBOT_CORS_ORIGINS` e em
+   `DENTIBOT_CLERK_ORIGINS` — sem a segunda, o token que o Clerk emitiu para o
+   site é recusado.
+2. Defina `VITE_API_BASE=https://<api>/api/v1` na Vercel.
+3. Ponha `https://<api>` em `connect-src` nos dois `vercel.json`.
+4. Publique o site de novo: `VITE_*` entra no bundle na hora do build.
 
 ## Arquitetura
 
@@ -192,9 +211,8 @@ onboarding, auditoria, outbox, idempotência e rate limit, sobre 17 migrations.
 `app/` cobre login, agenda do dia com as transições de consulta, lista de
 pacientes e perfil. O que ficou fora e por quê está no README dele.
 
-`web/` é a landing page. As telas `/clientes` e `/login` existem em
-`web/src/`, mas `web/src/api.js` foi escrito para uma API que não é esta —
-rotas sem `/api/v1`, `password` em vez de `senha`, `access_token` em snake_case
-e token em `localStorage`, que é justamente o que o `AutenticacaoController`
-recusa fazer. Essas três telas não funcionam contra o backend atual até esse
-cliente ser reescrito.
+`web/` é a landing e o sistema da clínica sobre a API v1: agenda, pacientes e
+prontuário, conversas, acompanhamento, financeiro, estoque, equipe, auditoria
+e IA, ligados pelo menu do `Layout`, que mostra a cada papel só o que o `/eu`
+diz que ele alcança. Publicado sozinho, não tem dado — ver "A API não vai
+junto".
