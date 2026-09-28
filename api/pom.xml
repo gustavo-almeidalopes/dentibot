@@ -19,7 +19,7 @@
 
 	<properties>
 		<java.version>25</java.version>
-		<archunit.version>1.5.0</archunit.version>
+		<archunit.version>1.5.1</archunit.version>
 		<sentry.version>8.58.0</sentry.version>
 		<awssdk.version>2.55.6</awssdk.version>
 		<anthropic.version>2.65.0</anthropic.version>
