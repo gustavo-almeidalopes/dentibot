@@ -1,10 +1,11 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
 import { createContext, Suspense, useContext } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
+import { semApi } from '../api.js';
 import { useSemConexao } from '../components/SessaoOffline.jsx';
 import { Esqueleto } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
-import { CADASTRO, MENU, recursoDaTela } from '../rotas.js';
+import { CADASTRO, itensDoMenu, recursoDaTela } from '../rotas.js';
 
 /* Espelha os tokens de `:root:has(.app-main)` em app.css. O Clerk não lê
    variável CSS nossa; se a paleta do tema claro mudar lá, muda aqui também. */
@@ -94,30 +95,45 @@ function Autenticado() {
     return <Navigate to={CADASTRO} replace />;
   }
 
-  /* Sem o /eu não há menu: montar a casca com todos os itens e removê-los quando
-     a resposta chegasse mostraria, por um instante, telas que a pessoa não
-     alcança — e um clique é mais rápido que um instante. */
-  if (eu.status !== 'ok') {
-    return (
-      <main id="main" className="app-main edge">
-        <SemConexao />
-        <Estado status={eu.status} erro={eu.erro} onTentarDeNovo={eu.recarregar} />
-      </main>
-    );
-  }
-
-  const pode = podeCom(eu.dados.permissoes);
+  /* A casca existe em todo estado do /eu; o que depende dele é o menu e a tela.
+     Antes, qualquer falha aqui trocava a página inteira por "Erro 404" e um
+     botão: sem menu, sem sair, sem voltar ao site — as telas do sistema ficavam
+     sem ligação nenhuma entre si. */
+  const permissoes = eu.status === 'ok' ? eu.dados.permissoes : null;
+  const papel = eu.status === 'ok' ? eu.dados.papel : null;
+  const pode = podeCom(permissoes);
   const recurso = recursoDaTela(pathname);
 
+  let conteudo;
+  if (eu.status !== 'ok') {
+    conteudo = semApi(eu.erro)
+      ? <SemApi />
+      : <Estado status={eu.status} erro={eu.erro} onTentarDeNovo={eu.recarregar} />;
+  } else if (recurso === null || pode(recurso)) {
+    /* A tela é um chunk à parte. O Suspense é daqui, e não o de fora: o de
+       fora desmontaria a casca, e o tema claro piscaria para o preto a cada
+       troca de aba. */
+    conteudo = (
+      <Suspense fallback={<Estado status="carregando" />}>
+        <Outlet />
+      </Suspense>
+    );
+  } else {
+    /* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
+       viraria uma tela de erro técnica. Isto responde a mesma negativa em
+       português, sem nunca ser a razão pela qual o acesso foi negado. */
+    conteudo = <SemAcesso papel={papel} />;
+  }
+
   return (
-    <Permissoes.Provider value={eu.dados.permissoes}>
+    <Permissoes.Provider value={permissoes}>
       <a href="#main" className="skip-link">Ir para o conteúdo</a>
 
       <header className="app-topo edge">
         <a href="/" className="mbar-mark" aria-label="DentiBot — página inicial">DentiBot</a>
 
         <nav className="app-nav" aria-label="Navegação do sistema">
-          {MENU.filter((item) => pode(item.recurso)).map((item) => (
+          {itensDoMenu(eu.status, pode).map((item) => (
             <NavLink
               key={item.href}
               to={item.href}
@@ -130,7 +146,7 @@ function Autenticado() {
           ))}
         </nav>
 
-        {eu.dados.papel && <p className="cap cap-ash app-papel">{eu.dados.papel.toLowerCase()}</p>}
+        {papel && <p className="cap cap-ash app-papel">{papel.toLowerCase()}</p>}
         {/* O provider inteiro está com aparência preta, para a landing e o
             login. Dentro do app o cabeçalho é claro, e o popover do Clerk
             entraria preto sobre papel. */}
@@ -139,21 +155,27 @@ function Autenticado() {
 
       <main id="main" className="app-main edge">
         <SemConexao />
-        {/* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
-            viraria uma tela de erro técnica. Isto responde a mesma negativa em
-            português, sem nunca ser a razão pela qual o acesso foi negado. */}
-        {/* A tela é um chunk à parte. O Suspense é daqui, e não o de fora: o de
-            fora desmontaria a casca, e o tema claro piscaria para o preto a
-            cada troca de aba. */}
-        {recurso === null || pode(recurso)
-          ? (
-            <Suspense fallback={<Estado status="carregando" />}>
-              <Outlet />
-            </Suspense>
-          )
-          : <SemAcesso papel={eu.dados.papel} />}
+        {conteudo}
       </main>
     </Permissoes.Provider>
+  );
+}
+
+/* Quem respondeu no lugar da API foi o servidor deste site (ver `semApi`). Não
+   é falha passageira: o build aponta para um endereço sem back-end, e nenhum
+   "Tentar de novo" resolve isso sem publicar de novo. Por isso a mensagem é
+   para quem publica, como a da chave ausente no ComClerk. */
+function SemApi() {
+  return (
+    <div className="vazio" role="alert">
+      <h1 className="display display-sm">API ausente.</h1>
+      <p className="body body-ash">
+        O login funcionou, mas quem respondeu no lugar da API foi o servidor deste site, com
+        404: ele publica só a interface. Publique o back-end, defina <code>VITE_API_BASE</code>{' '}
+        com o endereço dele no build (Vercel → Environment Variables) e publique o site de novo
+        — o passo a passo está no README, na parte de publicar o <code>web/</code> na Vercel.
+      </p>
+    </div>
   );
 }
 

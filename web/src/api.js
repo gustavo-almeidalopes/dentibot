@@ -48,6 +48,18 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * O erro diz que não há API neste endereço — e não que a API negou algo.
+ *
+ * <p>Todo 404 do back-end sai em ProblemDetail, com corpo JSON
+ * (`TratadorGlobalDeErros`). 404 sem corpo que se leia é o servidor da página
+ * respondendo no lugar dela: o `web/` publicado na Vercel sem o back-end, ou
+ * um `VITE_API_BASE` que não aponta para ele. Na tela isso virava "Erro 404"
+ * dentro da /agenda, e parecia que a própria tela não existia.
+ */
+export const semApi = (erro) =>
+  erro instanceof ApiError && erro.status === 404 && erro.data === null;
+
 /* getToken do próprio SDK, não o hook: este módulo não é componente e o helper
    existe justamente para camada de dados — ele espera o ClerkJS carregar e
    devolve null se não há sessão. Offline ou timeout viram ausência de token, e

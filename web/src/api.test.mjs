@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { EXIGEM_IDEMPOTENCIA } from './api.js';
+import { ApiError, EXIGEM_IDEMPOTENCIA, semApi } from './api.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const FILTRO = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com',
@@ -32,4 +32,16 @@ test('a lista de rotas idempotentes do front é a do FiltroIdempotencia', () => 
 
   assert.ok(doBackend.length > 0, 'o extrator não encontrou prefixo nenhum');
   assert.deepEqual([...EXIGEM_IDEMPOTENCIA].sort(), doBackend);
+});
+
+test('404 sem corpo é o host sem API, e 404 do back-end não é', () => {
+  // O back-end responde todo 404 em ProblemDetail. O 404 de texto é o da
+  // Vercel servindo só o web — que antes aparecia como "Erro 404" na /agenda.
+  assert.equal(semApi(new ApiError('Erro 404', 404, null)), true);
+  assert.equal(semApi(new ApiError('Recurso não encontrado.', 404,
+    { status: 404, detail: 'Recurso não encontrado.' })), false);
+  // Outros status seguem pelo erro comum, com o "Tentar de novo".
+  assert.equal(semApi(new ApiError('Erro 500', 500, null)), false);
+  assert.equal(semApi(new TypeError('Failed to fetch')), false);
+  assert.equal(semApi(undefined), false);
 });

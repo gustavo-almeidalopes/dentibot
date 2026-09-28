@@ -10,7 +10,9 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { AGENDA, MENU, PACIENTES, prontuarioDe, recursoDaTela } from './rotas.js';
+import {
+  AGENDA, CONVERSAS, MENU, PACIENTES, itensDoMenu, prontuarioDe, recursoDaTela,
+} from './rotas.js';
 
 test('prontuário não é confundido com pacientes', () => {
   // O prefixo é o mesmo; o recurso não. Recepcionista tem PACIENTE e não tem
@@ -42,4 +44,16 @@ test('todo item de menu tem recurso, e é o nome do enum do back-end', () => {
     assert.equal(recursoDaTela(item.href), item.recurso);
   }
   assert.equal(recursoDaTela(AGENDA), 'AGENDA');
+});
+
+test('o menu não some quando o /eu falha', () => {
+  // A versão anterior escondia a casca inteira no erro: quem entrava num deploy
+  // sem API via "Erro 404" na /agenda e não tinha menu, nem sair, nem voltar.
+  const nada = () => false;
+  assert.deepEqual(itensDoMenu('erro', nada), MENU);
+  // Carregando continua sem item: nenhum aparece para sumir quando o papel chega.
+  assert.deepEqual(itensDoMenu('carregando', () => true), []);
+  // Com o /eu em mãos, o papel decide — e a ordem do dia de trabalho se mantém.
+  const recepcao = (recurso) => recurso === 'AGENDA' || recurso === 'PACIENTE';
+  assert.deepEqual(itensDoMenu('ok', recepcao).map((i) => i.href), [AGENDA, PACIENTES, CONVERSAS]);
 });

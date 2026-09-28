@@ -50,6 +50,24 @@ export const MENU = [
   { href: IA, label: 'IA', recurso: 'BILLING' },
 ];
 
+/**
+ * Os itens do menu para o estado da resposta do `/eu`.
+ *
+ * <p>Carregando, nenhum: montar todos e tirar os que o papel não alcança quando
+ * a resposta chegasse mostraria, por um instante, telas que a pessoa não
+ * alcança — e um clique é mais rápido que um instante.
+ *
+ * <p>Com erro, todos. Sem o `/eu` não se sabe o papel, e esconder o menu deixava
+ * quem acabou de entrar preso na /agenda: sem ir para outra tela e sem o botão de
+ * sair. O menu é cortesia — quem nega é o back-end —, e o Layout continua sem
+ * montar tela nenhuma até o papel ser conhecido.
+ */
+export function itensDoMenu(status, pode) {
+  if (status === 'erro') return MENU;
+  if (status !== 'ok') return [];
+  return MENU.filter((item) => pode(item.recurso));
+}
+
 /* Único caminho com parâmetro, então uma regex resolve — e ela é conferida
    ANTES da tabela porque `/pacientes/7/prontuario` é PRONTUARIO, não PACIENTE.
    A recepcionista tem PACIENTE e não tem PRONTUARIO: casar pelo prefixo
