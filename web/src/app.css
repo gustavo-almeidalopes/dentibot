@@ -111,7 +111,7 @@
   font-variant-numeric: tabular-nums;
   padding: 10px 2px;
   cursor: pointer;
-  transition: background .15s linear;
+  transition: background .15s ease;
 }
 .odonto-dente:hover { background: rgba(255, 255, 255, .07); }
 .odonto-dente[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
@@ -174,12 +174,21 @@
 }
 
 /* ── AVISO ────────────────────────────────────────────────────────────────── */
+/* O feedback mais visto do app — toda ação de salvar passa por aqui — e até
+   agora teleportava na tela. `@starting-style` pega o estado de montagem sem
+   precisar de classe nem useEffect, igual ao Reveal da landing faz com JS. */
 .aviso {
   margin: 0 0 var(--spacing-20, 20px);
   padding: 12px 16px;
   border: 1px solid var(--hair);
   border-left-width: 4px;
   font-size: 14px;
+  opacity: 1;
+  transform: none;
+  transition: opacity .2s var(--ease-brut), transform .2s var(--ease-brut);
+}
+@starting-style {
+  .aviso { opacity: 0; transform: translateY(-6px); }
 }
 .aviso[data-tom="sucesso"] { border-left-color: var(--tinta); }
 .aviso[data-tom="erro"]    { border-left-color: var(--alarm); color: var(--alarm); }
@@ -221,14 +230,39 @@
 }
 
 /* ── DIÁLOGO ──────────────────────────────────────────────────────────────── */
+/* showModal() abria e close() fechava com um pop seco — o `<dialog>` nativo
+   não anima nada sozinho. `overlay`/`display` com allow-discrete mantêm o
+   diálogo renderizado até a transição terminar, então a SAÍDA anima também,
+   não só a entrada. Origem central é a exceção correta aqui: diálogo não tem
+   gatilho — ele não vem de lugar nenhum na tela. */
 .dialogo {
   border: 1px solid var(--tinta);
   background: var(--superficie);
   color: var(--tinta);
   padding: var(--spacing-30, 30px);
   max-width: min(46ch, calc(100vw - 32px));
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity .25s var(--ease-brut), transform .25s var(--ease-brut),
+    overlay .25s allow-discrete, display .25s allow-discrete;
 }
-.dialogo::backdrop { background: rgba(0, 0, 0, .55); }
+.dialogo:not([open]) {
+  opacity: 0;
+  transform: scale(.96);
+}
+@starting-style {
+  .dialogo[open] { opacity: 0; transform: scale(.96); }
+}
+
+.dialogo::backdrop {
+  background: rgba(0, 0, 0, .55);
+  opacity: 1;
+  transition: opacity .25s var(--ease-brut), overlay .25s allow-discrete, display .25s allow-discrete;
+}
+.dialogo:not([open])::backdrop { opacity: 0; }
+@starting-style {
+  .dialogo[open]::backdrop { opacity: 0; }
+}
 .dialogo .sub { margin-top: 0; }
 .dialogo-acoes {
   display: flex;
@@ -258,6 +292,7 @@
   color: var(--tinta-fraca);
   font-size: 14px;
   text-decoration: none;
+  transition: color .15s ease, border-color .15s ease;
 }
 .app-aba:hover { color: var(--tinta); }
 .app-aba-ativa { color: var(--tinta); border-bottom-color: var(--alarm); font-weight: 700; }
