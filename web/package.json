@@ -13,8 +13,8 @@
     "a11y": "vite build && node a11y/peso.mjs && node a11y/auditar.mjs"
   },
   "dependencies": {
-    "@clerk/localizations": "^4.18.0",
-    "@clerk/react": "^6.17.0",
+    "@clerk/localizations": "^4.21.2",
+    "@clerk/react": "^6.17.5",
     "@fontsource/antonio": "^5.3.0",
     "@fontsource/cormorant-sc": "^5.3.0",
     "@fontsource/inter": "^5.3.0",
@@ -25,7 +25,7 @@
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.13.0",
-    "@clerk/testing": "^2.2.39",
+    "@clerk/testing": "^2.2.42",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.63.0",
     "@vitejs/plugin-react": "^6.1.1",
