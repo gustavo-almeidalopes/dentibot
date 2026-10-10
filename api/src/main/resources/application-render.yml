@@ -1,0 +1,23 @@
+# Perfil da Render (render.yaml liga com SPRING_PROFILES_ACTIVE=render).
+#
+# Lá o banco nasce com um só usuário, dentibot_migrador, dono de tudo, e o
+# Blueprint entrega o endereço em pedaços (host, porta, nome) — não em URL
+# JDBC. Este arquivo monta a URL e dá ao dentibot_app, que a V1 cria sem
+# login, a senha que a Render gerou. O resto do application.yml vale igual.
+
+spring:
+  datasource:
+    # Rede interna da Render: sem TLS obrigatório, e o certificado de lá é
+    # autoassinado — verify-full falharia. O pgjdbc negocia (sslmode=prefer).
+    url: jdbc:postgresql://${DENTIBOT_DB_HOST}:${DENTIBOT_DB_PORT}/${DENTIBOT_DB_NAME}
+  flyway:
+    url: ${spring.datasource.url}
+    # db/render só tem o afterMigrate.sql. Ele fica fora de db/migration de
+    # propósito: no compose, no CI e no Neon quem cria dentibot_app não é o
+    # migrador, e lá o ALTER ROLE seria recusado.
+    locations: classpath:db/migration,classpath:db/render
+    placeholders:
+      # Chave só com letras de propósito: com "_", quem sobrescrevesse por
+      # variável (SPRING_FLYWAY_PLACEHOLDERS_...) entregaria ao Flyway a chave
+      # com "." no lugar, e o placeholder ficaria sem valor.
+      senhaapp: ${DENTIBOT_DB_PASSWORD}
