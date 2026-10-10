@@ -91,13 +91,19 @@ databases:
     databaseName: dentibot
     # O dono do banco, com o nome que as migrations esperam (V1, V3, V23 e V24
     # citam dentibot_migrador). Precisa de CREATEROLE, que o usuário padrão da
-    # Render tem: a V1 cria dentibot_app, provisionador e autenticador.
+    # Render tem: a V1 cria dentibot_app, provisionador e autenticador. Não
+    # troque esta credencial pelo "adicionar usuário" do painel: o usuário novo
+    # viraria o do Flyway, e tabela criada por ele não dá acesso a dentibot_app.
     user: dentibot_migrador
     region: virginia
     # 16, como o CI (Testcontainers) e o compose local. A V21 pede 15 ou mais.
     postgresMajorVersion: "16"
-    # Pago (~US$ 6/mês) de propósito: o free expira em 30 dias e, 14 dias
-    # depois, a Render apaga o banco — com prontuário dentro.
+    # Pago de propósito: o free expira em 30 dias e, 14 dias depois, a Render
+    # apaga o banco — com prontuário dentro. ~US$ 7,50/mês: US$ 6 do plano e
+    # 5 GB de disco a US$ 0,30/GB.
     plan: basic-256mb
+    # Explícito porque o padrão do Basic é 15 GB, e disco na Render só cresce:
+    # depois de criado, não diminui. Anexo vai para o R2, não para cá.
+    diskSizeGB: 5
     # Vazio = sem acesso de fora: só a API, pela rede interna, alcança o banco.
     ipAllowList: []

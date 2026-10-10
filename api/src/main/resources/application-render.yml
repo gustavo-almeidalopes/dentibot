@@ -20,4 +20,6 @@ spring:
       # Chave só com letras de propósito: com "_", quem sobrescrevesse por
       # variável (SPRING_FLYWAY_PLACEHOLDERS_...) entregaria ao Flyway a chave
       # com "." no lugar, e o placeholder ficaria sem valor.
-      senhaapp: ${DENTIBOT_DB_PASSWORD}
+      # ":" com default vazio: sem a variável, o Spring passaria o texto
+      # "${DENTIBOT_DB_PASSWORD}" como senha, e o afterMigrate recusa vazia.
+      senhaapp: ${DENTIBOT_DB_PASSWORD:}

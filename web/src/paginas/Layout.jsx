@@ -196,8 +196,9 @@ function ApiSemResposta({ onTentarDeNovo }) {
         O login funcionou, mas <code>{ENDERECO_DA_API}</code> não respondeu. No plano free da
         Render a API dorme depois de 15 minutos sem uso e leva cerca de um minuto para acordar:
         tente de novo. Se continuar, confira na Render se o serviço <code>dentibot-api</code> está
-        no ar e se <code>DENTIBOT_CORS_ORIGINS</code> e <code>DENTIBOT_CLERK_ORIGINS</code> têm{' '}
-        <code>{window.location.origin}</code>.
+        no ar. Site em domínio novo (<code>{window.location.origin}</code>) entra em{' '}
+        <code>DENTIBOT_CORS_ORIGINS</code> e <code>DENTIBOT_CLERK_ORIGINS</code>, no{' '}
+        <code>render.yaml</code>.
       </p>
       <button type="button" className="btn" onClick={onTentarDeNovo}>Tentar de novo</button>
     </div>

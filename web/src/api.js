@@ -84,6 +84,23 @@ async function tokenDeSessao() {
   }
 }
 
+/**
+ * O `fetch`, com a falha de rede dita em português. Sem resposta legível o
+ * navegador rejeita com "Failed to fetch", em inglês e sem endereço, e é isso
+ * que o Cadastro, o Titular e o erro de cada tela mostravam. Continua sendo
+ * TypeError, então `apiInacessivel` vale igual.
+ */
+async function chamar(url, init) {
+  try {
+    return await fetch(url, init);
+  } catch (erro) {
+    if (!(erro instanceof TypeError)) throw erro;
+    throw new TypeError(
+      `A API (${BASE}) não respondeu. Se ela estava parada, acordar leva cerca de um minuto: tente de novo.`,
+      { cause: erro });
+  }
+}
+
 const precisaDeChave = (metodo, caminho) =>
   metodo === 'POST' && EXIGEM_IDEMPOTENCIA.some((p) => caminho.startsWith(p));
 
@@ -103,7 +120,7 @@ async function req(metodo, caminho, corpo, { idempotencyKey } = {}) {
     headers['Idempotency-Key'] = idempotencyKey ?? crypto.randomUUID();
   }
 
-  const res = await fetch(`${BASE}${caminho}`, {
+  const res = await chamar(`${BASE}${caminho}`, {
     method: metodo,
     headers,
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
@@ -146,7 +163,7 @@ export function query(params) {
  */
 export async function baixar(caminho) {
   const token = await tokenDeSessao();
-  const res = await fetch(`${BASE}${caminho}`, {
+  const res = await chamar(`${BASE}${caminho}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) {
