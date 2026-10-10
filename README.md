@@ -170,14 +170,38 @@ chama `/api/v1` no próprio domínio da Vercel, que responde 404. O login
 funciona, porque é do Clerk, mas nenhuma tela depois dele tem dado — o app
 mostra "API ausente." com o menu no lugar, para ninguém ficar preso numa tela.
 
-Para ligar os dois:
+O back-end publicado é Postgres no **Neon** e API + Redis na **Render**, pelo
+`render.yaml` da raiz. Os dois em us-east (Virginia): cada requisição faz
+várias consultas, e API e banco longe um do outro multiplicam a latência.
 
-1. Publique a API com a origem do site em `DENTIBOT_CORS_ORIGINS` e em
-   `DENTIBOT_CLERK_ORIGINS` — sem a segunda, o token que o Clerk emitiu para o
-   site é recusado.
-2. Defina `VITE_API_BASE=https://<api>/api/v1` na Vercel.
-3. Ponha `https://<api>` em `connect-src` nos dois `vercel.json`.
-4. Publique o site de novo: `VITE_*` entra no bundle na hora do build.
+1. **Banco (Neon).** Crie um projeto em AWS US East 1 e, nele, um banco
+   chamado `dentibot`. No SQL Editor, com esse banco selecionado, rode
+   `infrastructure/neon/roles.sql` depois de trocar as duas senhas por valores
+   longos e aleatórios. Os roles nascem por SQL, não pela aba Roles: role do
+   console entra em `neon_superuser`. Guarde o host da conexão **direta**
+   (sem `-pooler`).
+2. **API (Render).** New → Blueprint → este repositório. A Render cria
+   `dentibot-api` e `dentibot-redis` e pede o que não está no arquivo:
+
+   | Variável | Valor |
+   | --- | --- |
+   | `DENTIBOT_DB_URL` | `jdbc:postgresql://<host-do-neon>/dentibot?sslmode=require` — sem usuário e senha na URL |
+   | `DENTIBOT_DB_PASSWORD` | a senha de `dentibot_app` |
+   | `DENTIBOT_DB_MIGRADOR_PASSWORD` | a senha de `dentibot_migrador` |
+   | `DENTIBOT_CLERK_ORIGINS`, `DENTIBOT_CORS_ORIGINS` | a origem do site, ex. `https://dentibot.vercel.app` — sem a primeira o token do login é recusado |
+
+   As migrations rodam no start, como `dentibot_migrador`. O deploy só fica
+   verde quando `/actuator/health/readiness` responde, e ela inclui o banco.
+3. **Site (Vercel).** Defina `VITE_API_BASE=https://dentibot-api.onrender.com/api/v1`
+   e publique de novo: `VITE_*` entra no bundle na hora do build.
+
+`https://dentibot-api.onrender.com` já está no `connect-src` dos dois
+`vercel.json`. Se a Render der outro endereço ao serviço (nome já usado por
+alguém), troque nos dois arquivos e no `VITE_API_BASE`.
+
+O plano `free` da Render dorme depois de 15 minutos sem tráfego, e a primeira
+requisição espera a JVM subir. Para clínica de verdade, `starter` no
+`render.yaml`.
 
 ## Arquitetura
 
