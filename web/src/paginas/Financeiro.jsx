@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { STATUS_RECEBIVEL, contagem } from '../apresentacao.js';
+import LinkDoPaciente from '../components/LinkDoPaciente.jsx';
 import { Celula, Selo, Tabela } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
 import { Cabecalho, Estado } from './Layout.jsx';
@@ -49,9 +50,12 @@ export default function Financeiro() {
   /* Exceção deliberada ao "nenhum endpoint novo": RecebivelResumo traz
      idPaciente e não o nome, e uma cobrança sem nome não dá para conferir. */
   const pacientes = useRecurso(`/pacientes?limite=${LIMITE}`);
+  /* Fora da primeira página de pacientes o nome fica undefined, e o
+     LinkDoPaciente cai no "Paciente 7" — mas o prontuário, aberto por ele,
+     ainda acha o nome certo no resumo, em vez de herdar o rótulo provisório. */
   const nomeDoPaciente = useMemo(() => {
     const mapa = new Map((pacientes.dados ?? []).map((p) => [p.idPaciente, p.nomeCompleto]));
-    return (id) => (id == null ? '—' : mapa.get(id) ?? `Paciente ${id}`);
+    return (id) => mapa.get(id);
   }, [pacientes.dados]);
 
   /* Ordem imposta aqui: a pergunta desta tabela é "o que vence primeiro".
@@ -105,7 +109,11 @@ export default function Financeiro() {
         ]}>
           {ordenada.map((r) => (
             <tr key={r.idRecebivel}>
-              <Celula rotulo="Paciente">{nomeDoPaciente(r.idPaciente)}</Celula>
+              <Celula rotulo="Paciente">
+                {r.idPaciente == null
+                  ? '—'
+                  : <LinkDoPaciente idPaciente={r.idPaciente} nome={nomeDoPaciente(r.idPaciente)} />}
+              </Celula>
               <Celula rotulo="Parcela">{r.parcelaNumero}/{r.parcelaTotal}</Celula>
               {/* `new Date(null)` é 01/01/1970, não erro — numa coluna de
                   vencimento isso passa por dado de verdade. */}

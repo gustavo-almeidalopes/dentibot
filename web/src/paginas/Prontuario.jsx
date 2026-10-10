@@ -39,10 +39,14 @@ export default function Prontuario() {
 
   const evolucoes = useRecurso(`/pacientes/${idPaciente}/prontuario/evolucoes`);
   const odontograma = useRecurso(`/pacientes/${idPaciente}/prontuario/odontograma`);
+  const resumo = useRecurso(`/pacientes/${idPaciente}/resumo`);
 
-  /* Veio da tela de Pacientes, onde o nome já estava carregado. Quem entra pela
-     URL direta cai no id, que é honesto — e não custa uma chamada a mais. */
-  const nomePaciente = state?.nomePaciente ?? `Paciente ${idPaciente}`;
+  /* Quem chega por um link de paciente traz o nome no state e o vê na hora.
+     Quem entra pela URL direta — favorito, recarga, link colado — o lê no
+     resumo, que esta tela busca de qualquer jeito para o painel abaixo: antes
+     ficava "Paciente 7" para sempre. O id só aparece enquanto o resumo não
+     chega, ou se ele falhar. */
+  const nomePaciente = state?.nomePaciente ?? resumo.dados?.nomePaciente ?? `Paciente ${idPaciente}`;
 
   return (
     <>
@@ -64,7 +68,7 @@ export default function Prontuario() {
         Abrir este prontuário grava uma linha na trilha de auditoria, com o seu nome.
       </p>
 
-      <ResumoPaciente idPaciente={idPaciente} />
+      <ResumoPaciente idPaciente={idPaciente} recurso={resumo} />
 
       <div className="abas" role="tablist" aria-label="Seções do prontuário">
         {ABAS.map(([id, rotulo]) => (
@@ -141,16 +145,17 @@ function Evolucoes({ idPaciente, recurso, onOdontograma }) {
     setTexto('');
   };
 
-  /* Exceção deliberada ao "nenhum endpoint novo": a evolução traz `idDentista`
-     e não o nome, e "Dentista 3" assinando registro clínico é o tipo de coisa
-     que derruba uma demonstração. A Auditoria já chama /equipe pelo mesmo
-     motivo — `auditoria` não pode depender de `identidade`, e quem casa os
-     dois lados é a tela. */
-  const equipe = useRecurso('/equipe');
+  /* A evolução traz `idDentista` e não o nome, e "Dentista 3" assinando
+     registro clínico é o tipo de coisa que derruba uma demonstração. O nome sai
+     de /equipe/dentistas, como na Agenda, e casado por `idDentista`. Antes
+     vinha de /equipe casado por `idUsuario`, que é outro número: o dentista —
+     sem EQUIPE na matriz — tomava 403 e via "Dentista N" em toda evolução, e o
+     admin via o nome de quem tivesse o idUsuario igual ao idDentista. */
+  const dentistas = useRecurso('/equipe/dentistas');
   const nomeDoDentista = useMemo(() => {
-    const mapa = new Map((equipe.dados ?? []).map((m) => [m.idUsuario, m.nomeCompleto]));
+    const mapa = new Map((dentistas.dados ?? []).map((d) => [d.idDentista, d.nomeCompleto]));
     return (id) => mapa.get(id) ?? `Dentista ${id}`;
-  }, [equipe.dados]);
+  }, [dentistas.dados]);
 
   /* Uma entrada que retifica outra aponta para ela, e as DUAS continuam
      visíveis. Prontuário se corrige somando, nunca sobrescrevendo (CFO-226) —

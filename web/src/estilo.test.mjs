@@ -83,3 +83,24 @@ test('nenhuma tela usa a classe de erro do formulário de pagamento', () => {
     assert.ok(!/pagamento-erro/.test(fonte), `${nome} usa pagamento-erro`);
   }
 });
+
+test('o cabeçalho da tabela não gruda dentro de um contêiner que rola', () => {
+  // `position: sticky` conta a partir do ancestral que rola mais próximo, e a
+  // .tabela-rolagem rola (overflow-x). O `top: 56px` pensado para a janela
+  // empurrava o <th> 56px para dentro da tabela, por cima da primeira linha —
+  // que parava de receber clique. Ou a rolagem sai, ou o sticky não volta.
+  const css = cssDoApp();
+  const rola = /\.tabela-rolagem\s*\{[^}]*overflow(?:-x)?\s*:\s*(?:auto|scroll)/.test(css);
+  const gruda = /\.tabela[^{]*\bth\b[^{]*\{[^}]*position\s*:\s*sticky/.test(css);
+  assert.ok(!(rola && gruda), 'th sticky dentro da .tabela-rolagem cobre a primeira linha');
+});
+
+test('nome de paciente nas telas liga ao prontuário pelo LinkDoPaciente', () => {
+  // Agenda, Conversas e Financeiro mostravam o nome como texto; só duas telas
+  // ligavam, cada uma do seu jeito. O rótulo de reserva "Paciente N" só existe
+  // dentro do componente — e no título do próprio prontuário.
+  for (const [nome, fonte] of telas()) {
+    if (nome === 'Prontuario.jsx') continue;
+    assert.ok(!/`Paciente \$\{/.test(fonte), `${nome} monta nome de paciente fora do LinkDoPaciente`);
+  }
+});

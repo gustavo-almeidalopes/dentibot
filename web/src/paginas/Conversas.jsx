@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { api } from '../api.js';
+import LinkDoPaciente from '../components/LinkDoPaciente.jsx';
 import { Aviso, Celula, Tabela } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { Cabecalho, Estado, usePode } from './Layout.jsx';
@@ -69,7 +70,9 @@ function Escalada({ m, nome, onFeito }) {
     <li className="conversa" data-alarme={m.escalada === 'urgente' ? 'sim' : undefined}>
       <p className="cap">
         {m.escalada === 'urgente' && <span className="conversa-urgente">Urgente · </span>}
-        {nome ?? `+${m.telefone}`} · {DATA_HORA.format(new Date(m.criadaEm))}
+        {/* Sem nome, quem escreveu não é paciente cadastrado: só o número. */}
+        {nome ? <LinkDoPaciente idPaciente={m.idPaciente} nome={nome} /> : `+${m.telefone}`}
+        {' · '}{DATA_HORA.format(new Date(m.criadaEm))}
       </p>
       <p className="body conversa-texto">{m.texto}</p>
       <form className="conversa-resposta" onSubmit={responder}>
@@ -158,7 +161,7 @@ function ListaDeEspera() {
           {lista.map((e) => (
             <tr key={e.idEspera}>
               <Celula rotulo="Paciente">
-                {e.nomePaciente ?? `Paciente ${e.idPaciente}`}
+                <LinkDoPaciente idPaciente={e.idPaciente} nome={e.nomePaciente} />
                 {e.observacao && <span className="cap cap-ash"> · {e.observacao}</span>}
               </Celula>
               <Celula rotulo="Período">{PERIODOS.find(([v]) => v === e.periodo)?.[1]}</Celula>
