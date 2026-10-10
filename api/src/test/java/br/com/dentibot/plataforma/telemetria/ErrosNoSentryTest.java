@@ -2,7 +2,10 @@ package br.com.dentibot.plataforma.telemetria;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.sentry.DataCollectionResolver;
+import io.sentry.KeyValueCollectionBehavior;
 import io.sentry.SentryEvent;
+import io.sentry.SentryOptions;
 import io.sentry.protocol.Message;
 import io.sentry.protocol.SentryException;
 import java.util.List;
@@ -37,5 +40,27 @@ class ErrosNoSentryTest {
     @DisplayName("evento sem mensagem nem exceção passa sem quebrar")
     void eventoVazio() {
         assertThat(ErrosNoSentry.limpar(new SentryEvent(), scrubber)).isNotNull();
+    }
+
+    @Test
+    @DisplayName("o SDK não coleta nada sozinho: usuário, corpo, cabeçalho, cookie, SQL")
+    void semColetaAutomatica() {
+        SentryOptions opcoes = new SentryOptions();
+        ErrosNoSentry.semColetaAutomatica(opcoes.getDataCollection());
+        DataCollectionResolver coleta = opcoes.getDataCollectionResolver();
+
+        assertThat(coleta.isUserInfo()).isFalse();
+        assertThat(coleta.isDatabaseQueryData()).isFalse();
+        assertThat(coleta.isFilePaths()).isFalse();
+        assertThat(coleta.isGraphqlDocument()).isFalse();
+        assertThat(coleta.isGraphqlVariables()).isFalse();
+        assertThat(coleta.isIncomingRequestBody()).isFalse();
+        assertThat(coleta.isOutgoingRequestBody()).isFalse();
+        assertThat(coleta.isIncomingResponseBody()).isFalse();
+        assertThat(coleta.isOutgoingResponseBody()).isFalse();
+        assertThat(List.of(coleta.getCookies(), coleta.getUrlQueryParams(),
+                        coleta.getHttpRequestHeaders(), coleta.getHttpResponseHeaders()))
+                .extracting(KeyValueCollectionBehavior::getMode)
+                .containsOnly(KeyValueCollectionBehavior.Mode.OFF);
     }
 }
