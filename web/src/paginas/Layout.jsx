@@ -1,7 +1,7 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
 import { createContext, Suspense, useContext } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { semApi } from '../api.js';
+import { ENDERECO_DA_API, apiInacessivel, semApi } from '../api.js';
 import { useSemConexao } from '../components/SessaoOffline.jsx';
 import { Esqueleto } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
@@ -76,6 +76,7 @@ export function usePode() {
 function Autenticado() {
   const eu = useRecurso('/eu');
   const { pathname } = useLocation();
+  const semConexao = useSemConexao();
 
   /* Negativa aqui não é erro: é o intervalo legítimo entre criar a conta no
      Clerk e cadastrar a clínica — existe token, não existe linha em
@@ -106,9 +107,13 @@ function Autenticado() {
 
   let conteudo;
   if (eu.status !== 'ok') {
-    conteudo = semApi(eu.erro)
-      ? <SemApi />
-      : <Estado status={eu.status} erro={eu.erro} onTentarDeNovo={eu.recarregar} />;
+    /* Sem rede o fetch também rejeita com TypeError, mas aí a faixa do
+       SemConexao já diz o motivo certo; a tela de API sem resposta mandaria
+       conferir a Render à toa. */
+    if (semApi(eu.erro)) conteudo = <SemApi />;
+    else if (apiInacessivel(eu.erro) && !semConexao) {
+      conteudo = <ApiSemResposta onTentarDeNovo={eu.recarregar} />;
+    } else conteudo = <Estado status={eu.status} erro={eu.erro} onTentarDeNovo={eu.recarregar} />;
   } else if (recurso === null || pode(recurso)) {
     /* A tela é um chunk à parte. O Suspense é daqui, e não o de fora: o de
        fora desmontaria a casca, e o tema claro piscaria para o preto a cada
@@ -171,10 +176,31 @@ function SemApi() {
       <h1 className="display display-sm">API ausente.</h1>
       <p className="body body-ash">
         O login funcionou, mas quem respondeu no lugar da API foi o servidor deste site, com
-        404: ele publica só a interface. Publique o back-end, defina <code>VITE_API_BASE</code>{' '}
-        com o endereço dele no build (Vercel → Environment Variables) e publique o site de novo
-        — o passo a passo está no README, na parte de publicar o <code>web/</code> na Vercel.
+        404: o build chamou <code>{ENDERECO_DA_API}</code>, onde não há API. Na Vercel, sem{' '}
+        <code>VITE_API_BASE</code>, o build já aponta para a API da Render; se ela estiver
+        definida em Settings → Environment Variables, confira o valor ou apague-a, e publique o
+        site de novo.
       </p>
+    </div>
+  );
+}
+
+/* A API está em outro domínio e não respondeu nada legível (ver
+   `apiInacessivel`). Diferente do SemApi, pode ser passageiro: o plano free da
+   Render dorme, e acordar leva perto de um minuto. */
+function ApiSemResposta({ onTentarDeNovo }) {
+  return (
+    <div className="vazio" role="alert">
+      <h1 className="display display-sm">API sem resposta.</h1>
+      <p className="body body-ash">
+        O login funcionou, mas <code>{ENDERECO_DA_API}</code> não respondeu. No plano free da
+        Render a API dorme depois de 15 minutos sem uso e leva cerca de um minuto para acordar:
+        tente de novo. Se continuar, confira na Render se o serviço <code>dentibot-api</code> está
+        no ar. Site em domínio novo (<code>{window.location.origin}</code>) entra em{' '}
+        <code>DENTIBOT_CORS_ORIGINS</code> e <code>DENTIBOT_CLERK_ORIGINS</code>, no{' '}
+        <code>render.yaml</code>.
+      </p>
+      <button type="button" className="btn" onClick={onTentarDeNovo}>Tentar de novo</button>
     </div>
   );
 }

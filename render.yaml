@@ -1,24 +1,23 @@
-# Blueprint da Render: a API (imagem de api/Dockerfile) e o Redis dela.
+# Blueprint da Render: a API (imagem de api/Dockerfile), o Postgres e o Redis.
 #
 # A Vercel publica só o web/; a API, que é Spring Boot, precisa de um lugar que
-# rode contêiner. Este arquivo é esse lugar. Na Render: New → Blueprint → este
-# repositório. O passo a passo inteiro, com o banco, está no README em
-# "A API não vai junto".
+# rode contêiner. Este arquivo é esse lugar, inteiro: na Render, New →
+# Blueprint → este repositório → Deploy. Nada a preencher — o README, em
+# "A API não vai junto", diz o que acontece depois.
 #
-# O Postgres NÃO está aqui de propósito: é o Neon (ver docs/security/
-# subprocessadores.md). O isolamento entre clínicas depende de a aplicação
-# conectar com um role que não é dono de nada, e isso pede os roles criados à
-# mão uma vez — infrastructure/neon/roles.sql. Um banco criado por este arquivo
-# viria com um único usuário dono de tudo, que é exatamente a V1 que vazava.
-#
-# Região virginia porque o Neon fica em us-east-1: cada requisição faz várias
-# consultas, e API e banco em continentes diferentes multiplicam a latência.
+# Isolamento entre clínicas: a aplicação precisa conectar com um role que não é
+# dono de nada (docs/architecture/tenancy.md). Por isso o usuário que a Render
+# cria para o banco se chama dentibot_migrador: é ele o dono, como no compose
+# local, e as migrations rodam com ele. A V1 cria dentibot_app sem login, e o
+# perfil "render" da API (application-render.yml) dá a ele a senha abaixo
+# depois de cada migrate. Ninguém conecta como dono além do Flyway.
 
 services:
   - type: web
-    # O endereço público sai do nome: https://dentibot-api.onrender.com. Se a
-    # Render der outro (nome já usado), troque nos dois vercel.json e no
-    # VITE_API_BASE da Vercel.
+    # O endereço público sai do nome: https://dentibot-api.onrender.com, que é
+    # o padrão do build da Vercel (web/vite.config.js) e está no connect-src
+    # dos dois vercel.json. Se a Render der outro (nome já usado), troque nos
+    # três lugares.
     name: dentibot-api
     runtime: docker
     dockerfilePath: ./api/Dockerfile
@@ -29,19 +28,35 @@ services:
     plan: free
     # readiness inclui o banco: deploy novo só recebe tráfego quando conecta.
     healthCheckPath: /actuator/health/readiness
-    autoDeploy: true
+    autoDeployTrigger: commit
     envVars:
-      # Endereço JDBC do Neon, conexão direta (sem "-pooler"), banco dentibot:
-      #   jdbc:postgresql://ep-xxx.us-east-1.aws.neon.tech/dentibot?sslmode=require
-      # Usuário e senha NÃO vão na URL: são as variáveis abaixo.
-      - key: DENTIBOT_DB_URL
-        sync: false
-      - key: DENTIBOT_DB_PASSWORD
-        sync: false
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      # Endereço interno do banco, e o dono dele para o Flyway.
+      - key: DENTIBOT_DB_HOST
+        fromDatabase:
+          name: dentibot-db
+          property: host
+      - key: DENTIBOT_DB_PORT
+        fromDatabase:
+          name: dentibot-db
+          property: port
+      - key: DENTIBOT_DB_NAME
+        fromDatabase:
+          name: dentibot-db
+          property: database
+      - key: DENTIBOT_DB_MIGRADOR_USER
+        fromDatabase:
+          name: dentibot-db
+          property: user
       - key: DENTIBOT_DB_MIGRADOR_PASSWORD
-        sync: false
-      # As migrations rodam no start, com o role migrador; o app conecta com
-      # dentibot_app. Os nomes são os padrões do application.yml.
+        fromDatabase:
+          name: dentibot-db
+          property: password
+      # A senha de dentibot_app. Gerada uma vez pela Render (base64, 256 bits)
+      # e aplicada ao role a cada start, pelo afterMigrate do perfil render.
+      - key: DENTIBOT_DB_PASSWORD
+        generateValue: true
       - key: DENTIBOT_REDIS_URL
         fromService:
           type: keyvalue
@@ -51,13 +66,13 @@ services:
       # é segredo: é público e já vai no bundle do web.
       - key: DENTIBOT_CLERK_ISSUER
         value: https://subtle-tick-4973.clerk.accounts.dev
-      # A origem do site na Vercel, sem barra no fim (ex.: https://dentibot.vercel.app).
-      # Sem ela no CLERK_ORIGINS, o token do login é recusado; sem ela no
-      # CORS, o navegador bloqueia a resposta.
+      # A origem do site na Vercel. Sem ela no CLERK_ORIGINS, o token do login
+      # é recusado e o site manda para o cadastro; sem ela no CORS, o navegador
+      # bloqueia a resposta. Domínio novo entra aqui, separado por vírgula.
       - key: DENTIBOT_CLERK_ORIGINS
-        sync: false
+        value: https://dentibot.vercel.app
       - key: DENTIBOT_CORS_ORIGINS
-        sync: false
+        value: https://dentibot.vercel.app
       - key: DENTIBOT_AMBIENTE
         value: producao
 
@@ -69,4 +84,26 @@ services:
     plan: free
     maxmemoryPolicy: allkeys-lru
     # Vazio = só serviços da própria conta, pela rede interna da Render.
+    ipAllowList: []
+
+databases:
+  - name: dentibot-db
+    databaseName: dentibot
+    # O dono do banco, com o nome que as migrations esperam (V1, V3, V23 e V24
+    # citam dentibot_migrador). Precisa de CREATEROLE, que o usuário padrão da
+    # Render tem: a V1 cria dentibot_app, provisionador e autenticador. Não
+    # troque esta credencial pelo "adicionar usuário" do painel: o usuário novo
+    # viraria o do Flyway, e tabela criada por ele não dá acesso a dentibot_app.
+    user: dentibot_migrador
+    region: virginia
+    # 16, como o CI (Testcontainers) e o compose local. A V21 pede 15 ou mais.
+    postgresMajorVersion: "16"
+    # Pago de propósito: o free expira em 30 dias e, 14 dias depois, a Render
+    # apaga o banco — com prontuário dentro. ~US$ 7,50/mês: US$ 6 do plano e
+    # 5 GB de disco a US$ 0,30/GB.
+    plan: basic-256mb
+    # Explícito porque o padrão do Basic é 15 GB, e disco na Render só cresce:
+    # depois de criado, não diminui. Anexo vai para o R2, não para cá.
+    diskSizeGB: 5
+    # Vazio = sem acesso de fora: só a API, pela rede interna, alcança o banco.
     ipAllowList: []

@@ -78,6 +78,16 @@ test('security.txt tem contato e não está para vencer (RFC 9116, ST-36)', () =
   assert.ok(expira - Date.now() > trintaDias, `security.txt vence em ${expira.toISOString()}`);
 });
 
+test('a API padrão do build da Vercel está no connect-src', () => {
+  /* Lido como texto, como o api.test.mjs lê o Java: importar o vite.config.js
+     puxaria o Vite inteiro para dentro do `node --test`. */
+  const config = readFileSync(join(WEB, 'vite.config.js'), 'utf8');
+  const url = config.match(/API_NA_VERCEL = '([^']+)'/)?.[1];
+  assert.ok(url, 'não achei API_NA_VERCEL no vite.config.js');
+  const { origin } = new URL(url);
+  assert.ok(diretiva('connect-src').split(/\s+/).includes(origin), `connect-src sem ${origin}`);
+});
+
 test('script-src não abre mão do que a CSP existe para impedir', () => {
   assert.doesNotMatch(diretiva('script-src'), /'unsafe-(inline|eval)'/);
   assert.match(csp(), /frame-ancestors 'none'/);

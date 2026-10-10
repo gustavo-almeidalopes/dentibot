@@ -4,8 +4,9 @@
  * <p>Um `req` genérico em vez de um método por rota: a lista de endpoints vive
  * no OpenAPI do back-end, não duplicada aqui.
  *
- * <p>Em dev o Vite faz proxy de /api para o back-end, então não há CORS. Em
- * produção, defina VITE_API_BASE se o back-end estiver em outro domínio.
+ * <p>Em dev o Vite faz proxy de /api para o back-end, então não há CORS. No
+ * build da Vercel o padrão é a API da Render (`vite.config.js`), e
+ * VITE_API_BASE, quando definida, manda.
  *
  * <p>Autenticação é do Clerk. Não há token em localStorage: o de sessão vive em
  * memória do ClerkJS, é curto e se renova sozinho — guardar credencial legível
@@ -60,6 +61,17 @@ export class ApiError extends Error {
 export const semApi = (erro) =>
   erro instanceof ApiError && erro.status === 404 && erro.data === null;
 
+/**
+ * Nem houve resposta que o navegador entregasse: o `fetch` rejeita com
+ * TypeError. Com a API em outro domínio é o que sobra de "API fora do ar",
+ * "CORS sem a origem deste site" e "CSP sem a origem da API" — o navegador não
+ * diz qual, de propósito. Sem rede também cai aqui, e o SemConexao já avisa.
+ */
+export const apiInacessivel = (erro) => erro instanceof TypeError;
+
+/** O endereço que o build gravou, para a mensagem dizer a quem ele chamou. */
+export const ENDERECO_DA_API = BASE;
+
 /* getToken do próprio SDK, não o hook: este módulo não é componente e o helper
    existe justamente para camada de dados — ele espera o ClerkJS carregar e
    devolve null se não há sessão. Offline ou timeout viram ausência de token, e
@@ -69,6 +81,23 @@ async function tokenDeSessao() {
     return (await getToken()) ?? '';
   } catch {
     return '';
+  }
+}
+
+/**
+ * O `fetch`, com a falha de rede dita em português. Sem resposta legível o
+ * navegador rejeita com "Failed to fetch", em inglês e sem endereço, e é isso
+ * que o Cadastro, o Titular e o erro de cada tela mostravam. Continua sendo
+ * TypeError, então `apiInacessivel` vale igual.
+ */
+async function chamar(url, init) {
+  try {
+    return await fetch(url, init);
+  } catch (erro) {
+    if (!(erro instanceof TypeError)) throw erro;
+    throw new TypeError(
+      `A API (${BASE}) não respondeu. Se ela estava parada, acordar leva cerca de um minuto: tente de novo.`,
+      { cause: erro });
   }
 }
 
@@ -91,7 +120,7 @@ async function req(metodo, caminho, corpo, { idempotencyKey } = {}) {
     headers['Idempotency-Key'] = idempotencyKey ?? crypto.randomUUID();
   }
 
-  const res = await fetch(`${BASE}${caminho}`, {
+  const res = await chamar(`${BASE}${caminho}`, {
     method: metodo,
     headers,
     body: corpo === undefined ? undefined : JSON.stringify(corpo),
@@ -134,7 +163,7 @@ export function query(params) {
  */
 export async function baixar(caminho) {
   const token = await tokenDeSessao();
-  const res = await fetch(`${BASE}${caminho}`, {
+  const res = await chamar(`${BASE}${caminho}`, {
     headers: token ? { Authorization: `Bearer ${token}` } : {},
   });
   if (!res.ok) {

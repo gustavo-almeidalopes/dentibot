@@ -13,7 +13,7 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { ApiError, EXIGEM_IDEMPOTENCIA, semApi } from './api.js';
+import { ApiError, EXIGEM_IDEMPOTENCIA, api, apiInacessivel, semApi } from './api.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
 const FILTRO = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com',
@@ -44,4 +44,22 @@ test('404 sem corpo é o host sem API, e 404 do back-end não é', () => {
   assert.equal(semApi(new ApiError('Erro 500', 500, null)), false);
   assert.equal(semApi(new TypeError('Failed to fetch')), false);
   assert.equal(semApi(undefined), false);
+});
+
+test('TypeError do fetch é API sem resposta, e resposta com status não é', () => {
+  // Com a API em outro domínio, fora do ar, CORS e CSP chegam todos assim: o
+  // navegador entrega só o TypeError, sem status nem corpo.
+  assert.equal(apiInacessivel(new TypeError('Failed to fetch')), true);
+  assert.equal(apiInacessivel(new ApiError('Erro 404', 404, null)), false);
+  assert.equal(apiInacessivel(new ApiError('Erro 500', 500, null)), false);
+  assert.equal(apiInacessivel(undefined), false);
+});
+
+test('falha de rede chega às telas em português, e ainda como API sem resposta', async (t) => {
+  // O que o navegador faz com API fora do ar, CORS ou CSP: rejeita sem resposta.
+  t.mock.method(globalThis, 'fetch', async () => { throw new TypeError('Failed to fetch'); });
+  const erro = await api.get('/eu').catch((e) => e);
+  assert.equal(apiInacessivel(erro), true);
+  assert.match(erro.message, /^A API \(.+\) não respondeu\./);
+  assert.equal(erro.cause?.message, 'Failed to fetch');
 });
