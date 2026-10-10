@@ -9,6 +9,8 @@ documento do repositório, não linha de banco.
 | --- | --- | --- | --- |
 | Clerk | Autenticação da equipe | Nome, e-mail e sessão de quem usa o sistema — não de paciente | Sempre |
 | Vercel | Hospedagem do web | Nenhum dado de paciente em repouso; tráfego HTTPS | Sempre |
+| Neon | Banco de dados (Postgres), região AWS us-east-1 | Todo dado da clínica e do paciente, criptografado em repouso | Sempre |
+| Render | Hospedagem da API e do Redis, região Virginia (EUA) | Todo dado em trânsito pela API; no Redis só contador de rate limit, sem dado de paciente | Sempre |
 | Cloudflare (R2) | Anexos clínicos (radiografia, foto, documento) | Arquivo clínico, criptografado em repouso, sem URL pública | Quando a clínica anexa arquivo |
 | Sentry | Erros da aplicação | Pilha de erro com CPF, e-mail e telefone removidos; ids de clínica e usuário | Se `SENTRY_DSN` estiver configurado |
 | Anthropic | Recursos de IA (rascunho de nota, plano em duas linguagens) | Texto clínico **redigido**: sem nome, CPF, telefone ou e-mail | Se `DENTIBOT_IA_CHAVE` estiver configurado **e** a clínica não desligou o recurso |
