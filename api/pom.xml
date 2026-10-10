@@ -20,7 +20,8 @@
 	<properties>
 		<java.version>25</java.version>
 		<archunit.version>1.5.1</archunit.version>
-		<sentry.version>8.58.0</sentry.version>
+		<sentry.version>8.59.0</sentry.version>
+		<jetbrains-annotations.version>26.1.0</jetbrains-annotations.version>
 		<awssdk.version>2.55.11</awssdk.version>
 		<anthropic.version>2.68.0</anthropic.version>
 		<springdoc.version>3.1.1</springdoc.version>
@@ -97,6 +98,18 @@
 			<groupId>io.sentry</groupId>
 			<artifactId>sentry</artifactId>
 			<version>${sentry.version}</version>
+		</dependency>
+		<!-- Só para o javac. Desde o 8.59 o Sentry marca API com
+		     @ApiStatus.ScheduledForRemoval(inVersion = ...); sem a classe da
+		     anotação no classpath o javac avisa ao ler o SentryOptions, e o
+		     -Werror (ST-45) derruba o build. A 13.0 que vem pelo kotlin-stdlib
+		     é antiga demais para ter ApiStatus. Retenção CLASS: nada em runtime,
+		     por isso provided. -->
+		<dependency>
+			<groupId>org.jetbrains</groupId>
+			<artifactId>annotations</artifactId>
+			<version>${jetbrains-annotations.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		<!-- Doc 03-B: o gateway de IA fala com a Claude pelo SDK oficial — retries,
 		     tipos de erro e saída estruturada vêm prontos. -->

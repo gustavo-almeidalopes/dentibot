@@ -1,9 +1,12 @@
 package br.com.dentibot.plataforma.telemetria;
 
+import io.sentry.DataCollection;
+import io.sentry.KeyValueCollectionBehavior;
 import io.sentry.Sentry;
 import io.sentry.SentryEvent;
 import io.sentry.protocol.Message;
 import io.sentry.protocol.SentryException;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,10 +38,32 @@ public class ErrosNoSentry {
         Sentry.init(o -> {
             o.setDsn(dsn);
             o.setEnvironment(ambiente);
-            o.setSendDefaultPii(false);
+            semColetaAutomatica(o.getDataCollection());
             o.setBeforeSend((evento, dica) -> limpar(evento, scrubber));
         });
         log.info("Sentry ligado no ambiente {}", ambiente);
+    }
+
+    /**
+     * Desliga, um a um, os dados que o SDK coleta sozinho. Substitui o
+     * {@code setSendDefaultPii(false)}, depreciado no 8.59 e removido no 9.0.
+     *
+     * <p>Um a um porque o {@code DataCollection} tem uma armadilha: basta
+     * configurar um campo para todos os outros assumirem o padrão documentado —
+     * e o padrão é coletar usuário, SQL, caminho de arquivo e todos os corpos
+     * HTTP. Desligar só o usuário ligaria o resto.
+     */
+    static void semColetaAutomatica(DataCollection coleta) {
+        coleta.setUserInfo(false);
+        coleta.setCookies(KeyValueCollectionBehavior.off());
+        coleta.setUrlQueryParams(KeyValueCollectionBehavior.off());
+        coleta.getHttpHeaders().setRequest(KeyValueCollectionBehavior.off());
+        coleta.getHttpHeaders().setResponse(KeyValueCollectionBehavior.off());
+        coleta.setHttpBodies(Set.of());
+        coleta.setDatabaseQueryData(false);
+        coleta.setFilePaths(false);
+        coleta.getGraphql().setDocument(false);
+        coleta.getGraphql().setVariables(false);
     }
 
     static SentryEvent limpar(SentryEvent evento, ScrubberDePii scrubber) {
