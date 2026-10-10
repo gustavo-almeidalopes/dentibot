@@ -13,9 +13,13 @@ import { falar, vozDisponivel } from '../voz.js';
  *
  * <p>`falarAoAbrir`: quem abre o resumo na agenda está prestes a chamar o
  * paciente, e o clique que abriu é o gesto que o navegador exige para falar.
+ *
+ * <p>`recurso`: o prontuário já busca o resumo (é dele que sai o nome no
+ * cabeçalho) e o entrega aqui, em vez de a mesma chamada sair duas vezes.
  */
-export default function ResumoPaciente({ idPaciente, falarAoAbrir = false }) {
-  const resumo = useRecurso(`/pacientes/${idPaciente}/resumo`);
+export default function ResumoPaciente({ idPaciente, falarAoAbrir = false, recurso }) {
+  const proprio = useRecurso(recurso ? null : `/pacientes/${idPaciente}/resumo`);
+  const resumo = recurso ?? proprio;
   const r = resumo.dados;
   const avisos = r?.alertas?.dados?.avisos;
   const falou = useRef(false);

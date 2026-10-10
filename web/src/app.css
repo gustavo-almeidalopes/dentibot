@@ -221,15 +221,12 @@
   }
 }
 
-/* ── TABELA, CABEÇALHO FIXO ───────────────────────────────────────────────── */
-@media (min-width: 621px) {
-  .tabela thead th {
-    position: sticky;
-    top: 56px;            /* abaixo do .app-topo, que também é sticky */
-    background: var(--fundo);
-    z-index: 1;
-  }
-}
+/* Sem cabeçalho fixo (sticky) na tabela. A .tabela-rolagem tem overflow-x, e
+   isso a torna o contêiner de rolagem do <th>: o `top: 56px` contava a partir
+   dela, não da janela. O cabeçalho nunca fixava ao rolar a página — descia 56px
+   dentro da tabela e cobria a primeira linha, que deixava de receber clique
+   (com uma linha só, como na lista de espera, ela sumia inteira). A rolagem
+   horizontal fica: a Equipe precisa dela entre 621 e ~700px de largura. */
 
 /* ── DIÁLOGO ──────────────────────────────────────────────────────────────── */
 .dialogo {

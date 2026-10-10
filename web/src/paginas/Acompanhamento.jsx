@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { dataCurta, reais, telHref } from '../apresentacao.js';
+import LinkDoPaciente from '../components/LinkDoPaciente.jsx';
 import { Celula, Tabela } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
-import { prontuarioDe } from '../rotas.js';
 import { Cabecalho, Estado, usePode } from './Layout.jsx';
 
 const JANELAS = [30, 60, 90, 180];
@@ -56,11 +55,7 @@ export default function Acompanhamento() {
           {listaParados.map((t) => (
             <tr key={t.idPaciente}>
               <Celula rotulo="Paciente">
-                {leProntuario
-                  ? <Link to={prontuarioDe(t.idPaciente)} state={{ nomePaciente: t.nomePaciente }}>
-                      {t.nomePaciente ?? `Paciente ${t.idPaciente}`}
-                    </Link>
-                  : t.nomePaciente ?? `Paciente ${t.idPaciente}`}
+                <LinkDoPaciente idPaciente={t.idPaciente} nome={t.nomePaciente} />
               </Celula>
               <Celula rotulo="Parado há" num>{t.diasParado} dias</Celula>
               <Celula rotulo="Em aberto" num>{reais(t.valorEmAberto)}</Celula>
@@ -93,9 +88,7 @@ export default function Acompanhamento() {
               <tr key={`${p.tipo}-${p.idConsulta ?? ''}-${p.idItem ?? ''}`}>
                 <Celula rotulo="Quando">{dataCurta(p.quando)}</Celula>
                 <Celula rotulo="Paciente">
-                  <Link to={prontuarioDe(p.idPaciente)} state={{ nomePaciente: p.nomePaciente }}>
-                    {p.nomePaciente ?? `Paciente ${p.idPaciente}`}
-                  </Link>
+                  <LinkDoPaciente idPaciente={p.idPaciente} nome={p.nomePaciente} />
                 </Celula>
                 <Celula rotulo="O que falta">{p.descricao}</Celula>
               </tr>

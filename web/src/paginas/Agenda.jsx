@@ -5,6 +5,7 @@ import {
   somarDias, telHref,
 } from '../apresentacao.js';
 import Confirmar from '../components/Confirmar.jsx';
+import LinkDoPaciente from '../components/LinkDoPaciente.jsx';
 import ResumoPaciente from '../components/ResumoPaciente.jsx';
 import { Aviso, Selo } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
@@ -99,7 +100,9 @@ export default function Agenda() {
                 {doHorario.map((c) => (
                   <article className="consulta" key={c.idConsulta}>
                     <p className="consulta-faixa">{faixaHoraria(c.inicioEm, c.terminoEm)}</p>
-                    <p className="sub">{c.nomePaciente ?? `Paciente ${c.idPaciente}`}</p>
+                    <p className="sub">
+                      <LinkDoPaciente idPaciente={c.idPaciente} nome={c.nomePaciente} />
+                    </p>
                     <p className="body body-ash">{nomeDoDentista(c.idDentista)}</p>
                     {/* Já vinha no ConsultaResumo e era descartado. É o dado
                         que a recepção mais usa: ela liga para o paciente. */}

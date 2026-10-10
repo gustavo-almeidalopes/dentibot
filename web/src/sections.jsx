@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Lines, Reveal } from './components/Reveal.jsx';
 import {
-  FEATURES, NAV_LINKS, PLANS, TESTIMONIALS,
+  FEATURES, NAV_LINKS, PLANS, SUBPROCESSADORES_URL, TESTIMONIALS,
   TICKER, TICKER_TAIL, WALL_METRICS, WHATSAPP_URL, WHO,
 } from './content.js';
 import { CRIAR, LOGIN } from './rotas.js';
@@ -233,10 +233,10 @@ export function Footer() {
           {links.map((l) => (
             <a key={l.href} href={l.href} className="credit">{l.label}</a>
           ))}
-          <a href="/politica-de-privacidade.pdf" className="credit">Privacidade</a>
+          <a href={SUBPROCESSADORES_URL} className="credit">Sub-processadores (LGPD)</a>
           <a href={LOGIN} className="credit">Entrar</a>
         </div>
-        <p className="credit">v2.0.0 · React + FastAPI · LGPD</p>
+        <p className="credit">v2.0.0 · React + Spring Boot · LGPD</p>
       </div>
     </footer>
   );
