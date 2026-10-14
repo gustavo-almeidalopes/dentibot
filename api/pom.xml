@@ -23,7 +23,7 @@
 		<sentry.version>8.60.0</sentry.version>
 		<jetbrains-annotations.version>26.1.0</jetbrains-annotations.version>
 		<awssdk.version>2.55.14</awssdk.version>
-		<anthropic.version>2.68.0</anthropic.version>
+		<anthropic.version>2.71.0</anthropic.version>
 		<springdoc.version>3.1.1</springdoc.version>
 		<jacoco.version>0.8.15</jacoco.version>
 		<cobertura.minima>0.60</cobertura.minima>
