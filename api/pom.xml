@@ -20,7 +20,7 @@
 	<properties>
 		<java.version>25</java.version>
 		<archunit.version>1.5.1</archunit.version>
-		<sentry.version>8.59.0</sentry.version>
+		<sentry.version>8.60.0</sentry.version>
 		<jetbrains-annotations.version>26.1.0</jetbrains-annotations.version>
 		<awssdk.version>2.55.11</awssdk.version>
 		<anthropic.version>2.68.0</anthropic.version>
