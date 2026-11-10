@@ -39,7 +39,7 @@ class ClienteAnthropicTest {
     void subir() throws Exception {
         servidor = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
         servidor.createContext("/v1/messages", troca -> {
-            chave.set(troca.getRequestHeaders().getFirst("x-api-key"));
+            chave.set(troca.getRequestHeaders().getFirst("Authorization"));
             beta.set(troca.getRequestHeaders().getFirst("anthropic-beta"));
             corpo.set(new String(troca.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
             byte[] bytes = (status == 200 ? resposta
@@ -71,7 +71,8 @@ class ClienteAnthropicTest {
 
         ClienteAnthropic.Resultado r = cliente("chave-teste").chamar("instrucoes", "entrada", esquema, "low");
 
-        assertThat(chave.get()).isEqualTo("chave-teste");
+        // Desde o SDK 3.3 a chave vai como Bearer, não mais em x-api-key.
+        assertThat(chave.get()).isEqualTo("Bearer chave-teste");
         assertThat(beta.get()).contains("server-side-fallback-2026-07-01");
         assertThat(corpo.get()).contains("\"model\":\"claude-opus-5\"", "\"system\":\"instrucoes\"",
                 "\"max_tokens\":16000", "\"effort\":\"low\"", "\"json_schema\"",
