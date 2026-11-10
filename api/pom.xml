@@ -25,7 +25,7 @@
 		<awssdk.version>2.56.0</awssdk.version>
 		<anthropic.version>3.3.0</anthropic.version>
 		<springdoc.version>3.1.1</springdoc.version>
-		<jacoco.version>0.8.15</jacoco.version>
+		<jacoco.version>0.8.16</jacoco.version>
 		<cobertura.minima>0.60</cobertura.minima>
 	</properties>
 
