@@ -2,8 +2,8 @@ package br.com.dentibot.financeiro.interfaces.http;
 
 import br.com.dentibot.financeiro.ComissaoResumo;
 import br.com.dentibot.financeiro.DespesaResumo;
-import br.com.dentibot.financeiro.FinanceiroApi;
 import br.com.dentibot.financeiro.FiltroFinanceiro;
+import br.com.dentibot.financeiro.FinanceiroApi;
 import br.com.dentibot.financeiro.FormaPagamento;
 import br.com.dentibot.financeiro.NovaDespesa;
 import br.com.dentibot.financeiro.NovaFormaPagamento;
@@ -14,6 +14,7 @@ import br.com.dentibot.financeiro.RecebivelDetalhado;
 import br.com.dentibot.financeiro.RecebivelResumo;
 import br.com.dentibot.financeiro.RegraComissao;
 import br.com.dentibot.financeiro.ResumoFinanceiro;
+import br.com.dentibot.plataforma.config.Listagem;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -43,8 +44,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/financeiro")
 public class FinanceiroController {
 
-    private static final int LIMITE_MAXIMO = 200;
-
     private final FinanceiroApi financeiro;
 
     public FinanceiroController(FinanceiroApi financeiro) {
@@ -73,8 +72,8 @@ public class FinanceiroController {
             @RequestParam(defaultValue = "0") long apos,
             @RequestParam(defaultValue = "100") int limite) {
         return financeiro.listarRecebiveis(new FiltroFinanceiro(
-                de, ate, vazioViraNulo(status), idPaciente, apos,
-                Math.min(Math.max(limite, 1), LIMITE_MAXIMO)));
+                de, ate, Listagem.vazioViraNulo(status), idPaciente, apos,
+                Listagem.limite(limite)));
     }
 
     @GetMapping("/recebiveis/{id}")
@@ -113,7 +112,7 @@ public class FinanceiroController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate de,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate ate,
             @RequestParam(required = false) String status) {
-        return financeiro.listarDespesas(de, ate, vazioViraNulo(status));
+        return financeiro.listarDespesas(de, ate, Listagem.vazioViraNulo(status));
     }
 
     @PostMapping("/despesas")
@@ -150,7 +149,7 @@ public class FinanceiroController {
     @GetMapping("/comissoes")
     public List<ComissaoResumo> comissoes(@RequestParam(required = false) Long idDentista,
                                           @RequestParam(required = false) String status) {
-        return financeiro.listarComissoes(idDentista, vazioViraNulo(status));
+        return financeiro.listarComissoes(idDentista, Listagem.vazioViraNulo(status));
     }
 
     @PostMapping("/comissoes/{id}/liberar")
@@ -168,9 +167,5 @@ public class FinanceiroController {
     @ResponseStatus(HttpStatus.CREATED)
     public Map<String, Long> criarRegra(@Valid @RequestBody NovaRegraComissao nova) {
         return Map.of("idRegra", financeiro.criarRegra(nova));
-    }
-
-    private static String vazioViraNulo(String valor) {
-        return valor == null || valor.isBlank() ? null : valor;
     }
 }

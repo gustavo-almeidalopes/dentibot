@@ -3,6 +3,7 @@ package br.com.dentibot.auditoria.interfaces.http;
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.auditoria.EventoAuditoria;
 import br.com.dentibot.auditoria.FiltroDeTrilha;
+import br.com.dentibot.plataforma.config.Listagem;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -27,7 +28,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auditoria")
 public class AuditoriaController {
 
-    private static final int LIMITE_MAXIMO = 200;
     private static final Duration JANELA_PADRAO = Duration.ofDays(30);
 
     private final AuditoriaApi auditoria;
@@ -57,12 +57,7 @@ public class AuditoriaController {
         Instant inicio = de == null ? fim.minus(JANELA_PADRAO) : de;
 
         return auditoria.consultar(new FiltroDeTrilha(
-                inicio, fim, vazioViraNulo(acao), vazioViraNulo(recurso), idUsuario,
-                apos, Math.min(Math.max(limite, 1), LIMITE_MAXIMO)));
-    }
-
-    /** Um filtro em branco vindo do formulário é "sem filtro", não "igual a ''". */
-    private static String vazioViraNulo(String valor) {
-        return valor == null || valor.isBlank() ? null : valor;
+                inicio, fim, Listagem.vazioViraNulo(acao), Listagem.vazioViraNulo(recurso), idUsuario,
+                apos, Listagem.limite(limite)));
     }
 }

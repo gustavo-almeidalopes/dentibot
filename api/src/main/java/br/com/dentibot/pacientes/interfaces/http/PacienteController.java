@@ -3,6 +3,7 @@ package br.com.dentibot.pacientes.interfaces.http;
 import br.com.dentibot.pacientes.NovoPaciente;
 import br.com.dentibot.pacientes.PacienteResumo;
 import br.com.dentibot.pacientes.PacientesApi;
+import br.com.dentibot.plataforma.config.Listagem;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -19,8 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/pacientes")
 public class PacienteController {
 
-    private static final int LIMITE_MAXIMO = 200;
-
     private final PacientesApi pacientes;
 
     public PacienteController(PacientesApi pacientes) {
@@ -36,7 +35,7 @@ public class PacienteController {
     public List<PacienteResumo> listar(
             @RequestParam(defaultValue = "50") int limite,
             @RequestParam(defaultValue = "0") long apos) {
-        return pacientes.listarResumos(Math.min(limite, LIMITE_MAXIMO), apos);
+        return pacientes.listarResumos(Listagem.limite(limite), apos);
     }
 
     @PostMapping
