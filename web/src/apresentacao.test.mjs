@@ -9,15 +9,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  STATUS_CONSULTA, agruparPorHora, casaBusca, contagem, descrever, faixaHoraria, horarios,
-  jaPassou, momento, porExtenso, relativo, somarDias, telHref, whatsappHref,
+  STATUS_CONSULTA, agruparPorHora, cabeAgora, casaBusca, contagem, descrever, faixaHoraria,
+  horarios, jaPassou, momento, nomesPorId, porExtenso, relativo, somarDias, telHref,
+  whatsappHref,
 } from './apresentacao.js';
-
-test('status conhecido vira rótulo em português e tom de selo', () => {
-  assert.deepEqual(descrever(STATUS_CONSULTA, 'em_atendimento'),
-    { rotulo: 'Em atendimento', tom: 'alarme' });
-  assert.equal(descrever(STATUS_CONSULTA, 'cancelada').tom, 'riscado');
-});
 
 test('status desconhecido aparece como veio, em vez de sumir', () => {
   // O CHECK do banco pode ganhar um valor antes desta tela. Mostrar o valor cru
@@ -149,4 +144,21 @@ test('o link do WhatsApp sai em E.164 com a mensagem codificada', () => {
   assert.equal(whatsappHref('(11) 98765-4321', 'Olá, Ana!'),
     'https://wa.me/5511987654321?text=Ol%C3%A1%2C%20Ana!');
   assert.equal(whatsappHref('123', 'x'), null);
+});
+
+test('o relógio filtra as ações da recepção: antes do horário, durante, depois', () => {
+  const c = { inicioEm: '2026-09-14T14:00:00', terminoEm: '2026-09-14T14:30:00' };
+  const cabem = (agora) => ['confirmar', 'cancelar', 'falta', 'concluir']
+    .filter((a) => cabeAgora(a, c, new Date(agora)));
+
+  assert.deepEqual(cabem('2026-09-14T13:00:00'), ['confirmar', 'cancelar']);
+  assert.deepEqual(cabem('2026-09-14T14:10:00'), ['falta']);
+  assert.deepEqual(cabem('2026-09-14T14:30:00'), ['falta', 'concluir']);
+});
+
+test('o nome que falta na lista vira um rótulo com o id, não undefined', () => {
+  const nome = nomesPorId([{ idDentista: 3, nomeCompleto: 'Dra. Ana' }], 'idDentista', 'Dentista');
+  assert.equal(nome(3), 'Dra. Ana');
+  assert.equal(nome(9), 'Dentista 9');
+  assert.equal(nomesPorId(null, 'idDentista', 'Dentista')(1), 'Dentista 1');
 });

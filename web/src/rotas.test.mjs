@@ -9,6 +9,7 @@
  * prometer o que a camada 5 nega.
  */
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import { AGENDA, MENU, PACIENTES, prontuarioDe, recursoDaTela } from './rotas.js';
 
@@ -33,10 +34,14 @@ test('todo item de menu tem recurso, e é o nome do enum do back-end', () => {
   // Item sem recurso cairia em `pode(undefined)` → NENHUM → item invisível para
   // todo mundo, incluindo o admin. Falha silenciosa, e é assim que uma tela
   // desaparece sem ninguém mexer nela.
-  const RECURSOS = new Set([
-    'AGENDA', 'PACIENTE', 'PRONTUARIO', 'ORCAMENTO', 'FINANCEIRO',
-    'ESTOQUE', 'CONFIGURACAO', 'EQUIPE', 'LGPD', 'AUDITORIA', 'BILLING',
-  ]);
+  const java = readFileSync(new URL(
+    '../../api/src/main/java/br/com/dentibot/plataforma/seguranca/Recurso.java',
+    import.meta.url), 'utf8');
+  const corpo = java.match(/enum Recurso \{([\s\S]*?)\}/);
+  assert.ok(corpo, 'não achei enum Recurso — o Java mudou de forma');
+  const RECURSOS = new Set(corpo[1].replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
+    .match(/\b[A-Z_]+\b/g));
+  assert.ok(RECURSOS.has('AGENDA'), 'o extrator não achou os valores do enum');
   for (const item of MENU) {
     assert.ok(RECURSOS.has(item.recurso), `${item.href}: recurso ${item.recurso}`);
     assert.equal(recursoDaTela(item.href), item.recurso);
