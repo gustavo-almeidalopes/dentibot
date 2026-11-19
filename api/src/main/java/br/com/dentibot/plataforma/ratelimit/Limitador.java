@@ -49,16 +49,18 @@ public class Limitador {
                 return Resultado.liberado(limite);
             }
             if (contagem == 1L) {
-                // Primeira da janela: define quando ela expira. Se o EXPIRE
-                // falhasse, a chave viveria para sempre e a clínica ficaria
-                // bloqueada em definitivo — por isso o TTL vai junto do primeiro
-                // incremento e não numa segunda ida.
                 redis.expire(chave, janela);
             }
             if (contagem > limite) {
+                // INCR e EXPIRE são duas idas ao Redis. Se o EXPIRE da primeira
+                // falhou, a chave não tem TTL e bloquearia a identidade para
+                // sempre; o TTL é posto aqui, na primeira vez que isso importa.
                 Long ttl = redis.getExpire(chave);
-                return new Resultado(false, 0,
-                        Duration.ofSeconds(ttl == null || ttl < 0 ? janela.toSeconds() : ttl));
+                if (ttl == null || ttl < 0) {
+                    redis.expire(chave, janela);
+                    ttl = janela.toSeconds();
+                }
+                return new Resultado(false, 0, Duration.ofSeconds(ttl));
             }
             return Resultado.liberado(limite - contagem);
         } catch (RuntimeException e) {
