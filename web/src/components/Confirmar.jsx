@@ -11,9 +11,12 @@
  */
 import { useEffect, useRef } from 'react';
 
+/* `rotuloVoltar` existe por causa de "Cancelar consulta?": com o rótulo fixo, o
+   diálogo tinha dois botões chamados Cancelar, um de cada lado da decisão.
+   `podeConfirmar` segura o botão enquanto falta o que o ato exige (o motivo). */
 export default function Confirmar({
-  aberto, titulo, corpo, rotuloConfirmar = 'Confirmar', perigo = false,
-  onConfirmar, onCancelar,
+  aberto, titulo, corpo, rotuloConfirmar = 'Confirmar', rotuloVoltar = 'Cancelar',
+  podeConfirmar = true, perigo = false, onConfirmar, onCancelar,
 }) {
   const ref = useRef(null);
 
@@ -39,10 +42,11 @@ export default function Confirmar({
       <div className="dialogo-acoes">
         {/* O foco começa no cancelar, que é o botão seguro: `autofocus` no
             destrutivo transforma Enter distraído em ato irreversível. */}
-        <button type="button" className="btn btn-sm" onClick={onCancelar}>Cancelar</button>
+        <button type="button" className="btn btn-sm" onClick={onCancelar}>{rotuloVoltar}</button>
         <button
           type="button"
           className={`btn btn-sm ${perigo ? 'btn-perigo' : 'btn-fill'}`}
+          disabled={!podeConfirmar}
           onClick={onConfirmar}
         >
           {rotuloConfirmar}

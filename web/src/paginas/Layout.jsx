@@ -1,12 +1,14 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Esqueleto } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
 import { CADASTRO, MENU, recursoDaTela } from '../rotas.js';
+import { aplicarTema, lerTema } from '../tema.js';
 
-/* Espelha os tokens de `:root:has(.app-main)` em app.css. O Clerk não lê
-   variável CSS nossa; se a paleta do tema claro mudar lá, muda aqui também. */
+/* Espelha os tokens de `:root[data-tema="claro"]:has(.app-main)` em app.css. O
+   Clerk não lê variável CSS nossa; se a paleta clara mudar lá, muda aqui. No
+   escuro não precisa de nada: é a aparência do provider, a mesma da landing. */
 const APARENCIA_CLARA = {
   colorBackground: '#ffffff',
   colorForeground: '#111111',
@@ -97,7 +99,31 @@ function Autenticado() {
   const recurso = recursoDaTela(pathname);
 
   return (
-    <Permissoes.Provider value={eu.dados.permissoes}>
+    <Casca pode={pode} papel={eu.dados.papel} permissoes={eu.dados.permissoes}>
+      {/* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
+          viraria uma tela de erro técnica. Isto responde a mesma negativa em
+          português, sem nunca ser a razão pela qual o acesso foi negado. */}
+      {recurso === null || pode(recurso)
+        ? <Outlet />
+        : <SemAcesso papel={eu.dados.papel} />}
+    </Casca>
+  );
+}
+
+/* Separada do Autenticado para o estado do tema não morar junto da carga do
+   /eu: trocar de tema re-renderiza a barra e a tela, não refaz a chamada. */
+function Casca({ pode, papel, permissoes, children }) {
+  const [tema, setTema] = useState(lerTema);
+  const claro = tema === 'claro';
+
+  const alternar = () => {
+    const novo = claro ? 'escuro' : 'claro';
+    aplicarTema(novo);
+    setTema(novo);
+  };
+
+  return (
+    <Permissoes.Provider value={permissoes}>
       <a href="#main" className="skip-link">Ir para o conteúdo</a>
 
       <header className="app-topo edge">
@@ -117,21 +143,21 @@ function Autenticado() {
           ))}
         </nav>
 
-        {eu.dados.papel && <p className="cap cap-ash app-papel">{eu.dados.papel.toLowerCase()}</p>}
-        {/* O provider inteiro está com aparência preta, para a landing e o
-            login. Dentro do app o cabeçalho é claro, e o popover do Clerk
-            entraria preto sobre papel. */}
-        <UserButton appearance={{ variables: APARENCIA_CLARA }} />
+        <div className="app-conta">
+          {papel && <p className="cap cap-ash app-papel">{papel.toLowerCase()}</p>}
+          {/* Rótulo fixo e aria-pressed: o botão diz o que é, e o estado diz se
+              está ligado — "Escuro"/"Claro" trocando de texto não diz se o
+              rótulo é o tema atual ou o próximo. */}
+          <button type="button" className="btn btn-sm" aria-pressed={claro} onClick={alternar}>
+            Tema claro
+          </button>
+          {/* O provider inteiro tem a aparência preta da landing. No tema claro
+              o popover do Clerk entraria preto sobre papel. */}
+          <UserButton appearance={claro ? { variables: APARENCIA_CLARA } : undefined} />
+        </div>
       </header>
 
-      <main id="main" className="app-main edge">
-        {/* Esconder o item do menu não impede digitar a URL, e o 403 do serviço
-            viraria uma tela de erro técnica. Isto responde a mesma negativa em
-            português, sem nunca ser a razão pela qual o acesso foi negado. */}
-        {recurso === null || pode(recurso)
-          ? <Outlet />
-          : <SemAcesso papel={eu.dados.papel} />}
-      </main>
+      <main id="main" className="app-main edge">{children}</main>
     </Permissoes.Provider>
   );
 }
@@ -139,7 +165,7 @@ function Autenticado() {
 function SemAcesso({ papel }) {
   return (
     <div className="vazio" role="alert">
-      <h1 className="display display-sm">Sem acesso.</h1>
+      <h1 className="display display-sm titulo-tela"><Linha>Sem acesso.</Linha></h1>
       <p className="body body-ash">
         O papel {papel ? <b>{papel.toLowerCase()}</b> : 'atual'} não alcança esta tela.
         Quem administra a clínica pode mudar isso em Equipe.
@@ -189,17 +215,38 @@ export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNov
     );
   }
   if (vazio) {
-    return <p className="body body-ash">{vazio}</p>;
+    /* `vazio` aceita só a frase, ou { titulo, texto } quando o vazio é uma
+       resposta e não um defeito — "Dia livre." diz mais que "nenhuma". */
+    const { titulo, texto } = typeof vazio === 'string' ? { texto: vazio } : vazio;
+    return (
+      <div className="vazio">
+        {titulo && <p className="vazio-titulo">{titulo}</p>}
+        <p className="body">{texto}</p>
+      </div>
+    );
   }
   return children;
 }
 
-/** Cabeçalho de tela: título grande e uma linha de contexto. */
-export function Cabecalho({ titulo, detalhe, acao }) {
+/* A máscara de onde o título sobe. As classes `.ln` são as do <Lines> da
+   landing; a animação é CSS puro, porque o título já nasce na tela e o
+   IntersectionObserver do Reveal não teria nada a observar. */
+const Linha = ({ children }) => <span className="ln"><i>{children}</i></span>;
+
+/**
+ * Cabeçalho de tela: o nome dela no corpo da landing, e uma linha de contexto.
+ *
+ * <p>`secao` faz o mesmo papel para um bloco dentro da tela (Recebíveis, abaixo
+ * dos indicadores) — h2, menor, sem subir: só o título da tela anuncia a rota.
+ */
+export function Cabecalho({ titulo, detalhe, acao, secao = false }) {
+  const Titulo = secao ? 'h2' : 'h1';
   return (
-    <div className="app-cabecalho">
+    <div className={`app-cabecalho${secao ? ' app-cabecalho-secao' : ''}`}>
       <div>
-        <h1 className="display display-sm">{titulo}</h1>
+        <Titulo className={`display ${secao ? 'display-xs' : 'display-sm titulo-tela'}`}>
+          {secao ? titulo : <Linha>{titulo}</Linha>}
+        </Titulo>
         {detalhe && <p className="credit">{detalhe}</p>}
       </div>
       {acao}

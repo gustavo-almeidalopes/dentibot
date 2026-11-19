@@ -84,8 +84,8 @@ html {
 body {
   margin: 0;
   overflow-x: clip;
-  background: var(--obsidian);
-  color: var(--bone);
+  background: var(--fundo);
+  color: var(--tinta);
   font-family: var(--f-ui);
   font-size: var(--t-body);
   line-height: 1.32;
@@ -165,10 +165,10 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.25;
   text-transform: uppercase;
 }
-.cap-ash { color: var(--ash); }
+.cap-ash { color: var(--tinta-fraca); }
 
 .body { line-height: 1.32; max-width: 56ch; }
-.body-ash { color: var(--ash); }
+.body-ash { color: var(--tinta-fraca); }
 
 /* Editorial credit — classical serif small caps against the brutalism. */
 .credit {
@@ -189,7 +189,9 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 10px;
   padding: 13px var(--spacing-20);
-  border: 2px solid var(--bone);
+  /* Papel, não literal: no tema escuro dá no mesmo osso da marca, e no claro
+     a borda deixa de ser branco sobre papel — invisível, como estava. */
+  border: 2px solid var(--tinta);
   border-radius: var(--radius-buttons);
   font-size: var(--text-body-sm, 19px);
   font-weight: 700;
@@ -209,19 +211,19 @@ a { color: inherit; text-decoration: none; }
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: var(--bone);
+  background: var(--tinta);
   transform: scaleX(0);
   transform-origin: left center;
   transition: transform .34s var(--ease-brut);
 }
 .btn:hover::before,
 .btn:focus-visible::before { transform: scaleX(1); }
-.btn:hover, .btn:focus-visible { color: var(--obsidian); }
+.btn:hover, .btn:focus-visible { color: var(--fundo); }
 
 /* Filled block starts flipped, so its sweep runs the other way. */
-.btn-fill { background: var(--bone); color: var(--obsidian); }
-.btn-fill::before { background: var(--obsidian); transform-origin: right center; }
-.btn-fill:hover, .btn-fill:focus-visible { color: var(--bone); }
+.btn-fill { background: var(--tinta); color: var(--fundo); }
+.btn-fill::before { background: var(--fundo); transform-origin: right center; }
+.btn-fill:hover, .btn-fill:focus-visible { color: var(--tinta); }
 
 .btn-lg { padding: 16px var(--spacing-30); font-size: 20px; }
 

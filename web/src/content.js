@@ -149,3 +149,8 @@ export const LOWER_ARCH = [
 
 export const WHATSAPP_URL =
   'https://wa.me/5511941212737?text=Olá%2C+gostaria+de+saber+mais+sobre+o+DentiBot';
+
+/* Mesmo número, outra conversa: quem chega pela área do paciente quer falar da
+   própria ficha, não comprar o sistema. */
+export const WHATSAPP_PACIENTE =
+  'https://wa.me/5511941212737?text=Olá%2C+sou+paciente+e+quero+falar+sobre+a+minha+ficha+no+DentiBot';

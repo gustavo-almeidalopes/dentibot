@@ -1,11 +1,12 @@
 import { RedirectToSignIn, Show, useUser } from '@clerk/react';
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import FichaPaciente from '../components/FichaPaciente.jsx';
 import { useAcao } from '../dados.js';
 import { documentoValido, formatarCnpj, formatarCpf, somenteDigitos, tipoDeDocumento } from '../documento.js';
-import { AGENDA } from '../rotas.js';
+import { AGENDA, AREA_PACIENTE } from '../rotas.js';
+import { ehPaciente, marcarPaciente } from './AreaPaciente.jsx';
 
 /**
  * O que acontece DEPOIS de criar a conta — inclusive pelo Google, Microsoft ou
@@ -61,6 +62,11 @@ function Passos() {
   const nome = user?.fullName ?? '';
   const email = user?.primaryEmailAddress?.emailAddress ?? '';
 
+  /* Quem já mandou a ficha entra, toma 403 no /eu (não tem clínica) e o Layout
+     o manda para cá. Sem este desvio, perguntaríamos o CPF de novo a cada
+     login — o paciente tem a própria área. */
+  if (ehPaciente(user)) return <Navigate to={AREA_PACIENTE} replace />;
+
   return (
     <>
       <div className="app-cabecalho">
@@ -92,7 +98,7 @@ function Passos() {
         </label>
 
         {tipo !== null && !valido && (
-          <p className="pagamento-erro" role="alert">
+          <p className="erro-campo" role="alert">
             {tipo === 'cpf' ? 'CPF inválido' : 'CNPJ inválido'} — confira os dígitos.
           </p>
         )}
@@ -188,7 +194,7 @@ function FormularioClinica({ documento, tipo, nome, email }) {
 
       <p className="cap cap-ash">Trinta dias de teste. Sem cartão.</p>
 
-      {erro && <p className="pagamento-erro" role="alert">{erro.message}</p>}
+      {erro && <p className="erro-campo" role="alert">{erro.message}</p>}
 
       <button type="submit" className="btn btn-fill btn-lg" disabled={enviando}>
         {enviando ? 'Criando…' : 'Criar e abrir o sistema'}
@@ -199,21 +205,12 @@ function FormularioClinica({ documento, tipo, nome, email }) {
 
 /** Paciente: a ficha inteira, guardada como pré-cadastro até uma clínica vincular. */
 function FormularioPaciente({ nome, email }) {
-  const [pronto, setPronto] = useState(false);
-  const { executar, enviando, erro } = useAcao(() => setPronto(true));
-
-  if (pronto) {
-    return (
-      <div className="form-bloco">
-        <h2 className="sub">Ficha enviada.</h2>
-        <p className="body body-ash">
-          Ela fica guardada com o seu CPF. Quando a sua clínica te vincular, o histórico
-          já estará lá — e você não repete nada na recepção.
-        </p>
-        <p className="auth-swap"><a href="/" className="btn btn-lg">Voltar ao site</a></p>
-      </div>
-    );
-  }
+  const { user } = useUser();
+  const navegar = useNavigate();
+  const { executar, enviando, erro } = useAcao(async () => {
+    await marcarPaciente(user);
+    navegar(AREA_PACIENTE, { replace: true });
+  });
 
   return (
     <FichaPaciente

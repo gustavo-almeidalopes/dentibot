@@ -1,13 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════
-   DENTIBOT — telas do sistema. Papel clínico, não manifesto.
-   A landing é preta e grita; a ferramenta é clara e cala.
+   DENTIBOT — telas do sistema. A mesma obsidiana da landing, com
+   densidade de ferramenta: o título fala alto uma vez, o resto cala.
    ═══════════════════════════════════════════════════════════════ */
 
-/* O tema não precisa de JavaScript. As telas do sistema são as únicas que
-   montam `.app-main`, e `:has` é vivo: troca na hora da rota, sem useEffect,
-   sem limpeza no desmonte, sem piscada. A landing e o 404 não montam
-   `.app-main` e por isso continuam pretos. */
-:root:has(.app-main) {
+/* Escuro é o padrão e vem do `:root` da marca — nada a declarar aqui além do
+   corpo de texto menor. Claro é escolha (tema.js grava `data-tema` no <html>).
+   `:has(.app-main)` continua sendo o que separa a ferramenta da landing: a
+   landing e o 404 não montam `.app-main`, então seguem pretos mesmo com
+   `data-tema="claro"` no documento. */
+:root:has(.app-main) { font-size: 15px; }
+
+:root[data-tema="claro"]:has(.app-main) {
   color-scheme: light;
 
   --fundo:       #faf9f7;   /* papel, não branco de tela */
@@ -21,46 +24,146 @@
   --foco:        #111111;
 }
 
-:root:has(.app-main) body { background: var(--fundo); color: var(--tinta); }
+/* As partes que o navegador desenha sozinho também são da marca. */
+:root:has(.app-main) ::selection { background: var(--tinta); color: var(--fundo); }
+:root:has(.app-main) { accent-color: var(--tinta); scrollbar-color: var(--hair) var(--fundo); }
 
-/* ── TELAS DO SISTEMA ─────────────────────────────────────────────────────── */
+/* Anel de foco no tema certo. A regra da landing é vermelha — vermelho aqui é
+   alarme, e um foco que parece erro faz a pessoa conferir o que não quebrou. */
+:root:has(.app-main) :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
+
+:root:has(.app-main) .body { line-height: 1.45; }
+:root:has(.app-main) .cap { font-size: 12px; letter-spacing: .04em; }
+
+/* O wipe do `.btn::before` fica na landing. Numa barra de filtros e numa
+   coluna de ações são oito varreduras disputando o olho, oito horas por dia. */
+:root:has(.app-main) .btn::before { transition: none; }
+.btn-sm { padding: 6px 12px; font-size: 12px; border-width: 1px; }
+
+/* ── CASCA ────────────────────────────────────────────────────────────────── */
+/* A barra de cima é a `.mbar` da landing: marca em Antonio, hairline embaixo,
+   presa no topo. Quem sabe a altura dela é o token — a tabela gruda o
+   cabeçalho logo abaixo. */
+:root:has(.app-main) { --topo-altura: 59px; }
+
 .app-topo {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-20, 20px);
-  flex-wrap: wrap;
-  padding-block: 14px;
-  border-bottom: 1px solid var(--hair);
   position: sticky;
   top: 0;
   z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-20);
+  min-height: var(--topo-altura);
+  border-bottom: 1px solid var(--hair);
   background: var(--fundo);
 }
-.app-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-right: auto; }
-.app-main { padding-block: var(--spacing-30, 30px) var(--spacing-50, 50px); }
+.app-topo .mbar-mark { line-height: 1; }
 
+.app-nav {
+  display: flex;
+  align-self: stretch;
+  gap: 22px;
+  margin-right: auto;
+  padding-left: var(--spacing-15);
+}
+.app-aba {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;            /* assenta sobre a hairline da barra */
+  color: var(--tinta-fraca);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: color .15s ease, border-color .15s ease;
+}
+.app-aba:hover { color: var(--tinta); }
+/* O sublinhado vermelho é o único vermelho que não é alarme — e é fino o
+   bastante para não competir com um. */
+.app-aba-ativa { color: var(--tinta); border-bottom-color: var(--alarm); }
+
+.app-conta { display: flex; align-items: center; gap: var(--spacing-15); }
+.app-papel { text-transform: capitalize; }
+.btn[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); }
+
+/* Menos de 900px: marca e conta na primeira linha, menu inteiro na segunda,
+   rolando de lado. Cinco abas quebradas em três linhas tortas era pior. */
+@media (max-width: 900px) {
+  :root:has(.app-main) { --topo-altura: 98px; }
+  .app-topo { flex-wrap: wrap; row-gap: 0; padding-top: 10px; }
+  .app-conta { margin-left: auto; }
+  .app-nav {
+    order: 1;
+    flex: 1 1 100%;
+    height: 40px;
+    margin-right: 0;
+    padding-left: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+}
+@media (max-width: 620px) { .app-papel { display: none; } }
+
+.app-main { padding-block: var(--spacing-30) var(--spacing-127); }
+
+/* ── TÍTULO DE TELA ───────────────────────────────────────────────────────── */
+/* O único momento de manifesto da ferramenta: o nome da tela no corpo da
+   landing, subindo de trás da própria máscara a cada troca de rota. O resto da
+   tela é denso; o título é o que diz onde você está antes de você ler. */
 .app-cabecalho {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: var(--spacing-20, 20px);
+  gap: var(--spacing-20);
   flex-wrap: wrap;
-  margin-bottom: var(--spacing-30, 30px);
+  padding-bottom: var(--spacing-20);
+  margin-bottom: var(--spacing-30);
+  border-bottom: 1px solid var(--tinta);
 }
-.display-sm { font-size: clamp(2rem, 6vw, 3.2rem); }
+.app-cabecalho .credit { margin-top: 10px; color: var(--tinta-fraca); }
 
+.display-sm {
+  font-size: clamp(2.75rem, 6.5vw, 5.75rem);
+  letter-spacing: -.02em;
+}
+/* Seção dentro de uma tela (Recebíveis, abaixo dos indicadores). */
+.display-xs { font-size: clamp(1.9rem, 3.4vw, 2.75rem); letter-spacing: -.015em; }
+.app-cabecalho-secao { margin-top: var(--spacing-59); border-bottom-color: var(--hair); }
+
+.titulo-tela .ln > i { animation: titulo-sobe .55s var(--ease-brut) both; }
+@keyframes titulo-sobe { from { transform: translateY(115%); } }
+/* O texto já nasce no lugar; sem movimento, ele só não sobe. */
+@media (prefers-reduced-motion: reduce) {
+  .titulo-tela .ln > i, .agora-hora .ln > i { animation: none; }
+}
+
+/* Lido por leitor de tela, fora da tela para quem enxerga. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ── CONTROLES ────────────────────────────────────────────────────────────── */
 .filtros { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .filtros-linha {
   align-items: flex-end;
-  padding-bottom: var(--spacing-20, 20px);
+  gap: 14px 18px;
+  padding-bottom: var(--spacing-20);
   border-bottom: 1px solid var(--hair-fraca);
-  margin-bottom: var(--spacing-20, 20px);
+  margin-bottom: var(--spacing-20);
 }
 
-/* Um controle só, para input, select e textarea: três estilos separados é como
-   um deles fica diferente dos outros sem ninguém decidir isso. */
-.campo-app { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.filtros input, .filtros select,
+/* Um controle só, para input, select e textarea — inclusive os selects dentro
+   da tabela da Equipe, que ficavam com a cara crua do navegador. */
+.campo-app { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.filtros input, .filtros select, .tabela select,
 .campo-app input, .campo-app select, .campo-app textarea {
   appearance: none;
   background: transparent;
@@ -71,20 +174,45 @@
   font-size: 14px;
   padding: 9px 11px;
   width: 100%;
+  transition: border-color .15s ease;
 }
-.campo-app textarea { resize: vertical; font-family: inherit; line-height: 1.5; }
-.filtros input:focus-visible, .filtros select:focus-visible,
+/* Sem a seta o select vira um campo de texto que não aceita digitação. A seta
+   é desenhada em CSS com a cor da tinta, nos dois temas. */
+.filtros select, .tabela select, .campo-app select {
+  padding-right: 30px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--tinta) 50%),
+    linear-gradient(135deg, var(--tinta) 50%, transparent 50%);
+  background-position: calc(100% - 15px) 52%, calc(100% - 10px) 52%;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+.filtros select option, .tabela select option, .campo-app select option {
+  background: var(--fundo);
+  color: var(--tinta);
+}
+.filtros input:hover, .filtros select:hover, .tabela select:hover,
+.campo-app input:hover, .campo-app select:hover, .campo-app textarea:hover {
+  border-color: var(--tinta-fraca);
+}
+.campo-app textarea { resize: vertical; line-height: 1.5; }
+.campo-app input::placeholder, .campo-app textarea::placeholder,
+.filtros input::placeholder { color: var(--tinta-fraca); }
+.filtros input:focus-visible, .filtros select:focus-visible, .tabela select:focus-visible,
 .campo-app input:focus-visible, .campo-app select:focus-visible,
 .campo-app textarea:focus-visible { outline: 2px solid var(--tinta); outline-offset: -1px; }
+.campo-app [aria-invalid="true"] { border-color: var(--alarm); }
 
 .form-bloco {
   display: flex;
   flex-direction: column;
   gap: 14px;
   border: 1px solid var(--hair);
-  padding: var(--spacing-20, 20px);
-  margin-bottom: var(--spacing-30, 30px);
+  background: var(--superficie);
+  padding: var(--spacing-20);
+  margin-bottom: var(--spacing-30);
 }
+.form-bloco > .sub { font-size: 18px; }
 .form-linha { display: flex; gap: 14px; flex-wrap: wrap; }
 .form-linha .campo-app { flex: 1 1 180px; }
 
@@ -93,11 +221,11 @@
 
 .selo-staff { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--alarm); }
 
-.abas { display: flex; gap: 8px; margin-bottom: var(--spacing-20, 20px); }
+.abas { display: flex; gap: 8px; margin-bottom: var(--spacing-20); }
 .abas [aria-selected="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
 
 /* ── ODONTOGRAMA CLÍNICO ──────────────────────────────────────────────────── */
-.odonto { display: grid; gap: 10px; margin-bottom: var(--spacing-30, 30px); }
+.odonto { display: grid; gap: 10px; margin-bottom: var(--spacing-30); }
 .odonto-arcada { display: grid; grid-template-columns: repeat(16, 1fr); gap: 4px; }
 @media (max-width: 620px) { .odonto-arcada { grid-template-columns: repeat(8, 1fr); } }
 
@@ -113,7 +241,7 @@
   cursor: pointer;
   transition: background .15s ease;
 }
-.odonto-dente:hover { background: rgba(255, 255, 255, .07); }
+.odonto-dente:hover { background: var(--hair-fraca); }
 .odonto-dente[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); font-weight: 700; }
 .odonto-dente:focus-visible { outline: 2px solid var(--alarm); outline-offset: 2px; }
 /* A condição é cor E borda: cor sozinha não existe para quem não a distingue. */
@@ -124,49 +252,95 @@
 .odonto-dente[data-condicao="implante"] { border-bottom-width: 3px; }
 
 /* ── TABELA ───────────────────────────────────────────────────────────────── */
-.tabela-rolagem { overflow-x: auto; }
-.tabela { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+/* Rolagem horizontal só no celular, e lá a tabela empilha. No resto o wrapper
+   NÃO pode ser contêiner de rolagem: `overflow-x: auto` nele faz o cabeçalho
+   fixo grudar dentro da própria caixa, a 59px do topo dela — o cabeçalho caía
+   por cima da primeira linha. */
+.tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tabela th, .tabela td {
   text-align: left;
-  padding: 10px 14px 10px 0;
+  padding: 12px 16px 12px 0;
   border-bottom: 1px solid var(--hair-fraca);
-  vertical-align: top;
+  vertical-align: middle;
 }
+.tabela th:last-child, .tabela td:last-child { padding-right: 0; }
 .tabela th {
-  font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
-  color: var(--tinta-fraca); font-weight: 400;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
   border-bottom-color: var(--hair);
   white-space: nowrap;
 }
+.tabela tbody tr { transition: background-color .12s ease; }
+.tabela tbody tr:hover { background: var(--hair-fraca); }
 .tabela .num { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.tabela a:not(.btn) { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair); }
+.tabela a:not(.btn):hover { text-decoration-color: currentColor; }
+.tabela select { width: auto; min-width: 9.5rem; padding-block: 6px; font-size: 13px; }
+
+/* Nome é o que o olho procura na linha; o resto é contexto dele. */
+.celula-nome { font-weight: 700; }
+.celula-nome .cap { font-weight: 400; margin-top: 2px; text-transform: none; letter-spacing: 0; font-size: 13px; }
+
+@media (min-width: 621px) {
+  .tabela thead th {
+    position: sticky;
+    top: var(--topo-altura);
+    background: var(--fundo);
+    z-index: 1;
+  }
+}
+
+/* No celular a linha vira bloco e cada célula diz o próprio nome. */
+@media (max-width: 620px) {
+  .tabela, .tabela tbody, .tabela tr, .tabela td { display: block; width: 100%; }
+  .tabela thead { display: none; }
+  .tabela tr { padding-block: 14px; border-bottom: 1px solid var(--hair); }
+  .tabela tbody tr:hover { background: none; }
+  .tabela td { border: 0; padding: 3px 0; }
+  .tabela td[data-rotulo]::before {
+    content: attr(data-rotulo) " ";
+    display: inline-block;
+    min-width: 9ch;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--tinta-fraca);
+  }
+  .tabela td[data-rotulo=""]::before { display: none; }
+  .tabela td .acoes { margin-top: 8px; }
+}
 
 /* ── SELO ─────────────────────────────────────────────────────────────────── */
 .selo {
   display: inline-block;
   padding: 3px 8px;
   font-size: 11px;
+  font-weight: 700;
   letter-spacing: .08em;
   text-transform: uppercase;
   border: 1px solid var(--hair);
   white-space: nowrap;
 }
 .selo[data-tom="cheio"]   { background: var(--tinta); color: var(--fundo); border-color: var(--tinta); }
-.selo[data-tom="fraco"]   { color: var(--tinta-fraca); }
-.selo[data-tom="alarme"]  { color: var(--alarm); border-color: var(--alarm); border-left-width: 3px; }
-.selo[data-tom="riscado"] { color: var(--tinta-fraca); text-decoration: line-through; }
+.selo[data-tom="fraco"]   { color: var(--tinta-fraca); font-weight: 400; }
+/* Alarme é a parede vermelha da landing em miniatura: preto sobre vermelho,
+   4,6:1 nos dois temas. Forma além de cor — é o único selo preenchido de
+   vermelho, e o rótulo diz o que é. */
+.selo[data-tom="alarme"]  { background: var(--alarm); color: var(--obsidian); border-color: var(--alarm); }
+.selo[data-tom="riscado"] { color: var(--tinta-fraca); text-decoration: line-through; font-weight: 400; }
 
 /* ── ESQUELETO ────────────────────────────────────────────────────────────── */
 .esqueleto-linha {
   display: flex;
   gap: 40px;
-  padding-block: 14px;
+  padding-block: 16px;
   border-bottom: 1px solid var(--hair-fraca);
 }
-.esqueleto-celula {
-  height: 12px;
-  flex: 1;
-  background: var(--hair-fraca);
-}
+.esqueleto-celula { height: 12px; flex: 1; background: var(--hair-fraca); }
 .esqueleto-celula:first-child { flex: 2; }
 @media (prefers-reduced-motion: no-preference) {
   .esqueleto-celula { animation: esqueleto-pulsa 1.4s ease-in-out infinite; }
@@ -174,15 +348,13 @@
 }
 
 /* ── AVISO ────────────────────────────────────────────────────────────────── */
-/* O feedback mais visto do app — toda ação de salvar passa por aqui — e até
-   agora teleportava na tela. `@starting-style` pega o estado de montagem sem
-   precisar de classe nem useEffect, igual ao Reveal da landing faz com JS. */
+/* `@starting-style` pega o estado de montagem sem classe nem useEffect. */
 .aviso {
-  margin: 0 0 var(--spacing-20, 20px);
+  margin: 0 0 var(--spacing-20);
   padding: 12px 16px;
-  border: 1px solid var(--hair);
-  border-left-width: 4px;
+  border: 1px solid var(--tinta);
   font-size: 14px;
+  font-weight: 700;
   opacity: 1;
   transform: none;
   transition: opacity .2s var(--ease-brut), transform .2s var(--ease-brut);
@@ -190,72 +362,50 @@
 @starting-style {
   .aviso { opacity: 0; transform: translateY(-6px); }
 }
-.aviso[data-tom="sucesso"] { border-left-color: var(--tinta); }
-.aviso[data-tom="erro"]    { border-left-color: var(--alarm); color: var(--alarm); }
+.aviso[data-tom="erro"] { border-color: var(--alarm); color: var(--alarm); }
+.aviso[data-tom="info"] { border-color: var(--hair); font-weight: 400; color: var(--tinta-fraca); }
 
-/* Erro de campo. Antes era `.pagamento-erro`, emprestado do formulário de
-   cartão de crédito por quatro telas que não têm nada com pagamento. */
 .erro-campo { margin: 0; font-size: 12px; color: var(--alarm); }
 
-/* ── TABELA EMPILHADA ─────────────────────────────────────────────────────── */
-/* Rolagem horizontal numa tabela de trabalho esconde a coluna de ação, que é a
-   da direita. No celular a linha vira bloco e cada célula diz o próprio nome. */
-@media (max-width: 620px) {
-  .tabela, .tabela tbody, .tabela tr, .tabela td { display: block; width: 100%; }
-  .tabela thead { display: none; }
-  .tabela tr {
-    padding-block: 14px;
-    border-bottom: 1px solid var(--hair);
-  }
-  .tabela td { border: 0; padding: 3px 0; }
-  .tabela td[data-rotulo]::before {
-    content: attr(data-rotulo) " ";
-    display: inline-block;
-    min-width: 9ch;
-    font-size: 11px;
-    letter-spacing: .08em;
-    text-transform: uppercase;
-    color: var(--tinta-fraca);
-  }
+/* Vazio também é tela: diz o que está vazio e por quê, com o peso de uma
+   seção, não um parágrafo cinza perdido debaixo dos filtros. */
+.vazio {
+  padding-block: var(--spacing-50);
+  border-top: 1px solid var(--hair);
 }
-
-/* ── TABELA, CABEÇALHO FIXO ───────────────────────────────────────────────── */
-@media (min-width: 621px) {
-  .tabela thead th {
-    position: sticky;
-    top: 56px;            /* abaixo do .app-topo, que também é sticky */
-    background: var(--fundo);
-    z-index: 1;
-  }
+.vazio .body { color: var(--tinta-fraca); }
+.vazio-titulo {
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 3.4vw, 2.75rem);
+  line-height: .9;
+  letter-spacing: -.015em;
+  text-transform: uppercase;
+  padding-block: .1em;
+  margin-bottom: 10px;
+  font-feature-settings: "ss01" 0, "ss02" 0;
 }
 
 /* ── DIÁLOGO ──────────────────────────────────────────────────────────────── */
-/* showModal() abria e close() fechava com um pop seco — o `<dialog>` nativo
-   não anima nada sozinho. `overlay`/`display` com allow-discrete mantêm o
-   diálogo renderizado até a transição terminar, então a SAÍDA anima também,
-   não só a entrada. Origem central é a exceção correta aqui: diálogo não tem
-   gatilho — ele não vem de lugar nenhum na tela. */
+/* `overlay`/`display` com allow-discrete mantêm o diálogo renderizado até a
+   transição terminar, então a SAÍDA anima também. */
 .dialogo {
   border: 1px solid var(--tinta);
   background: var(--superficie);
   color: var(--tinta);
-  padding: var(--spacing-30, 30px);
+  padding: var(--spacing-30);
   max-width: min(46ch, calc(100vw - 32px));
   opacity: 1;
   transform: scale(1);
   transition: opacity .25s var(--ease-brut), transform .25s var(--ease-brut),
     overlay .25s allow-discrete, display .25s allow-discrete;
 }
-.dialogo:not([open]) {
-  opacity: 0;
-  transform: scale(.96);
-}
+.dialogo:not([open]) { opacity: 0; transform: scale(.96); }
 @starting-style {
   .dialogo[open] { opacity: 0; transform: scale(.96); }
 }
-
 .dialogo::backdrop {
-  background: rgba(0, 0, 0, .55);
+  background: rgba(0, 0, 0, .7);
   opacity: 1;
   transition: opacity .25s var(--ease-brut), overlay .25s allow-discrete, display .25s allow-discrete;
 }
@@ -263,101 +413,338 @@
 @starting-style {
   .dialogo[open]::backdrop { opacity: 0; }
 }
-.dialogo .sub { margin-top: 0; }
+.dialogo .sub { margin-top: 0; font-size: 20px; }
+.dialogo .body { margin-top: 10px; }
+.dialogo .body > * + * { margin-top: 14px; }
+.dialogo-campos { display: flex; flex-wrap: wrap; gap: 12px; }
+.dialogo-campos .campo-app { flex: 1 1 10rem; }
+.dialogo input[type="number"] { font-variant-numeric: tabular-nums; }
 .dialogo-acoes {
   display: flex;
   gap: 10px;
   justify-content: flex-end;
-  margin-top: var(--spacing-20, 20px);
+  margin-top: var(--spacing-20);
 }
 
 .btn-perigo { border-color: var(--alarm); color: var(--alarm); }
 .btn-perigo::before { background: var(--alarm); }
-.btn-perigo:hover, .btn-perigo:focus-visible { color: var(--superficie); }
-
-/* ── BOTÃO NO APP ─────────────────────────────────────────────────────────── */
-/* O wipe do `.btn::before` fica na landing. Numa barra de navegação e numa
-   coluna de ações são oito varreduras simultâneas, e isso é ruído numa
-   ferramenta que a pessoa usa oito horas por dia. */
-:root:has(.app-main) .btn::before { transition: none; }
-.btn-sm { padding: 6px 12px; font-size: 12px; }
-
-/* ── NAVEGAÇÃO ────────────────────────────────────────────────────────────── */
-/* Deixa de ser fileira de blocos preenchidos. Um bloco invertido para o item
-   ativo grita tanto quanto o botão de ação primária da tela, e eles competem. */
-.app-aba {
-  padding: 8px 2px;
-  margin-right: 18px;
-  border-bottom: 2px solid transparent;
-  color: var(--tinta-fraca);
-  font-size: 14px;
-  text-decoration: none;
-  transition: color .15s ease, border-color .15s ease;
-}
-.app-aba:hover { color: var(--tinta); }
-.app-aba-ativa { color: var(--tinta); border-bottom-color: var(--alarm); font-weight: 700; }
-
-.app-papel { font-size: 11px; letter-spacing: .1em; text-transform: capitalize; }
-
-.vazio {
-  padding-block: var(--spacing-50, 50px);
-  border-top: 1px solid var(--hair);
-}
-
-/* Anel de foco em tudo que recebe foco, no tema certo. A regra existente
-   apontava para `var(--ink, #fff)`: sobre papel, branco sobre branco. */
-:root:has(.app-main) :focus-visible { outline: 2px solid var(--foco); outline-offset: 2px; }
-
-/* Título de tela: 51px era altura de manifesto. Numa ferramenta o título é
-   orientação, não declaração. */
-.display-sm { font-size: clamp(1.6rem, 3vw, 1.9rem); }
-:root:has(.app-main) { font-size: 15px; }
-:root:has(.app-main) .body { line-height: 1.45; }
-:root:has(.app-main) .cap { font-size: 12px; }
+.btn-perigo:hover, .btn-perigo:focus-visible { color: var(--obsidian); }
 
 /* ── AGENDA ───────────────────────────────────────────────────────────────── */
-/* A agenda não é tabela: o eixo é o tempo, e a hora é a coluna que o olho
-   procura primeiro. */
+/* O eixo é o tempo. A hora é o número de manifesto da tela — o mesmo corpo do
+   "16" do odontograma da landing — porque é a coluna que o olho procura antes
+   de qualquer nome. */
+.dia { border-bottom: 1px solid var(--hair); }
 .dia-degrau {
   display: grid;
-  grid-template-columns: 5ch minmax(0, 1fr);
-  gap: 20px;
-  padding-block: 14px;
-  border-top: 1px solid var(--hair-fraca);
+  grid-template-columns: 6.5rem minmax(0, 1fr);
+  gap: 24px;
+  padding-block: 18px;
+  border-top: 1px solid var(--hair);
 }
 .dia-hora {
   margin: 0;
-  font-variant-numeric: tabular-nums;
-  color: var(--tinta-fraca);
-  font-size: 13px;
-  padding-top: 14px;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 4.4vw, 3.75rem);
+  line-height: .78;
+  letter-spacing: -.03em;
+  padding-block: .08em;
+  font-feature-settings: "ss01" 0, "ss02" 0;
 }
+.dia-hora small { font-size: .42em; letter-spacing: 0; margin-left: 2px; color: var(--tinta-fraca); }
+
 /* Duas cadeiras atendendo às 14h é o caso normal de uma clínica. */
 .dia-blocos { display: flex; flex-wrap: wrap; gap: 12px; }
 .consulta {
   flex: 1 1 22rem;
   border: 1px solid var(--hair);
   background: var(--superficie);
-  padding: 14px 16px;
+  padding: 16px 18px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 16px;
+  align-items: start;
+  transition: border-color .15s ease;
+}
+.consulta:hover { border-color: var(--tinta-fraca); }
+.consulta > * { grid-column: 1; }
+.consulta > .selo { grid-column: 2; grid-row: 1; }
+.consulta-faixa {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--tinta-fraca);
+}
+.consulta .sub { font-size: clamp(1.25rem, 1.8vw, 1.5rem); }
+.consulta-tel {
+  justify-self: start;
+  color: var(--tinta);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.consulta .acoes { grid-column: 1 / -1; margin-top: 10px; }
+/* Faltou e cancelada saíram do dia: continuam ali para a recepção, sem
+   disputar atenção com quem ainda vai sentar na cadeira. */
+.consulta[data-status="cancelada"], .consulta[data-status="realizada"] { border-style: dashed; }
+.consulta[data-status="cancelada"] .sub,
+.consulta[data-status="realizada"] .sub { color: var(--tinta-fraca); }
+
+@media (max-width: 620px) {
+  .dia-degrau { grid-template-columns: 1fr; gap: 10px; }
+  .consulta { flex-basis: 100%; }
+}
+
+/* ── AGENDAR ──────────────────────────────────────────────────────────────── */
+/* O painel é o mesmo na Recepção (coluna estreita) e na Agenda (largura
+   cheia). Quem decide a composição é a largura dele, não a da tela. */
+.agendar {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  align-items: flex-start;
+  gap: 20px;
+  border: 1px solid var(--hair);
+  background: var(--superficie);
+  padding: var(--spacing-20);
+  margin-bottom: var(--spacing-30);
 }
-.consulta-faixa { margin: 0; font-variant-numeric: tabular-nums; font-size: 13px; }
-.consulta-tel { color: var(--tinta); font-size: 13px; text-decoration: underline; }
-.consulta .acoes { margin-top: 8px; }
+.agendar .aviso { margin: 0; }
+.agendar fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
+.agendar legend { padding: 0; margin-bottom: 8px; }
+.agendar-passo { display: flex; flex-direction: column; gap: 8px; }
+.agendar-topo, .agendar-quando { display: flex; flex-direction: column; gap: 20px; }
+.agendar-linha { display: flex; flex-wrap: wrap; gap: 12px; }
+.agendar-linha .campo-app { flex: 1 1 9rem; }
+.agendar-novo { align-self: flex-start; }
+
+/* Os achados são botões de verdade: Tab chega neles, Enter escolhe. */
+.agendar-achados { list-style: none; margin: 0; padding: 0; border: 1px solid var(--hair-fraca); }
+.agendar-achados li + li { border-top: 1px solid var(--hair-fraca); }
+.agendar-achados button {
+  appearance: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  color: var(--tinta);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .12s ease;
+}
+.agendar-achados button:hover { background: var(--hair-fraca); }
+.agendar-achados button:focus-visible { outline: 2px solid var(--foco); outline-offset: -2px; }
+.agendar-achados .cap { margin: 0; font-variant-numeric: tabular-nums; }
+
+.agendar-escolha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--tinta);
+}
+.agendar-escolha .cap { margin-top: 2px; font-variant-numeric: tabular-nums; }
+
+/* A grade: cada célula desenha a própria borda direita e inferior, e a grade
+   as de cima e da esquerda. Sem fundo na grade, a última linha incompleta não
+   vira um bloco cinza. Ocupado é riscado e não só esmaecido: forma além de cor. */
+.horarios {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(4.25rem, 1fr));
+  border-top: 1px solid var(--hair-fraca);
+  border-left: 1px solid var(--hair-fraca);
+}
+.horario {
+  appearance: none;
+  border: 0;
+  border-right: 1px solid var(--hair-fraca);
+  border-bottom: 1px solid var(--hair-fraca);
+  background: var(--superficie);
+  color: var(--tinta);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 11px 0;
+  cursor: pointer;
+  transition: background-color .12s ease, color .12s ease;
+}
+.horario:hover:not(:disabled) { background: var(--hair-fraca); }
+.horario[aria-pressed="true"] { background: var(--tinta); color: var(--fundo); }
+.horario:disabled {
+  background: var(--fundo);
+  color: var(--tinta-fraca);
+  font-weight: 400;
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+.horario:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--foco); outline-offset: -2px; }
+
+.agendar-sem .vazio-titulo { font-size: clamp(1.6rem, 2.6vw, 2.1rem); }
+.agendar-sem a { text-decoration: underline; text-underline-offset: 3px; }
+
+.agendar-fim {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-top: 1px solid var(--hair);
+  padding-top: 16px;
+}
+.agendar-resumo { margin: 0; font-size: 14px; line-height: 1.45; color: var(--tinta-fraca); }
+.agendar-resumo b { color: var(--tinta); }
+.agendar-fim .btn { justify-content: center; }
+
+@container (min-width: 46rem) {
+  .agendar-topo { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 24px 32px; }
+  .agendar-fim { flex-direction: row; align-items: center; justify-content: space-between; }
+  .agendar-fim .btn { flex: 0 0 auto; min-width: 12rem; }
+}
+
+/* ── RECEPÇÃO ─────────────────────────────────────────────────────────────── */
+/* O dia à esquerda, o agendar à direita e preso na rolagem: a recepção marca
+   consulta olhando a fila, não alternando entre as duas. */
+.recepcao {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 25rem;
+  gap: var(--spacing-30) 40px;
+  align-items: start;
+}
+.recepcao-lado { position: sticky; top: calc(var(--topo-altura) + 20px); }
+.recepcao-lado .agendar { margin-bottom: 0; }
+.recepcao-pular { display: none; }
+
+.recepcao-cadastro { margin-bottom: var(--spacing-30); }
+.recepcao-cadastro .app-cabecalho-secao { margin-top: 0; }
+
+.recepcao-hora { font-weight: 700; }
+.recepcao-hora .cap { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 13px; }
+.recepcao-acoes { justify-content: flex-end; }
+.tabela tr[data-status="cancelada"] .celula-nome,
+.tabela tr[data-status="faltou"] .celula-nome { color: var(--tinta-fraca); }
+
+/* "Já passaram" fica fechado — a não ser que haja consulta sem desfecho, aí
+   abre sozinho, porque é trabalho pendente e não histórico. */
+.recepcao-passadas { margin-top: var(--spacing-20); }
+.recepcao-passadas > summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-block: 12px;
+  border-top: 1px solid var(--hair);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--tinta-fraca);
+  cursor: pointer;
+  list-style: none;
+}
+.recepcao-passadas > summary::-webkit-details-marker { display: none; }
+/* Seta desenhada em borda, não glifo: aponta para o lado fechada, para baixo
+   aberta. */
+.recepcao-passadas > summary::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: translateX(-2px) rotate(-45deg);
+  transition: transform .2s var(--ease-brut);
+}
+.recepcao-passadas[open] > summary::before { transform: translateY(-2px) rotate(45deg); }
+.recepcao-passadas > summary:hover { color: var(--tinta); }
+.recepcao-pendente { color: var(--alarm); }
+
+@media (max-width: 1100px) {
+  .recepcao { grid-template-columns: 1fr; }
+  .recepcao-lado { position: static; }
+  .recepcao-pular { display: inline-flex; }
+}
+
+/* ── AGORA ────────────────────────────────────────────────────────────────── */
+/* O único bloco invertido do sistema. Os tokens trocam aqui dentro, então
+   selo, botão e link já nascem do lado certo, sem regra própria. */
+.agora {
+  --fundo:       var(--bone);
+  --superficie:  var(--bone);
+  --tinta:       var(--obsidian);
+  --tinta-fraca: #5c5c5c;
+  --hair:        rgba(0, 0, 0, .22);
+  --hair-fraca:  rgba(0, 0, 0, .10);
+  --foco:        var(--obsidian);
+  background: var(--fundo);
+  color: var(--tinta);
+  padding: 24px 26px 22px;
+}
+:root[data-tema="claro"] .agora {
+  --fundo:       #111111;
+  --superficie:  #111111;
+  --tinta:       #faf9f7;
+  --tinta-fraca: #a8a8a8;
+  --hair:        rgba(255, 255, 255, .26);
+  --hair-fraca:  rgba(255, 255, 255, .12);
+  --foco:        #faf9f7;
+}
+.agora ::selection { background: var(--tinta); color: var(--fundo); }
+
+.agora-proximo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 14px 32px;
+}
+.agora-relogio .cap { margin-top: 12px; font-weight: 700; color: var(--tinta-fraca); }
+.agora-hora {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(4rem, 8vw, 6rem);
+  line-height: .8;
+  letter-spacing: -.03em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "ss01" 0, "ss02" 0;
+}
+.agora-hora .ln > i { animation: titulo-sobe .55s var(--ease-brut) both; }
+.agora-nome { margin: 0; font-size: clamp(1.5rem, 2.6vw, 2.25rem); font-weight: 700; line-height: 1.05; }
+.agora-linha { margin: 8px 0 0; font-size: 14px; color: var(--tinta-fraca); font-variant-numeric: tabular-nums; }
+.agora-linha a { color: var(--tinta); text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--hair); }
+.agora-linha a:hover { text-decoration-color: currentColor; }
+.agora-acoes { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.agora-fim { grid-template-columns: minmax(0, 1fr); }
+
+.agora-cadeira {
+  list-style: none;
+  margin: 20px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--hair);
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+.agora-cadeira li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.agora-cadeira .cap { color: var(--tinta-fraca); }
+.agora-cadeira span:last-child { color: var(--tinta-fraca); }
+
 @media (max-width: 620px) {
-  .dia-degrau { grid-template-columns: 1fr; gap: 6px; }
-  .dia-hora { padding-top: 0; }
+  .agora { padding: 20px 18px; }
+  .agora-proximo { grid-template-columns: minmax(0, 1fr); align-items: start; }
+  .agora-acoes { flex-direction: row; align-items: center; }
 }
 
 /* ── PRONTUÁRIO ───────────────────────────────────────────────────────────── */
 .faixa-auditoria {
   border: 1px solid var(--hair);
-  border-left: 3px solid var(--tinta);
   padding: 10px 14px;
-  margin-bottom: var(--spacing-20, 20px);
+  margin-bottom: var(--spacing-20);
   font-size: 13px;
   color: var(--tinta-fraca);
 }
@@ -369,8 +756,7 @@
   grid-template-columns: 14rem minmax(0, 1fr);
   gap: 20px;
 }
-/* A retificada era `opacity: .62`, o que apagava o texto clínico junto. Marca
-   de margem: diz a mesma coisa sem custar legibilidade. */
+/* Marca de margem, não opacidade: o texto clínico continua legível. */
 .evolucao[data-retificada="sim"] { border-left: 3px solid var(--alarm); padding-left: 14px; }
 @media (max-width: 620px) { .evolucao { grid-template-columns: 1fr; gap: 4px; } }
 
@@ -396,27 +782,98 @@
   .odonto-area {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 22rem;
-    gap: var(--spacing-30, 30px);
+    gap: var(--spacing-30);
     align-items: start;
   }
   .odonto-area .form-bloco { margin-bottom: 0; }
 }
 
 /* ── INDICADORES ──────────────────────────────────────────────────────────── */
-/* Cinco números em <li class="row"> era uma lista de linhas para o que é um
-   painel. O gap de 1px sobre o fundo hairline desenha a grade sem borda dupla. */
+/* As métricas da parede vermelha, sem a parede: número em Antonio, legenda em
+   caixa-alta, hairline entre eles. O gap de 1px sobre o fundo hairline desenha
+   a grade sem borda dupla, inclusive quando a linha quebra. */
 .indicadores {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
   gap: 1px;
   background: var(--hair);
   border: 1px solid var(--hair);
-  margin-bottom: var(--spacing-20, 20px);
+  margin-bottom: var(--spacing-20);
 }
-.indicador { background: var(--superficie); padding: 16px 18px; }
+.indicador {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: var(--fundo);
+  padding: 20px 20px 18px;
+}
 .indicador-valor {
-  margin: 6px 0;
-  font-size: clamp(1.4rem, 2.4vw, 1.8rem);
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: clamp(2.5rem, 4vw, 3.6rem);
+  line-height: .78;
+  letter-spacing: -.03em;
+  padding-block: .1em;
   font-variant-numeric: tabular-nums;
+  font-feature-settings: "ss01" 0, "ss02" 0;
+  white-space: nowrap;
 }
+.indicador-valor sup { font-size: .32em; letter-spacing: 0; vertical-align: top; margin-right: 4px; }
+.indicador .cap:last-child { margin-top: auto; font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 13px; }
 .indicador[data-alarme="sim"] .indicador-valor { color: var(--alarm); }
+
+/* ── ÁREA DO PACIENTE ─────────────────────────────────────────────────────── */
+/* Fora do `.app-main` de propósito: é a landing falando com quem é atendido,
+   no corpo e na escala dela — o paciente lê no celular, na sala de espera. */
+.area-topo { border-bottom: 1px solid var(--hair); }
+.area-topo .acoes { gap: var(--spacing-15); }
+
+.area-abre { padding-block: var(--spacing-50) var(--pad-sec); }
+.area-abre .credit { margin-top: 24px; color: var(--tinta-fraca); }
+.area-abre .body { margin-top: 30px; }
+
+.area-sec { padding-block: 0 var(--pad-sec); }
+.area-sec > .display { margin-bottom: 40px; }
+
+/* As etapas são o `.row` de Funcionalidades: rótulo e título à esquerda,
+   texto à direita, hairline entre elas. Aqui a ordem É a informação. */
+.etapa {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: 18px 60px;
+  align-items: baseline;
+  padding-block: 36px;
+  border-top: 1px solid var(--hair);
+}
+.etapa:last-child { border-bottom: 1px solid var(--hair); }
+.etapa .row-title { margin-top: 12px; }
+.etapa[data-feita="nao"] .row-title { color: var(--tinta-fraca); }
+.etapa .body + .credit { margin-top: 14px; color: var(--tinta-fraca); }
+
+.area-acoes { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 36px; }
+
+.area-direitos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-top: 1px solid var(--tinta);
+}
+.area-direitos > div { padding: 30px 30px 30px 0; }
+.area-direitos > div + div { border-left: 1px solid var(--hair); padding-left: 30px; }
+.area-direitos .sub { font-size: clamp(1.25rem, 2vw, 1.6rem); margin-bottom: 14px; }
+
+/* A ficha do paciente usa os controles do sistema; aqui eles crescem para o
+   dedo e para os 16px que impedem o iOS de dar zoom ao focar. */
+.area .campo-app input, .area .campo-app select { font-size: 16px; padding: 12px 13px; }
+.area .form-bloco { background: transparent; padding: var(--spacing-30) 0 0; border: 0; border-top: 1px solid var(--tinta); }
+.area .form-bloco > .sub { font-size: var(--t-sub); margin-top: 18px; }
+
+@media (max-width: 900px) {
+  .etapa { grid-template-columns: 1fr; gap: 10px; padding-block: 28px; }
+  .area-direitos { grid-template-columns: 1fr; }
+  .area-direitos > div { padding: 24px 0; }
+  .area-direitos > div + div { border-left: 0; border-top: 1px solid var(--hair); padding-left: 0; }
+}
+@media (max-width: 620px) {
+  .area-acoes .btn { flex: 1 1 100%; justify-content: center; }
+}

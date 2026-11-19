@@ -113,8 +113,8 @@ function Membro({ membro, onMudou }) {
 
   return (
     <tr>
-      <Celula rotulo="Nome">
-        <p className="sub" style={{ fontSize: '15px' }}>{membro.nomeCompleto ?? '—'}</p>
+      <Celula rotulo="Nome" className="celula-nome">
+        {membro.nomeCompleto ?? '—'}
         <p className="cap cap-ash">{membro.email}</p>
       </Celula>
 

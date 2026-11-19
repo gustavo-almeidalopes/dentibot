@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api.js';
-import { contagem, telHref } from '../apresentacao.js';
+import { casaBusca, contagem, telHref } from '../apresentacao.js';
 import FichaPaciente from '../components/FichaPaciente.jsx';
 import { Aviso, Celula, Selo, Tabela } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
-import { prontuarioDe } from '../rotas.js';
+import { RECEPCAO, prontuarioDe } from '../rotas.js';
 import { Cabecalho, Estado, usePode } from './Layout.jsx';
 
 /* O `LIMITE_MAXIMO` do PacienteController é 200, e pedir mais não traz mais.
@@ -28,10 +28,8 @@ export default function Pacientes() {
   const pacientes = useRecurso(`/pacientes?limite=${LIMITE}`);
   const lista = pacientes.dados ?? [];
 
-  const filtrada = busca.trim()
-    ? lista.filter((p) => `${p.nomeCompleto ?? ''} ${p.telefoneCelular ?? ''}`
-      .toLowerCase().includes(busca.trim().toLowerCase()))
-    : lista;
+  /* A mesma busca da Recepção: "joao" acha João, e o telefone casa por dígitos. */
+  const filtrada = lista.filter((p) => casaBusca(busca, p.nomeCompleto, p.telefoneCelular));
 
   return (
     <>
@@ -73,8 +71,8 @@ export default function Pacientes() {
         esqueleto={{ linhas: 8, colunas: 4 }}
         vazio={filtrada.length === 0
           ? (busca
-            ? 'Nenhum paciente carregado corresponde a esta busca.'
-            : 'Nenhum paciente cadastrado ainda.')
+            ? { titulo: 'Ninguém com esse nome.', texto: 'Nenhum paciente carregado corresponde a esta busca.' }
+            : { titulo: 'Cadastro vazio.', texto: 'Nenhum paciente cadastrado ainda. O primeiro entra por Novo paciente.' })
           : null}
       >
         <Tabela colunas={[
@@ -85,7 +83,7 @@ export default function Pacientes() {
         ]}>
           {filtrada.map((p) => (
             <tr key={p.idPaciente}>
-              <Celula rotulo="Nome">{p.nomeCompleto ?? '—'}</Celula>
+              <Celula rotulo="Nome" className="celula-nome">{p.nomeCompleto ?? '—'}</Celula>
               <Celula rotulo="Telefone" num>
                 {telHref(p.telefoneCelular)
                   ? <a href={telHref(p.telefoneCelular)}>{p.telefoneCelular}</a>
@@ -97,18 +95,27 @@ export default function Pacientes() {
                   travessão. `descrever` mostra o valor como veio. */}
               <Celula rotulo="Status"><Selo mapa={{}} valor={p.status} /></Celula>
               <Celula rotulo="">
-                {/* Recepção e financeiro não alcançam prontuário — dado de
-                    saúde, LGPD art. 11. Sem o link a tela não convida ao 403. */}
-                {pode('PRONTUARIO') && (
-                  <Link className="btn btn-sm"
-                        to={prontuarioDe(p.idPaciente)}
-                        /* O nome já está aqui. Passar por state evita o
-                           "Paciente 7" no cabeçalho do prontuário sem custar
-                           uma requisição. */
-                        state={{ nomePaciente: p.nomeCompleto }}>
-                    Prontuário
-                  </Link>
-                )}
+                <div className="acoes">
+                  {/* Do cadastro direto para o horário, com o paciente já escolhido
+                      no painel de agendar da Recepção. */}
+                  {pode('AGENDA', 'CRIAR') && (
+                    <Link className="btn btn-sm" to={RECEPCAO} state={{ paciente: p }}>
+                      Agendar
+                    </Link>
+                  )}
+                  {/* Recepção e financeiro não alcançam prontuário — dado de
+                      saúde, LGPD art. 11. Sem o link a tela não convida ao 403. */}
+                  {pode('PRONTUARIO') && (
+                    <Link className="btn btn-sm"
+                          to={prontuarioDe(p.idPaciente)}
+                          /* O nome já está aqui. Passar por state evita o
+                             "Paciente 7" no cabeçalho do prontuário sem custar
+                             uma requisição. */
+                          state={{ nomePaciente: p.nomeCompleto }}>
+                      Prontuário
+                    </Link>
+                  )}
+                </div>
               </Celula>
             </tr>
           ))}

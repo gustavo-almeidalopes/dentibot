@@ -107,17 +107,19 @@ export default function Auditoria() {
         </label>
       </div>
 
-      <p className="cap cap-ash" style={{ marginBottom: 'var(--spacing-20, 20px)' }}>
+      <p className="aviso" data-tom="info">
         Consultar esta tela também gera um evento — a trilha registra quem a leu.
       </p>
 
       <Estado status={trilha.status} erro={trilha.erro} onTentarDeNovo={trilha.recarregar}
               esqueleto={{ linhas: 10, colunas: 5 }}
-              vazio={lista.length === 0 ? 'Nenhum evento no período.' : null}>
+              vazio={lista.length === 0
+                ? { titulo: 'Trilha limpa.', texto: 'Nenhum evento no período e nos filtros escolhidos.' }
+                : null}>
         {/* Truncar calado numa trilha de auditoria é a diferença entre "não
             houve" e "não coube". */}
         {lista.length >= LIMITE && (
-          <p className="aviso" data-tom="sucesso" role="status">
+          <p className="aviso" data-tom="info" role="status">
             Mostrando os {LIMITE} eventos mais recentes do período. Estreite as datas
             para alcançar o resto.
           </p>

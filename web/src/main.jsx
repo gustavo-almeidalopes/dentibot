@@ -6,6 +6,7 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import App from './App.jsx';
 import Login from './components/Login.jsx';
 import Agenda from './paginas/Agenda.jsx';
+import AreaPaciente from './paginas/AreaPaciente.jsx';
 import Auditoria from './paginas/Auditoria.jsx';
 import Cadastro from './paginas/Cadastro.jsx';
 import Equipe from './paginas/Equipe.jsx';
@@ -14,10 +15,15 @@ import Layout from './paginas/Layout.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
 import Pacientes from './paginas/Pacientes.jsx';
 import Prontuario from './paginas/Prontuario.jsx';
+import Recepcao from './paginas/Recepcao.jsx';
 import './style.css';
 import './app.css';
+/* Antes do primeiro render: o atributo do tema já está no <html> quando a
+   primeira tela pinta, e o tema claro não pisca preto ao recarregar. */
+import './tema.js';
 import {
-  AGENDA, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES, PRONTUARIO,
+  AGENDA, AREA_PACIENTE, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES,
+  PRONTUARIO, RECEPCAO,
 } from './rotas.js';
 
 /* Router de verdade, e não o mapa de `window.location.pathname` que estava
@@ -81,9 +87,12 @@ createRoot(document.getElementById('root')).render(
           {/* Fora do Layout de propósito: quem chega aqui ainda não tem clínica,
               e o menu do Layout só aponta para telas que responderiam 401. */}
           <Route path={CADASTRO} element={<Cadastro />} />
+          {/* Também fora: paciente não tem clínica, e o /eu responderia 403. */}
+          <Route path={AREA_PACIENTE} element={<AreaPaciente />} />
 
           {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
           <Route element={<Layout />}>
+            <Route path={RECEPCAO} element={<Recepcao />} />
             <Route path={AGENDA} element={<Agenda />} />
             <Route path={PACIENTES} element={<Pacientes />} />
             <Route path={PRONTUARIO} element={<Prontuario />} />

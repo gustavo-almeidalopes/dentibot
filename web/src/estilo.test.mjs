@@ -39,6 +39,8 @@ test('todo token que o CSS usa está definido em algum lugar', () => {
 });
 
 test('o tema claro define todo token semântico que o escuro define', () => {
+  // Escuro é o :root da marca; claro é opt-in por data-tema, só nas telas do
+  // sistema (tema.js).
   const fonte = cssDaLanding() + cssDoApp();
   const bloco = (re) => (fonte.match(re) ?? [''])[0];
 
@@ -48,7 +50,7 @@ test('o tema claro define todo token semântico que o escuro define', () => {
   );
 
   const escuro = semanticos(bloco(/:root\s*\{[^}]*\}/));
-  const claro = semanticos(bloco(/:root:has\(\.app-main\)\s*\{[^}]*\}/));
+  const claro = semanticos(bloco(/:root\[data-tema="claro"\]:has\(\.app-main\)\s*\{[^}]*\}/));
 
   // Token definido só no escuro é o bug do --ink de novo, com outro nome: a
   // tela clara herda o valor do preto e o texto some no fundo.
@@ -70,8 +72,9 @@ test('nenhuma tela imprime o endpoint na interface', () => {
 test('as telas do sistema não usam o .row da landing', () => {
   // `.row` é grid de DUAS colunas com padding-block de 42px. As telas passavam
   // TRÊS filhos, e a coluna de ações caía numa linha implícita.
+  // `row-title` é outra classe (o título em Antonio), e `\b` casava com ela.
   for (const [nome, fonte] of telas()) {
-    assert.ok(!/className="row\b|className="[^"]*\brow /.test(fonte),
+    assert.ok(!/className="(?:[^"]*\s)?row["\s]/.test(fonte),
       `${nome} ainda usa .row`);
   }
 });

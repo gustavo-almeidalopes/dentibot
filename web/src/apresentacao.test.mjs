@@ -10,8 +10,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  STATUS_CONSULTA, agruparPorHora, contagem, descrever, faixaHoraria,
-  porExtenso, somarDias, telHref,
+  STATUS_CONSULTA, agruparPorHora, casaBusca, contagem, descrever, faixaHoraria, horarios,
+  jaPassou, momento, porExtenso, relativo, somarDias, telHref, whatsappHref,
 } from './apresentacao.js';
 
 test('status conhecido vira rótulo em português e tom de selo', () => {
@@ -86,4 +86,72 @@ test('o zero concorda em gênero com o substantivo', () => {
 test('o dia por extenso é o dia civil, não o de UTC', () => {
   assert.match(porExtenso('2026-09-13'), /domingo/i);
   assert.match(porExtenso('2026-09-13'), /13 de setembro/i);
+});
+
+test('a grade de horários respeita o [) do banco e esconde o que passou', () => {
+  const ocupada = {
+    status: 'confirmada',
+    inicioEm: new Date(2026, 9, 13, 9, 0).toISOString(),
+    terminoEm: new Date(2026, 9, 13, 10, 0).toISOString(),
+  };
+  const vespera = new Date(2026, 9, 12, 12, 0);
+  const em = (grade, h) => grade.find((g) => g.hora === h);
+  const grade = horarios('2026-10-13', [ocupada], 30, vespera);
+
+  assert.equal(em(grade, '08:00').livre, true);
+  assert.equal(em(grade, '08:30').livre, true, '08:30–09:00 encosta e não sobrepõe');
+  assert.equal(em(grade, '09:00').livre, false);
+  assert.equal(em(grade, '09:30').livre, false);
+  assert.equal(em(grade, '10:00').livre, true, 'quem termina 10:00 não bloqueia 10:00');
+  assert.equal(grade.at(-1).hora, '18:30', 'a última cabe inteira antes de fechar');
+
+  // Com 60 min, 08:30 já invade a das 9h.
+  assert.equal(em(horarios('2026-10-13', [ocupada], 60, vespera), '08:30').livre, false);
+
+  // Cancelada libera o horário, como no WHERE da EXCLUDE.
+  assert.equal(em(horarios('2026-10-13', [{ ...ocupada, status: 'cancelada' }], 30, vespera),
+    '09:00').livre, true);
+
+  // O que já passou nem aparece.
+  assert.equal(horarios('2026-10-13', [], 30, new Date(2026, 9, 13, 14, 10))[0].hora, '14:30');
+});
+
+test('o momento separa quem está na cadeira de quem é o próximo', () => {
+  const c = (id, h, m, dur, status = 'agendada') => ({
+    idConsulta: id, status,
+    inicioEm: new Date(2026, 9, 13, h, m).toISOString(),
+    terminoEm: new Date(2026, 9, 13, h, m + dur).toISOString(),
+  });
+  const agora = new Date(2026, 9, 13, 10, 15);
+  const { naCadeira, proxima } = momento([
+    c(3, 11, 0, 30), c(1, 10, 0, 45, 'confirmada'), c(2, 10, 30, 30),
+    c(4, 9, 0, 30, 'realizada'), c(5, 10, 20, 30, 'cancelada'),
+  ], agora);
+
+  assert.deepEqual(naCadeira.map((x) => x.idConsulta), [1]);
+  assert.equal(proxima.idConsulta, 2, 'a mais cedo, não a primeira da resposta');
+  assert.equal(jaPassou(c(4, 9, 0, 30, 'realizada'), agora), true);
+  assert.equal(jaPassou(c(1, 10, 0, 45), agora), false);
+});
+
+test('o tempo relativo é o que a recepção fala em voz alta', () => {
+  const agora = new Date(2026, 9, 13, 10, 0);
+  assert.equal(relativo(new Date(2026, 9, 13, 10, 25), agora), 'em 25 min');
+  assert.equal(relativo(new Date(2026, 9, 13, 9, 55), agora), 'há 5 min');
+  assert.equal(relativo(new Date(2026, 9, 13, 11, 10), agora), 'em 1 h 10 min');
+  assert.equal(relativo(new Date(2026, 9, 13, 12, 0), agora), 'em 2 h');
+  assert.equal(relativo(agora, agora), 'agora');
+});
+
+test('a busca ignora acento e casa telefone por dígitos', () => {
+  assert.equal(casaBusca('joao', 'João Pedro', null), true);
+  assert.equal(casaBusca('987-65', 'Ana', '11987654321'), true);
+  assert.equal(casaBusca('1', 'Ana', '11987654321'), false, 'um dígito casaria todo DDD 11');
+  assert.equal(casaBusca('', 'Ana', null), true);
+});
+
+test('o link do WhatsApp sai em E.164 com a mensagem codificada', () => {
+  assert.equal(whatsappHref('(11) 98765-4321', 'Olá, Ana!'),
+    'https://wa.me/5511987654321?text=Ol%C3%A1%2C%20Ana!');
+  assert.equal(whatsappHref('123', 'x'), null);
 });

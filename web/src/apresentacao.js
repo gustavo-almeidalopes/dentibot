@@ -128,3 +128,113 @@ export function contagem(n, limite, singular, plural) {
   if (n >= limite) return `${n} primeiros`;
   return `${n} ${n === 1 ? singular : plural}`;
 }
+
+/* ── BALCÃO ─────────────────────────────────────────────────────────────────
+   O que a Recepção calcula sobre a lista de consultas que já carregou. */
+
+/* O mesmo WHERE da EXCLUDE `ex_dentista_sem_sobreposicao`: cancelada e faltou
+   liberam o horário, realizada não. Divergir daqui é oferecer um horário que o
+   banco recusa com 409. */
+const OCUPAM_HORARIO = new Set(['agendada', 'confirmada', 'em_atendimento', 'realizada']);
+
+/* Quem ainda vai sentar, ou está sentado, na cadeira. */
+const VIVAS = new Set(['agendada', 'confirmada', 'em_atendimento']);
+
+/* ponytail: expediente fixo, 8h às 19h em passos de 30 min. O back-end não
+   guarda horário de funcionamento; quando `/clinica` ganhar, estes números
+   saem de lá. */
+export const EXPEDIENTE = { abre: 8, fecha: 19, passoMin: 30 };
+
+/**
+ * A grade do dia de UM dentista: cada início possível, e se cabe.
+ *
+ * <p>"Cabe" é o intervalo inteiro `[início, início + duração)` livre — o mesmo
+ * `[)` do `tstzrange` do banco, então quem termina 10:00 não bloqueia 10:00.
+ * Horário que já passou sai da grade: o `@Future` do NovaConsulta o recusaria
+ * de qualquer jeito.
+ */
+export function horarios(dia, consultas, duracaoMin, agora = new Date()) {
+  const [ano, mes, d] = dia.split('-').map(Number);
+  const ocupadas = consultas
+    .filter((c) => OCUPAM_HORARIO.has(c.status))
+    .map((c) => [new Date(c.inicioEm).getTime(), new Date(c.terminoEm).getTime()]);
+
+  const grade = [];
+  for (let min = EXPEDIENTE.abre * 60; min + duracaoMin <= EXPEDIENTE.fecha * 60;
+    min += EXPEDIENTE.passoMin) {
+    const inicio = new Date(ano, mes - 1, d, 0, min);
+    if (inicio <= agora) continue;
+    const fim = new Date(inicio.getTime() + duracaoMin * 60000);
+    const ocupado = ocupadas.some(([a, b]) => inicio.getTime() < b && a < fim.getTime());
+    grade.push({ hora: HORA.format(inicio), inicio, fim, livre: !ocupado });
+  }
+  return grade;
+}
+
+/**
+ * O que a recepção precisa saber sem ler a lista: quem está na cadeira agora
+ * e quem é o próximo a chegar.
+ */
+export function momento(consultas, agora = new Date()) {
+  const vivas = consultas
+    .filter((c) => VIVAS.has(c.status))
+    .sort((a, b) => new Date(a.inicioEm) - new Date(b.inicioEm));
+  return {
+    naCadeira: vivas.filter((c) =>
+      new Date(c.inicioEm) <= agora && agora < new Date(c.terminoEm)),
+    proxima: vivas.find((c) => new Date(c.inicioEm) > agora) ?? null,
+  };
+}
+
+/** Saiu do dia: terminou de fato, ou o horário dela já acabou. */
+export const jaPassou = (c, agora = new Date()) =>
+  !VIVAS.has(c.status) || new Date(c.terminoEm) <= agora;
+
+/** 'em 25 min', 'há 5 min', 'em 1 h 10 min'. */
+export function relativo(alvo, agora = new Date()) {
+  const min = Math.round((new Date(alvo) - agora) / 60000);
+  if (min === 0) return 'agora';
+  const abs = Math.abs(min);
+  const texto = abs < 60
+    ? `${abs} min`
+    : `${Math.floor(abs / 60)} h${abs % 60 ? ` ${abs % 60} min` : ''}`;
+  return min > 0 ? `em ${texto}` : `há ${texto}`;
+}
+
+const semAcento = (s) => String(s ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '')
+  .toLowerCase();
+
+/**
+ * A busca da recepção: "joao" acha João, e "98765" acha o celular.
+ *
+ * <p>Telefone comparado em dígitos dos dois lados — o banco guarda só dígitos e
+ * quem digita põe parêntese e traço. Três dígitos no mínimo, senão "1" casaria
+ * com todo DDD 11.
+ */
+export function casaBusca(busca, nome, telefone) {
+  const termo = semAcento(busca).trim();
+  if (!termo) return true;
+  const digitos = termo.replace(/\D/g, '');
+  return semAcento(nome).includes(termo)
+    || (digitos.length >= 3 && String(telefone ?? '').replace(/\D/g, '').includes(digitos));
+}
+
+/** Conversa no WhatsApp com a mensagem pronta, ou null se o número não disca. */
+export function whatsappHref(telefone, mensagem) {
+  const tel = telHref(telefone);
+  return tel
+    ? `https://wa.me/${tel.slice('tel:+'.length)}?text=${encodeURIComponent(mensagem)}`
+    : null;
+}
+
+/** '14:30', no fuso de quem está na clínica. */
+export const hora = (instante) => HORA.format(new Date(instante));
+
+/* O back-end recebe `de` e `ate` como instantes ISO. O <input type="date"> dá
+   'AAAA-MM-DD', que é dia civil — converter no fuso do browser é o certo: a
+   agenda de terça é a terça de quem está na clínica, não a de UTC. */
+export const inicioDoDia = (dia) => new Date(`${dia}T00:00:00`).toISOString();
+export const fimDoDia = (dia) => new Date(`${dia}T23:59:59.999`).toISOString();
+
+/** O dia civil local de um instante, em 'AAAA-MM-DD'. */
+export const diaDe = (instante) => new Date(instante).toLocaleDateString('sv-SE');

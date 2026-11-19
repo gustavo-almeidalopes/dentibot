@@ -1,23 +1,23 @@
 import { useMemo, useState } from 'react';
-import { api, query } from '../api.js';
+import { useNavigate } from 'react-router-dom';
+import { query } from '../api.js';
 import {
-  STATUS_CONSULTA, agruparPorHora, contagem, faixaHoraria, hoje, porExtenso,
-  somarDias, telHref,
+  STATUS_CONSULTA, agruparPorHora, contagem, faixaHoraria, fimDoDia, hoje, inicioDoDia,
+  porExtenso, somarDias, telHref,
 } from '../apresentacao.js';
-import Confirmar from '../components/Confirmar.jsx';
+import Agendar from '../components/Agendar.jsx';
+import Transicao from '../components/Transicao.jsx';
 import { Aviso, Selo } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
-import { Cabecalho, Estado } from './Layout.jsx';
-
-/* O back-end recebe `de` e `ate` como instantes ISO. O <input type="date"> dá
-   'AAAA-MM-DD', que é dia civil — converter no fuso do browser é o certo: a
-   agenda de terça é a terça de quem está na clínica, não a de UTC. */
-const inicioDoDia = (dia) => new Date(`${dia}T00:00:00`).toISOString();
-const fimDoDia = (dia) => new Date(`${dia}T23:59:59.999`).toISOString();
+import { RECEPCAO } from '../rotas.js';
+import { Cabecalho, Estado, usePode } from './Layout.jsx';
 
 export default function Agenda() {
   const [dia, setDia] = useState(hoje);
   const [idDentista, setIdDentista] = useState('');
+  const [agendando, setAgendando] = useState(false);
+  const pode = usePode();
+  const navegar = useNavigate();
 
   const caminho = useMemo(
     () => `/consultas${query({ de: inicioDoDia(dia), ate: fimDoDia(dia), idDentista })}`,
@@ -26,6 +26,9 @@ export default function Agenda() {
 
   const consultas = useRecurso(caminho);
   const dentistas = useRecurso('/equipe/dentistas');
+  /* Só quando o painel abre: a lista de pacientes serve à busca do agendar, e
+     quem só consulta o dia não precisa pagar por ela. */
+  const pacientes = useRecurso(agendando ? '/pacientes?limite=200' : null);
   const { executar, enviando, sucesso } = useAcao(consultas.recarregar);
 
   const lista = consultas.dados ?? [];
@@ -45,7 +48,28 @@ export default function Agenda() {
         detalhe={consultas.status === 'ok'
           ? `${porExtenso(dia)} · ${contagem(lista.length, Infinity, 'consulta', 'consultas')}`
           : porExtenso(dia)}
+        acao={pode('AGENDA', 'CRIAR') && (
+          <button type="button" className="btn btn-fill" onClick={() => setAgendando((a) => !a)}>
+            {agendando ? 'Fechar' : 'Agendar'}
+          </button>
+        )}
       />
+
+      {agendando && (
+        <Agendar
+          key={dia}
+          diaInicial={dia}
+          pacientes={pacientes.dados ?? []}
+          dentistas={dentistas.status === 'ok' ? dentistas.dados ?? [] : null}
+          podeVerEquipe={pode('EQUIPE')}
+          /* O cadastro com a ficha inteira mora na Recepção; o nome digitado
+             vai junto para não ser digitado de novo. */
+          onCadastrar={pode('PACIENTE', 'CRIAR')
+            ? (nome) => navegar(RECEPCAO, { state: { cadastrar: nome } })
+            : undefined}
+          onAgendado={consultas.recarregar}
+        />
+      )}
 
       <div className="filtros filtros-linha">
         {/* Trocar de dia exigia abrir o date picker para andar uma casa. */}
@@ -84,17 +108,18 @@ export default function Agenda() {
            dia está livre quando ela só esqueceu um dentista selecionado. */
         vazio={lista.length === 0
           ? (idDentista
-            ? 'Nenhuma consulta deste dentista neste dia. O filtro de dentista está ativo.'
-            : 'Nenhuma consulta neste dia.')
+            ? { titulo: 'Nada neste filtro.',
+              texto: 'Nenhuma consulta deste dentista neste dia. O filtro de dentista está ativo — em Todos pode haver outras.' }
+            : { titulo: 'Dia livre.', texto: 'Nenhuma consulta marcada neste dia.' })
           : null}
       >
         <div className="dia">
           {agruparPorHora(lista).map(({ hora, consultas: doHorario }) => (
             <div className="dia-degrau" key={hora}>
-              <p className="dia-hora">{hora}h</p>
+              <p className="dia-hora">{hora}<small>h</small></p>
               <div className="dia-blocos">
                 {doHorario.map((c) => (
-                  <article className="consulta" key={c.idConsulta}>
+                  <article className="consulta" key={c.idConsulta} data-status={c.status}>
                     <p className="consulta-faixa">{faixaHoraria(c.inicioEm, c.terminoEm)}</p>
                     <p className="sub">{c.nomePaciente ?? `Paciente ${c.idPaciente}`}</p>
                     <p className="body body-ash">{nomeDoDentista(c.idDentista)}</p>
@@ -111,16 +136,16 @@ export default function Agenda() {
                           um botão que o back-end recusa com 409 é ensinar o
                           usuário a ignorar mensagem de erro. */}
                       {c.status === 'agendada' && (
-                        <Transicao id={c.idConsulta} acao="confirmar" rotulo="Confirmar"
+                        <Transicao id={c.idConsulta} acao="confirmar" paciente={c.nomePaciente}
                                    executar={executar} enviando={enviando} />
                       )}
                       {(c.status === 'agendada' || c.status === 'confirmada') && (
                         <>
-                          <Transicao id={c.idConsulta} acao="concluir" rotulo="Concluir"
-                                     confirmacao="Concluir esta consulta?"
+                          <Transicao id={c.idConsulta} acao="concluir" paciente={c.nomePaciente}
                                      executar={executar} enviando={enviando} />
-                          <Transicao id={c.idConsulta} acao="falta" rotulo="Faltou"
-                                     confirmacao="Registrar falta do paciente?"
+                          <Transicao id={c.idConsulta} acao="falta" paciente={c.nomePaciente}
+                                     executar={executar} enviando={enviando} />
+                          <Transicao id={c.idConsulta} acao="cancelar" paciente={c.nomePaciente}
                                      executar={executar} enviando={enviando} />
                         </>
                       )}
@@ -132,52 +157,6 @@ export default function Agenda() {
           ))}
         </div>
       </Estado>
-    </>
-  );
-}
-
-/**
- * Um POST de transição.
- *
- * <p>A `Idempotency-Key` é gerada UMA VEZ por montagem do botão, não por
- * clique: dois toques em "Confirmar" são a mesma requisição lógica, e uma chave
- * nova no segundo clique faria o filtro do back-end tratá-lo como operação
- * distinta — que é exatamente o que ele existe para impedir.
- *
- * <p>`confirmacao` marca o que não tem volta: "Faltou" e "Concluir" mudam o
- * estado para um lugar de onde o back-end responde 409, e os dois ficavam a um
- * clique, encostados no botão que não faz mal nenhum.
- */
-function Transicao({ id, acao, rotulo, confirmacao, executar, enviando }) {
-  const [chave] = useState(() => crypto.randomUUID());
-  const [perguntando, setPerguntando] = useState(false);
-
-  const disparar = () => {
-    setPerguntando(false);
-    executar(
-      api.post(`/consultas/${id}/${acao}`, {}, { idempotencyKey: chave }),
-      `${rotulo}: consulta atualizada.`,
-    );
-  };
-
-  return (
-    <>
-      <button type="button" className={`btn btn-sm${confirmacao ? ' btn-perigo' : ''}`}
-              disabled={enviando}
-              onClick={() => (confirmacao ? setPerguntando(true) : disparar())}>
-        {rotulo}
-      </button>
-      {confirmacao && (
-        <Confirmar
-          aberto={perguntando}
-          titulo={confirmacao}
-          corpo="Esta mudança não tem volta pela tela: o back-end recusa o caminho inverso."
-          rotuloConfirmar={rotulo}
-          perigo
-          onConfirmar={disparar}
-          onCancelar={() => setPerguntando(false)}
-        />
-      )}
     </>
   );
 }

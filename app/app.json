@@ -2,15 +2,36 @@
   "expo": {
     "name": "DentiBot",
     "slug": "dentibot",
-    "version": "2.0.0",
     "orientation": "portrait",
     "scheme": "dentibot",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "backgroundColor": "#000000",
+    "icon": "./assets/icon.png",
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      [
+        "expo-secure-store",
+        {
+          "faceIDPermission": false
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/glifo.png",
+          "imageWidth": 160,
+          "backgroundColor": "#000000"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
+          }
+        }
+      ]
     ],
     "ios": {
       "bundleIdentifier": "br.com.dentibot.app",
@@ -21,11 +42,18 @@
     },
     "android": {
       "package": "br.com.dentibot.app",
-      "edgeToEdgeEnabled": true,
       "adaptiveIcon": {
+        "foregroundImage": "./assets/glifo.png",
+        "monochromeImage": "./assets/glifo.png",
         "backgroundColor": "#000000"
       },
-      "permissions": []
+      "permissions": [],
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.VIBRATE"
+      ]
     },
     "experiments": {
       "typedRoutes": true
