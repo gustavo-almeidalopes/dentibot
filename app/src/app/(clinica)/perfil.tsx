@@ -3,7 +3,7 @@ import Constants from 'expo-constants';
 import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { api, type Identidade } from '../../api';
+import { api, type Eu } from '../../api';
 import { cor, espaco, tipo } from '../../theme';
 import { Botao, Divisoria, Rotulo, Titulo } from '../../ui';
 
@@ -16,7 +16,7 @@ export default function Perfil() {
   // Quem é a pessoa vem do Clerk; qual o papel dela na clínica vem do backend,
   // que é o dono dessa informação. Falha vira "—", como antes: o perfil não é
   // tela de erro, e papel é detalhe ao lado do botão de sair.
-  const [identidade, setIdentidade] = useState<Identidade | null>(null);
+  const [identidade, setIdentidade] = useState<Eu | null>(null);
   useEffect(() => {
     let vivo = true;
     api
@@ -44,11 +44,7 @@ export default function Perfil() {
       <View style={{ gap: espaco.md }}>
         <Dado rotulo="Conta" valor={user?.primaryEmailAddress?.emailAddress ?? '—'} />
         <Divisoria />
-        <Dado rotulo="Papel" valor={identidade?.papel ?? '—'} />
-        <Divisoria />
-        <Dado rotulo="Clínica" valor={identidade?.clinicaId ? `#${identidade.clinicaId}` : '—'} />
-        <Divisoria />
-        <Dado rotulo="Usuário" valor={identidade?.usuarioId ? `#${identidade.usuarioId}` : '—'} />
+        <Dado rotulo="Papel" valor={identidade?.papel?.toLowerCase() ?? '—'} />
       </View>
 
       <Botao

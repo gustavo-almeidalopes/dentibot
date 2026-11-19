@@ -1,13 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  ACOES_POR_STATUS,
-  ErroApi,
-  api,
-  type Acao,
-  type Consulta,
-} from '../../api';
+import { ErroApi, api, type Acao, type Consulta } from '../../api';
 import { cor, corDoStatus, espaco, rotuloDoStatus, tipo } from '../../theme';
 import { Botao, Campo, Carregando, Divisoria, Erro, Rotulo, Titulo, Vazio } from '../../ui';
 
@@ -28,7 +22,7 @@ function janelaDoDia(dia: Date): { de: Date; ate: Date } {
 
 /**
  * ponytail: renderiza no fuso do aparelho. A clínica tem `timezone` em
- * `clinicas.clinicas`, mas `/auth/me` não o devolve — quando devolver, formatar
+ * `clinicas.clinicas`, mas `/eu` não o devolve — quando devolver, formatar
  * com `timeZone` para que um dentista em viagem veja o horário da clínica.
  */
 function hora(iso: string): string {
@@ -88,10 +82,11 @@ export default function Agenda() {
     setOcupada(consulta.idConsulta);
     setErro(null);
     try {
-      if (acao === 'confirmar') await api.confirmar(consulta.idConsulta);
-      else if (acao === 'concluir') await api.concluir(consulta.idConsulta);
-      else if (acao === 'falta') await api.registrarFalta(consulta.idConsulta);
-      else await api.cancelar(consulta.idConsulta, motivo.trim());
+      await api.transicionar(
+        consulta.idConsulta,
+        acao,
+        acao === 'cancelar' ? motivo.trim() : undefined,
+      );
 
       setCancelando(null);
       setMotivo('');
@@ -214,7 +209,11 @@ function Linha({
   onCancelarCancelamento,
   onAgir,
 }: LinhaProps) {
-  const acoes = ACOES_POR_STATUS[consulta.status];
+  // Quais ações valem é o backend quem diz (`acoes`, por status e alcance);
+  // a ordem dos botões é a desta tela.
+  const acoes = (Object.keys(ROTULO_DA_ACAO) as Acao[]).filter((a) =>
+    consulta.acoes.includes(a),
+  );
 
   return (
     <View style={{ padding: espaco.lg, gap: espaco.md }}>

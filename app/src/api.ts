@@ -163,12 +163,14 @@ export async function pedir<T>(caminho: string, o: Opcoes = {}): Promise<T> {
 // Espelham os records do backend. Nomes idênticos de propósito: a tradução
 // acontece na tela, não aqui, para que uma mudança de DTO apareça no typecheck.
 
-export type Identidade = {
-  usuarioId: number | null;
-  clinicaId: number | null;
+/** `GET /eu`: o papel e a matriz recurso → ação → alcance deste token. */
+export type Eu = {
   papel: string | null;
   staffPapel: string | null;
+  permissoes: Record<string, Record<string, string>>;
 };
+
+export type Acao = 'confirmar' | 'concluir' | 'falta' | 'cancelar';
 
 export type StatusConsulta =
   | 'agendada'
@@ -187,6 +189,8 @@ export type Consulta = {
   inicioEm: string;
   terminoEm: string;
   status: StatusConsulta;
+  /** As transições que este usuário pode fazer agora. O backend calcula. */
+  acoes: Acao[];
 };
 
 export type Paciente = {
@@ -202,7 +206,7 @@ export type Paciente = {
 export const api = {
   // login/logout saíram: quem cria e derruba sessão é o Clerk. O eu() fica —
   // papel e clínica são do domínio, não da identidade, e só o backend os sabe.
-  eu: () => pedir<Identidade>('/api/v1/auth/me'),
+  eu: () => pedir<Eu>('/api/v1/eu'),
 
   /** `de`/`ate` em ISO-8601 UTC — o backend os recebe como Instant. */
   agenda: (de: Date, ate: Date) =>
@@ -211,32 +215,14 @@ export const api = {
         `&ate=${encodeURIComponent(ate.toISOString())}`,
     ),
 
-  confirmar: (id: number) => pedir<void>(`/api/v1/consultas/${id}/confirmar`, { metodo: 'POST' }),
-  concluir: (id: number) => pedir<void>(`/api/v1/consultas/${id}/concluir`, { metodo: 'POST' }),
-  registrarFalta: (id: number) => pedir<void>(`/api/v1/consultas/${id}/falta`, { metodo: 'POST' }),
-  cancelar: (id: number, motivo: string) =>
-    pedir<void>(`/api/v1/consultas/${id}/cancelar`, { metodo: 'POST', corpo: { motivo } }),
+  /** `motivo` só para `cancelar`, que o exige. */
+  transicionar: (id: number, acao: Acao, motivo?: string) =>
+    pedir<void>(`/api/v1/consultas/${id}/${acao}`, {
+      metodo: 'POST',
+      corpo: motivo === undefined ? undefined : { motivo },
+    }),
 
   /** Keyset: `apos` é o último idPaciente recebido, não um número de página. */
   pacientes: (apos = 0, limite = 50) =>
     pedir<Paciente[]>(`/api/v1/pacientes?limite=${limite}&apos=${apos}`),
-};
-
-// ─── Máquina de estados ──────────────────────────────────────────────────────
-
-export type Acao = 'confirmar' | 'concluir' | 'falta' | 'cancelar';
-
-/**
- * Quais ações a UI oferece em cada status. Espelha `AgendaServico` — mas o
- * backend é a autoridade: ele devolve 409 `transicao-invalida` se esta tabela
- * divergir, e é isso que a tela mostra. Aqui só evitamos oferecer um botão que
- * sabemos que vai falhar.
- */
-export const ACOES_POR_STATUS: Record<StatusConsulta, readonly Acao[]> = {
-  agendada: ['confirmar', 'concluir', 'falta', 'cancelar'],
-  confirmada: ['concluir', 'falta', 'cancelar'],
-  em_atendimento: ['concluir'],
-  realizada: [],
-  cancelada: [],
-  faltou: [],
 };
