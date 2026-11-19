@@ -20,9 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Agenda.
- *
- * <p>{@code POST /consultas} exige {@code Idempotency-Key} — está na lista do
+ * {@code POST /consultas} exige {@code Idempotency-Key} — está na lista do
  * {@code FiltroIdempotencia}. Dois toques no botão de agendar não podem virar
  * duas consultas.
  */

@@ -12,8 +12,7 @@ import { APARENCIA, aplicarTema, lerTema } from '../tema.js';
  *
  * <p>O gate fica AQUI e não dentro de cada tela: assim o `useEffect` que busca
  * dados nem monta para quem está deslogado, em vez de disparar a chamada e
- * descartar o 401 depois. É a mesma decisão que a versão anterior tomava em
- * Clientes.jsx, agora num lugar só para as seis telas.
+ * descartar o 401 depois.
  */
 export default function Layout() {
   return (
@@ -42,7 +41,7 @@ function Autenticado() {
      authenticationEntryPoint: com httpBasic e formLogin desligados, o
      ExceptionTranslationFilter do Spring cai no Http403ForbiddenEntryPoint e
      responde 403 para quem não tem Authentication no contexto. Medido, não
-     suposto — a primeira versão disto testava 401 e nunca desviava.
+     suposto.
 
      Só vale para o /eu, e só porque este componente monta apenas quando o Clerk
      diz que há sessão: aqui 403 significa "sem conta nesta base", nunca "sem
@@ -77,8 +76,6 @@ function Autenticado() {
   );
 }
 
-/* Separada do Autenticado para o estado do tema não morar junto da carga do
-   /eu: trocar de tema re-renderiza a barra e a tela, não refaz a chamada. */
 function Casca({ pode, papel, permissoes, children }) {
   const [tema, setTema] = useState(lerTema);
   const claro = tema === 'claro';

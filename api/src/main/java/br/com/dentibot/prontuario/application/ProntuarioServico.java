@@ -164,11 +164,10 @@ public class ProntuarioServico implements ProntuarioApi {
     private void exigirAcessoAoPaciente(long idPaciente, Acao acao) {
         Alcance alcance = permissao.exigir(Recurso.PRONTUARIO, acao);
 
-        // Antes de ler qualquer coisa: o paciente existe NESTE tenant? Sem esta
-        // checagem, pedir o prontuário de um paciente de outra clínica devolvia
-        // 200 com lista vazia — o RLS não vazava nada, mas a API confirmava um
-        // caminho que não é do chamador, e a auditoria registrava leitura de um
-        // paciente que a clínica não tem.
+        // Antes de ler qualquer coisa: o paciente existe NESTE tenant? O RLS
+        // devolveria lista vazia para paciente de outra clínica, mas o 200
+        // confirmaria um caminho que não é do chamador, e a auditoria
+        // registraria leitura de um paciente que a clínica não tem.
         if (!pacientes.existe(idPaciente)) {
             throw new RecursoNaoEncontradoException("Paciente", idPaciente);
         }

@@ -3,8 +3,7 @@ package br.com.dentibot.prontuario;
 import java.util.List;
 
 /**
- * Porta pública do módulo prontuário — o núcleo regulado (CFO-226/2020, LGPD
- * art. 11).
+ * O núcleo regulado (CFO-226/2020, LGPD art. 11).
  *
  * <p>Toda leitura daqui deixa rastro em {@code auditoria.eventos}, na mesma
  * transação. Não é configuração nem feature flag: é o que a norma exige e o que

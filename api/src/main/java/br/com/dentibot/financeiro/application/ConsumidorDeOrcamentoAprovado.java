@@ -64,13 +64,10 @@ public class ConsumidorDeOrcamentoAprovado implements ConsumidorDeEvento {
     }
 
     /**
-     * O worker roda SEM tenant: {@code ContextoRequisicao.deWorker()} não tem
-     * {@code clinicaId}, e sem ele {@code plataforma.clinica_atual()} é nula.
-     * Consequência, se nada for promovido aqui: toda leitura sob RLS devolve
-     * zero linhas em silêncio — a guarda de idempotência nunca enxerga o
-     * recebível que já existe — e a primeira escrita estoura em
-     * {@code clinicaObrigatoria()}. O evento é reagendado dez vezes e
-     * abandonado, e aprovar orçamento nunca abre recebível.
+     * O worker roda SEM tenant ({@code plataforma.clinica_atual()} nula). Sem
+     * promover a clínica aqui, toda leitura sob RLS devolve zero linhas em
+     * silêncio — a guarda de idempotência não enxerga o recebível existente — e a
+     * primeira escrita estoura em {@code clinicaObrigatoria()}.
      *
      * <p>A clínica vem do envelope do evento, que é escrito pelo servidor no
      * mesmo INSERT do outbox — nunca de conteúdo enviado pelo cliente.

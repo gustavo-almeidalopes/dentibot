@@ -31,10 +31,8 @@ function Valor({ valor }) {
   return <><sup>{moeda}</sup>{numero}</>;
 }
 
-/* O recorte de CADA número, porque eles não compartilham um.
-   "Do primeiro dia do mês até hoje" estava no cabeçalho como se valesse para
-   os cinco, e só `recebidoNoPeriodo` é do período — os outros são saldo
-   corrente. Numa tela de dinheiro isso não é imprecisão, é erro. */
+/* O recorte de CADA número, porque eles não compartilham um: só
+   `recebidoNoPeriodo` é do período — os outros são saldo corrente. */
 const INDICADORES = [
   ['Recebido no período', 'recebidoNoPeriodo', 'do dia 1 até hoje'],
   ['A receber', 'aReceber', 'saldo em aberto, todas as datas'],
@@ -63,7 +61,6 @@ export default function Financeiro() {
   const formas = useRecurso(podeReceber ? '/financeiro/formas' : null);
   const [aviso, setAviso] = useState(null);
 
-  /* O recebimento mexe nos dois: o saldo da parcela e o "recebido no período". */
   const recebido = (mensagem) => {
     setAviso(mensagem);
     resumo.recarregar();

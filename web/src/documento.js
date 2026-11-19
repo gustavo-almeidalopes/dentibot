@@ -1,10 +1,6 @@
 /**
  * CPF, CNPJ, CEP e celular — máscara e validação, funções puras.
  *
- * <p>Separado do componente pelo mesmo motivo de cartao.js: é a única parte do
- * cadastro que tem regra de verdade, e regra sem teste apodrece. Ver
- * documento.test.mjs.
- *
  * <p>O dígito verificador é conferido no cliente para o usuário saber do erro de
  * digitação enquanto o campo ainda está na frente dele — NUNCA como autorização.
  * O back-end revalida: `PedidoCadastro` e `NovoPaciente` têm o @Pattern, e o

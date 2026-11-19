@@ -3,9 +3,7 @@ import { Lines, Reveal } from './Reveal.jsx';
 import { AGENDA, CADASTRO, CRIAR, LOGIN } from '../rotas.js';
 
 /* Clerk cobre e-mail/senha, os três provedores OAuth e a verificação por
-   código. Sumiram daqui: os SVGs das marcas, o <form>, o estado de envio e o
-   redirect para /api/auth/:provedor — tudo isso agora é o widget, e o
-   client_secret nunca chegou a passar por este lado mesmo. */
+   código: o formulário inteiro é o widget. */
 
 /* routing="virtual": os passos do widget ficam em memória, sem mexer na URL.
    Path routing exigiria uma rota coringa /login/* só para o Clerk, e hash
@@ -27,7 +25,6 @@ const CRIAR_CONTA = { ...COMUM, forceRedirectUrl: CADASTRO };
    { display: 'none' } }. */
 const APARENCIA = {
   variables: {
-    /* Tokens da marca — caem para valores sóbrios se o token não existir. */
     colorPrimary: 'var(--brand, #0f766e)',
     colorText: 'var(--ink, #111418)',
     colorTextSecondary: 'var(--ash, #6b7280)',

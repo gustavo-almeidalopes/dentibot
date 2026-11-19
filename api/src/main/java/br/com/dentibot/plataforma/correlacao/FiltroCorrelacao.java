@@ -60,9 +60,8 @@ public class FiltroCorrelacao extends OncePerRequestFilter {
         try {
             return UUID.fromString(cabecalho);
         } catch (IllegalArgumentException e) {
-            // Não é UUID: descarta em silêncio e gera um. Rejeitar a requisição
-            // por causa disso seria transformar um detalhe de observabilidade em
-            // indisponibilidade.
+            // Rejeitar a requisição por isso transformaria um detalhe de
+            // observabilidade em indisponibilidade.
             return UUID.randomUUID();
         }
     }

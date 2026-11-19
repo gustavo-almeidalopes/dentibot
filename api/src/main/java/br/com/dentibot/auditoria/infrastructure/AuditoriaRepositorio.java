@@ -14,7 +14,7 @@ public class AuditoriaRepositorio {
         this.jdbc = jdbc;
     }
 
-    /** Linha crua: o nome do usuário é de identidade, e o serviço o busca. */
+    /** Linha crua: sem nome do usuário, que é de identidade. */
     public record LinhaEvento(long idEvento, java.time.Instant ocorridoEm, Long idUsuario,
                               String staffPapel, String acao, String recurso, String idRecurso,
                               String ipOrigem, String correlacaoId) {

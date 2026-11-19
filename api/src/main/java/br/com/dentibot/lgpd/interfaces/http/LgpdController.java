@@ -28,9 +28,8 @@ import org.springframework.web.bind.annotation.RestController;
  * LGPD: termos versionados, consentimentos e direitos do titular.
  *
  * <p>Tudo aqui exige o recurso {@code LGPD}, que na matriz da camada 5 só o
- * ADMIN tem. Isso significa, hoje, que a recepcionista que colhe a assinatura no
- * balcão não consegue registrar o consentimento — ver a nota em
- * {@link #registrarConsentimento}.
+ * ADMIN tem: a recepcionista que colhe a assinatura no balcão não consegue
+ * registrar o consentimento.
  */
 @RestController
 @RequestMapping("/api/v1/lgpd")

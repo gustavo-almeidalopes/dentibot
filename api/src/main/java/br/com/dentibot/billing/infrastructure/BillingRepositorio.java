@@ -134,11 +134,8 @@ public class BillingRepositorio {
     }
 
     /**
-     * Encerra a assinatura em trial ao vincular a do provedor.
-     *
-     * <p>Sem isto, o índice parcial recusaria a nova: já existe uma viva. O
-     * erro apareceria como violação de unicidade dentro de um webhook, que é o
-     * pior lugar possível para descobrir isso.
+     * Encerra o trial ao vincular a assinatura do provedor; sem isto o índice
+     * parcial recusaria a nova, que já existe uma viva.
      */
     public int encerrarTrialSemProvedor(long idClinica) {
         return jdbc.sql("""

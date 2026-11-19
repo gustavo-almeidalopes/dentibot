@@ -42,8 +42,8 @@ export default function Equipe() {
           : 'Quem tem acesso a esta clínica'}
         acao={(
           <div>
-            {/* O motivo gruda no botão desabilitado: num parágrafo separado ele
-                não explicava por que o botão não clica. */}
+            {/* O motivo gruda no botão desabilitado (aria-describedby): solto
+                num parágrafo, não explica por que o botão não clica. */}
             <button type="button" className="btn btn-fill"
                     disabled={!cabe}
                     aria-describedby={!cabe ? 'limite-plano' : undefined}
@@ -148,8 +148,6 @@ function Membro({ membro, onMudou }) {
                       onClick={pedirSalvar}>
                 Salvar
               </button>
-              {/* Sem isto, o que você mexeu nos selects só se desfazia
-                  recarregando a página inteira. */}
               <button type="button" className="btn btn-sm" disabled={enviando}
                       onClick={descartar}>
                 Descartar

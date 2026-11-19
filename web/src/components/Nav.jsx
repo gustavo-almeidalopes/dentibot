@@ -78,8 +78,7 @@ export default function Nav() {
             existir. <Show> devolve null ENQUANTO o Clerk carrega — e para
             sempre se ele não carregar (chave ausente no build, script
             bloqueado, offline). O `fallback` não cobre isso: ele só entra
-            quando a condição é falsa, nunca durante a carga. Era esse o
-            motivo de a landing subir sem botão de entrar. */}
+            quando a condição é falsa, nunca durante a carga. */}
         <a href={LOGIN} className="btn btn-fill">Entrar</a>
         <Show when="signed-in">
           <a href={AGENDA} className="btn">Sistema</a>

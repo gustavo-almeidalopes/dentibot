@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Estoque: posição, produtos, fornecedores e movimentação. */
 @RestController
 @RequestMapping("/api/v1/estoque")
 public class EstoqueController {
@@ -70,7 +69,6 @@ public class EstoqueController {
         return estoque.extrato(idProduto, Math.min(Math.max(limite, 1), 200));
     }
 
-    /** Lotes com saldo que vencem dentro da janela. Alimenta o aviso de reposição. */
     @GetMapping("/vencimentos")
     public List<LoteVencendo> vencimentos(@RequestParam(defaultValue = "60") int emDias) {
         return estoque.lotesVencendo(Math.min(Math.max(emDias, 1), 365));

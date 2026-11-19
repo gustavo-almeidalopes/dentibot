@@ -105,9 +105,6 @@ class OutboxTransacionalTest extends TesteIntegracao {
             throw new IllegalStateException("falha simulada depois de agendar");
         })).hasMessageContaining("falha simulada");
 
-        // As DUAS coisas sumiram. É esta simetria que o broker externo não dá:
-        // lá o evento já teria saído e o paciente receberia confirmação de um
-        // horário que ninguém marcou.
         assertThat(contarConsultas())
                 .as("a consulta não deve existir após o rollback")
                 .isZero();
@@ -120,14 +117,11 @@ class OutboxTransacionalTest extends TesteIntegracao {
     @DisplayName("gravar evento fora de transação é recusado")
     void eventoForaDeTransacaoFalha() {
         comoAdmin();
-        // Sem transação o evento não tem a que se atar, e a garantia do outbox
-        // deixa de existir — melhor explodir que gravar algo sem sentido.
         assertThatThrownBy(() -> outboxSemTransacao())
                 .hasMessageContaining("fora de transação");
     }
 
     private void outboxSemTransacao() {
-        // Chamada direta ao repositório do outbox sem @Transactional ao redor.
         jdbcForaDeTransacaoGravaEvento();
     }
 

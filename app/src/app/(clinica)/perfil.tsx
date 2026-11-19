@@ -14,8 +14,8 @@ export default function Perfil() {
   const [saindo, setSaindo] = useState(false);
 
   // Quem é a pessoa vem do Clerk; qual o papel dela na clínica vem do backend,
-  // que é o dono dessa informação. Falha vira "—", como antes: o perfil não é
-  // tela de erro, e papel é detalhe ao lado do botão de sair.
+  // que é o dono dessa informação. Falha vira "—": o perfil não é tela de
+  // erro, e papel é detalhe ao lado do botão de sair.
   const [identidade, setIdentidade] = useState<Eu | null>(null);
   useEffect(() => {
     let vivo = true;

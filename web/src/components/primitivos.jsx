@@ -1,10 +1,4 @@
-/**
- * O vocabulário visual das telas do sistema.
- *
- * <p>Um arquivo e não cinco: são quatro peças pequenas com a mesma
- * responsabilidade — dizer estado sem fazer nada. Quem fizer alguma coisa
- * (o <dialog>) mora separado.
- */
+/** O vocabulário visual das telas do sistema. */
 import { descrever, telHref } from '../apresentacao.js';
 import { formatarTelefone } from '../documento.js';
 
@@ -43,10 +37,6 @@ export function Esqueleto({ linhas = 5, colunas = 3 }) {
 /**
  * O que acabou de acontecer.
  *
- * <p>Nenhuma ação bem-sucedida avisava que deu certo: `useAcao` só expunha
- * erro, e confirmar uma consulta apenas recarregava a lista. Quem clicou não
- * sabia se clicou.
- *
  * <p>`role="status"` e não `alert` para o sucesso: o leitor de tela anuncia
  * quando terminar a frase atual, em vez de interromper.
  */
@@ -61,9 +51,6 @@ export function Aviso({ texto, tom = 'sucesso' }) {
 
 /**
  * A tabela do sistema.
- *
- * <p>Substitui o `.row` da landing, que é grid de duas colunas com 42px de
- * padding e recebia três filhos — a coluna de ações caía numa linha implícita.
  *
  * <p>Abaixo de 620px cada linha vira bloco empilhado, e é `<Celula>` quem
  * carrega o rótulo que aparece ali: rolagem horizontal numa tabela de trabalho
@@ -97,12 +84,8 @@ export function Celula({ rotulo, num, children, ...resto }) {
   );
 }
 
-/** Os três estados de carga, num componente só. */
 export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNovo }) {
   if (status === 'carregando') {
-    /* Quem passa a forma do que vai chegar não vê a página saltar quando ela
-       chega — e o salto é o que faz alguém clicar no lugar errado. Quem não
-       passa continua com o texto, então nenhuma tela quebrou na troca. */
     return esqueleto
       ? <Esqueleto linhas={esqueleto.linhas} colunas={esqueleto.colunas} />
       : <p className="body body-ash" aria-live="polite">Carregando…</p>;

@@ -17,8 +17,7 @@ if (!publishableKey) {
 
 /**
  * tokenCache guarda a sessão no Keychain (iOS) / Keystore (Android) via
- * expo-secure-store. Sem ele o usuário reloga a cada abertura — e era esse o
- * trabalho do ProvedorDeAuth, que saiu junto com o refresh manual.
+ * expo-secure-store. Sem ele o usuário reloga a cada abertura.
  *
  * resourceCache guarda environment e client do Clerk no mesmo armazenamento.
  * Sem ele, abrir o app sem rede deixa isLoaded false para sempre e o porteiro

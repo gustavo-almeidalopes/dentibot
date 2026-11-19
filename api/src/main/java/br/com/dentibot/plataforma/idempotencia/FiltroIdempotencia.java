@@ -81,8 +81,6 @@ public class FiltroIdempotencia extends OncePerRequestFilter {
             return;
         }
 
-        // O corpo de uma requisição é stream de passagem única. O wrapper o
-        // guarda para que o hash saia aqui e o controller ainda consiga ler.
         RequisicaoComCorpoRelido requisicao = new RequisicaoComCorpoRelido(req);
         String hash = sha256(requisicao.corpo());
 

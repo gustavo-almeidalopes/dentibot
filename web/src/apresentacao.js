@@ -1,9 +1,7 @@
 /**
  * O que as telas mostram, separado de como elas montam.
  *
- * <p>Existe porque cada tela tinha o próprio `Intl`, o próprio mapa de status e
- * a própria frase de contagem — e nenhum deles tinha teste, porque estavam
- * dentro do JSX. Aqui em cima é função pura, e `node --test` alcança.
+ * <p>Função pura, fora do JSX, para o `node --test` alcançar.
  */
 
 const HORA = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -11,9 +9,8 @@ const EXTENSO = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long', day: 'numeric', month: 'long',
 });
 
-/* Valor do banco → rótulo e tom do selo. As chaves são as do CHECK de cada
-   coluna, conferidas em vocabulario.test.mjs. O tom é forma, não cor: `riscado`
-   e `contorno` continuam legíveis para quem não distingue vermelho de cinza. */
+/* Valor do banco → rótulo e tom do selo. O tom é forma, não cor: `riscado` e
+   `contorno` continuam legíveis para quem não distingue vermelho de cinza. */
 export const STATUS_CONSULTA = {
   agendada: { rotulo: 'Agendada', tom: 'contorno' },
   confirmada: { rotulo: 'Confirmada', tom: 'cheio' },
@@ -164,9 +161,8 @@ export function porExtenso(dia) {
 /**
  * A frase de contagem, honesta quando bateu o teto.
  *
- * <p>A tela pedia 200 — que é o `LIMITE_MAXIMO` do controller — recebia 200 e
- * escrevia "200 no cadastro". Se vieram exatamente `limite`, há provavelmente
- * mais, e a única frase verdadeira é "os primeiros".
+ * <p>Se vieram exatamente `limite`, há provavelmente mais, e a única frase
+ * verdadeira é "os primeiros".
  */
 export function contagem(n, limite, singular, plural) {
   if (n === 0) {

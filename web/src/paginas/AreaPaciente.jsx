@@ -16,7 +16,7 @@ const DATA = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' });
  *
  * <p>O back-end não tem identidade de paciente: o pré-cadastro grava a ficha e
  * não devolve nada, e o /eu responde 403 a quem não tem clínica. Sem uma marca
- * em algum lugar, todo login do paciente terminava de novo no "CPF ou CNPJ" do
+ * em algum lugar, todo login do paciente terminaria de novo no "CPF ou CNPJ" do
  * /cadastro.
  *
  * <p>`unsafeMetadata` porque é o campo que o próprio usuário pode escrever pelo

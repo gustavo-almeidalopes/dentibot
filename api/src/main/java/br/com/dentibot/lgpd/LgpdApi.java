@@ -3,9 +3,7 @@ package br.com.dentibot.lgpd;
 import java.util.List;
 
 /**
- * Porta pública do módulo LGPD.
- *
- * <p>Três coisas moram aqui, e as três existem porque a lei pede prova, não
+ * Três coisas moram aqui, e as três existem porque a lei pede prova, não
  * intenção:
  *
  * <ul>

@@ -26,11 +26,6 @@ public class PacienteController {
         this.pacientes = pacientes;
     }
 
-    /**
-     * Paginação por keyset ({@code apos}), não por página numerada: com OFFSET o
-     * banco lê e descarta as N primeiras linhas a cada requisição, e a página 50
-     * custa 50 vezes a primeira.
-     */
     @GetMapping
     public List<PacienteResumo> listar(
             @RequestParam(defaultValue = "50") int limite,

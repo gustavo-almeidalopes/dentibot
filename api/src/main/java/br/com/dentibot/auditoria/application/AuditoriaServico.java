@@ -56,12 +56,6 @@ public class AuditoriaServico implements AuditoriaApi {
         gravar("exclusao", recurso, idRecurso, serializar(dadosAnteriores), null);
     }
 
-    /**
-     * Consultar a trilha é, ele mesmo, um ato auditável — e por isso a leitura
-     * grava sua própria linha antes de devolver. Sem isso, "quem andou olhando
-     * quem acessou o prontuário de fulano?" não teria resposta, e é exatamente o
-     * tipo de pergunta que uma investigação faz.
-     */
     @Override
     @Transactional
     public List<EventoAuditoria> consultar(FiltroDeTrilha filtro) {
@@ -92,11 +86,9 @@ public class AuditoriaServico implements AuditoriaApi {
     }
 
     /**
-     * O JSON de antes/depois entra na trilha e PODE conter dado clínico — é o
-     * ponto: a auditoria é o único destino onde isso é correto e exigido. O que
-     * não pode é esse mesmo JSON vazar para Sentry, PostHog ou Better Stack
-     * (invariante 11); por isso ele não passa por log nem por telemetria, só
-     * por este caminho até o banco da própria clínica.
+     * O JSON de antes/depois PODE conter dado clínico: a trilha é o único destino
+     * onde isso é correto. Ele não pode passar por log nem telemetria (Sentry,
+     * PostHog, Better Stack — invariante 11).
      */
     private String serializar(Object valor) {
         if (valor == null) {

@@ -1,6 +1,3 @@
-/* As rotas num lugar só. O ClerkProvider usa as de auth para redirecionar, o
-   widget monta o link "criar conta" a partir delas, e a navegação do app as usa
-   para montar href — três consumidores, uma definição. */
 export const LOGIN = '/login';
 export const CRIAR = '/login?criar=1';
 

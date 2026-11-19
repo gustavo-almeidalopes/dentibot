@@ -18,8 +18,8 @@ public class ClinicaRepositorio {
     }
 
     /**
-     * Cria o tenant. Note que não há {@code INSERT INTO clinicas.clinicas} aqui:
-     * a app não tem esse privilégio. A única porta é a função
+     * Cria o tenant. Sem {@code INSERT INTO clinicas.clinicas}: a app não tem
+     * esse privilégio. A única porta é a função
      * {@code clinicas.provisionar()}, que roda como um role próprio — ver
      * V11__onboarding.sql.
      */

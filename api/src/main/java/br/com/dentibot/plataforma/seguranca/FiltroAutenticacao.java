@@ -26,8 +26,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * <p>Duas perguntas, duas fontes, nesta ordem:
  *
  * <ol>
- *   <li><b>Quem é você?</b> — responde o Clerk, pela assinatura do token. Esta
- *       aplicação não emite credencial nenhuma desde a V18.</li>
+ *   <li><b>Quem é você?</b> — responde o Clerk, pela assinatura do token.</li>
  *   <li><b>O que você é aqui?</b> — responde este banco, pelo
  *       {@link ProvedorDeIdentidade}. Tenant e papel vêm daqui e de nenhum outro
  *       lugar (invariante 5). Um {@code id_clinica} no corpo da requisição é
@@ -86,12 +85,9 @@ public class FiltroAutenticacao extends OncePerRequestFilter {
             return identidades.resolver(sujeito, email, correlacao)
                     .orElseGet(() -> ContextoRequisicao.semConta(sujeito, email, correlacao));
         } catch (Exception e) {
-            // Largo de propósito, e a versão anterior só pegava JwtException: um
-            // token com claim de forma inesperada estourava NumberFormatException
-            // ou NullPointerException, que escapavam daqui e viravam 500. Token
-            // malformado é 401, nunca erro do servidor — e o cliente que manda
-            // lixo não deve conseguir distinguir um do outro pelo status.
-            // Nunca logar o token. O motivo basta para diagnosticar.
+            // Largo de propósito, não só JwtException: claim de forma inesperada
+            // estoura NumberFormatException ou NPE, e token malformado é 401,
+            // nunca 500. Nunca logar o token; o motivo basta para diagnosticar.
             log.debug("Token rejeitado: {}", e.toString());
             return ContextoRequisicao.anonimo(correlacao);
         }

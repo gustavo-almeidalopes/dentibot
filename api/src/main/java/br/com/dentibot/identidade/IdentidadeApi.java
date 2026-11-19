@@ -6,9 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Porta pública do módulo identidade.
- *
- * <p>É a única coisa que outros módulos enxergam daqui. Nada de
+ * A única coisa que outros módulos enxergam daqui. Nada de
  * {@code br.com.dentibot.identidade.infrastructure} fora deste módulo, e nada de
  * {@code JOIN} contra o schema {@code identidade} vindo de outro schema — as
  * duas regras têm teste (ArchUnit para o import, varredura de SQL para o JOIN).
@@ -23,7 +21,6 @@ public interface IdentidadeApi {
     /** Dados mínimos de exibição de uma pessoa. Sem CPF, sem endereço. */
     List<PessoaResumo> buscarResumos(Collection<Long> idsPessoa);
 
-    /** O mesmo, indexado por id — conveniência para montar listagens. */
     Map<Long, PessoaResumo> mapaDeResumos(Collection<Long> idsPessoa);
 
     /**
@@ -66,6 +63,5 @@ public interface IdentidadeApi {
     /** Cadastra um membro da equipe. Devolve o id do usuário criado. */
     long admitirMembro(NovoMembro novo);
 
-    /** Muda papel e/ou status de um membro. */
     void atualizarMembro(long idUsuario, Papel papel, String status);
 }

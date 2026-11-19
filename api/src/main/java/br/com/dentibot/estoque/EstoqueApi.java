@@ -3,9 +3,7 @@ package br.com.dentibot.estoque;
 import java.util.List;
 
 /**
- * Porta pública do módulo estoque.
- *
- * <p>Não existe "dar baixa alterando a quantidade": posição é SUM sobre
+ * Não existe "dar baixa alterando a quantidade": posição é SUM sobre
  * movimentações append-only, como o ledger financeiro. Por isso a porta só
  * oferece registrar movimentação e consultar posição — não há setter de saldo,
  * porque não há saldo armazenado que possa discordar do extrato.

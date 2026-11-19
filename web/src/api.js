@@ -8,28 +8,18 @@
  * produção, defina VITE_API_BASE se o back-end estiver em outro domínio.
  *
  * <p>Autenticação é do Clerk. Não há token em localStorage: o de sessão vive em
- * memória do ClerkJS, é curto e se renova sozinho — guardar credencial legível
- * no browser era exatamente o que o XSS levava embora.
+ * memória do ClerkJS, é curto e se renova sozinho.
  */
 
 import { getToken } from '@clerk/react';
 
-/* O prefixo é /api/v1 e não /api. O back-end monta todo controller sob
-   /api/v1/... desde a V2; a versão anterior deste arquivo chamava /api/clients,
-   que é rota de uma API .NET que não existe mais — 404 antes mesmo do 401. */
-/* O `?.` não é paranoia: `import.meta.env` só existe sob o Vite, e sem ele
-   este módulo não pode ser importado pelo `node --test` — que é justamente
-   quem confere a lista de idempotência contra o fonte Java. */
+/* `import.meta.env` só existe sob o Vite; o `?.` deixa o `node --test`
+   importar este módulo. */
 const BASE = import.meta.env?.VITE_API_BASE || '/api/v1';
 
 /**
- * Espelha `PREFIXOS_OBRIGATORIOS` do `FiltroIdempotencia` do back-end. Um POST
- * para estes caminhos sem `Idempotency-Key` é RECUSADO — inclusive
- * `/consultas/{id}/confirmar`, que parece inofensivo e não é.
- *
- * <p>Conferido por máquina em `api.test.mjs`, contra o fonte Java. Duplicata
- * silenciosa é a que apodrece: o back-end ganha um prefixo, o front continua
- * mandando sem a chave, e o usuário toma 400 sem entender.
+ * Um POST para estes caminhos sem `Idempotency-Key` é RECUSADO pelo back-end —
+ * inclusive `/consultas/{id}/confirmar`, que parece inofensivo e não é.
  */
 export const EXIGEM_IDEMPOTENCIA = [
   '/consultas',
@@ -39,8 +29,8 @@ export const EXIGEM_IDEMPOTENCIA = [
   '/pacientes',
 ];
 
-/** O teto de toda listagem do back-end (`Listagem.LIMITE_MAXIMO`). Uma lista
-    que veio com exatamente isto provavelmente não é a lista inteira. */
+/** O teto de toda listagem do back-end. Uma lista que veio com exatamente
+    isto provavelmente não é a lista inteira. */
 export const LIMITE_LISTA = 200;
 
 export class ApiError extends Error {
@@ -52,10 +42,9 @@ export class ApiError extends Error {
   }
 }
 
-/* getToken do próprio SDK, não o hook: este módulo não é componente e o helper
-   existe justamente para camada de dados — ele espera o ClerkJS carregar e
-   devolve null se não há sessão. Offline ou timeout viram ausência de token, e
-   quem decide o que fazer com isso é o 401 do back-end. */
+/* getToken do SDK, não o hook: serve fora de componente, espera o ClerkJS
+   carregar e devolve null sem sessão. Offline ou timeout viram ausência de
+   token, e quem decide o que fazer é o 401 do back-end. */
 async function tokenDeSessao() {
   try {
     return (await getToken()) ?? '';
@@ -75,11 +64,9 @@ async function req(metodo, caminho, corpo, { idempotencyKey } = {}) {
   if (token) headers.Authorization = `Bearer ${token}`;
 
   if (precisaDeChave(metodo, caminho)) {
-    /* A chave é de uma REQUISIÇÃO LÓGICA, não de uma tentativa HTTP. Quem
-       repete a chamada — um retry, um segundo clique — precisa passar a MESMA
-       chave, senão "confirmar consulta" vira duas operações, que é exatamente o
-       que o filtro existe para impedir. Por isso ela é parâmetro, e gerar uma
-       nova aqui é só o caminho de quem não repetiu nada. */
+    /* A chave é de uma REQUISIÇÃO LÓGICA, não de uma tentativa HTTP: quem
+       repete a chamada (retry, segundo clique) precisa passar a MESMA chave,
+       senão "confirmar consulta" vira duas operações. */
     headers['Idempotency-Key'] = idempotencyKey ?? crypto.randomUUID();
   }
 

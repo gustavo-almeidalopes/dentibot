@@ -161,7 +161,7 @@
 }
 
 /* Um controle só, para input, select e textarea — inclusive os selects dentro
-   da tabela da Equipe, que ficavam com a cara crua do navegador. */
+   da tabela da Equipe. */
 .campo-app { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .filtros input, .filtros select, .tabela select,
 .campo-app input, .campo-app select, .campo-app textarea {
@@ -256,8 +256,7 @@
 /* ── TABELA ───────────────────────────────────────────────────────────────── */
 /* Rolagem horizontal só no celular, e lá a tabela empilha. No resto o wrapper
    NÃO pode ser contêiner de rolagem: `overflow-x: auto` nele faz o cabeçalho
-   fixo grudar dentro da própria caixa, a 59px do topo dela — o cabeçalho caía
-   por cima da primeira linha. */
+   fixo grudar dentro da própria caixa, por cima da primeira linha. */
 .tabela { width: 100%; border-collapse: collapse; font-size: 14px; }
 .tabela th, .tabela td {
   text-align: left;

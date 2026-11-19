@@ -11,9 +11,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
  *
  * <p>O duplo toque que mais custa é o de dinheiro: "registrar recebimento" duas
  * vezes vira dois lançamentos no ledger, que é append-only e só se desfaz por
- * estorno. A lista chegou a exigir a chave em rotas que não existem
- * ({@code /cobrancas}, {@code /mensagens}) e a dispensar em
- * {@code /financeiro}.
+ * estorno.
  */
 @DisplayName("Rotas que exigem Idempotency-Key")
 class FiltroIdempotenciaTest {

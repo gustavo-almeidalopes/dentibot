@@ -24,13 +24,11 @@ import org.springframework.transaction.support.TransactionTemplate;
  * instâncias serializam no mesmo lote e a fila anda na velocidade de uma só.
  *
  * <p>Cada evento é consumido na PRÓPRIA transação ({@code REQUIRES_NEW}, noutra
- * conexão), e a do lote só trava as linhas e marca ou reagenda. Com tudo numa
- * transação só, um erro de SQL num consumidor abortava a transação no
- * Postgres: o {@code reagendar()} falhava junto, o lote voltava atrás,
- * {@code tentativas} nunca subia e o evento quebrado voltava ao topo a cada
- * ciclo, travando a fila atrás dele. E o {@code app.clinica} que um consumidor
- * promovia — {@code is_local}, dura até o fim da transação — vazava para o
- * consumidor do evento seguinte.
+ * conexão), e a do lote só trava as linhas e marca ou reagenda. Numa
+ * transação só, um erro de SQL num consumidor aborta a transação no Postgres:
+ * o {@code reagendar()} falha junto, {@code tentativas} nunca sobe e o evento
+ * quebrado trava a fila. E o {@code app.clinica} que um consumidor promove —
+ * {@code is_local}, dura até o fim da transação — vazaria para o seguinte.
  *
  * <p>Backoff exponencial no erro. Sem ele, um consumidor quebrado vira um laço
  * quente que consome a conexão de banco da aplicação inteira tentando o mesmo

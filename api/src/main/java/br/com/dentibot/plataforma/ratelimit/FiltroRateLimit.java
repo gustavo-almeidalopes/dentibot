@@ -21,7 +21,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * colocaria a clínica inteira atrás de um NAT no mesmo balde.
  *
  * <p>{@code /api/v1/auth/*} é a exceção: ali ainda não há identidade, o limite é
- * por IP, e é bem mais apertado — é o endpoint onde se tenta senha.
+ * por IP, e é bem mais apertado.
  *
  * <p>Os limites são configuração, não constante: em desenvolvimento roda-se o
  * fluxo de cadastro e login dezenas de vezes seguidas, e um número fixo no

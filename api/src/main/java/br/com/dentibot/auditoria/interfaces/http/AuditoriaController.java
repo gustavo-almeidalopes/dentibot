@@ -16,10 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Trilha de auditoria da própria clínica.
  *
- * <p>O módulo escrevia desde a V5 e não tinha por onde ser lido: a LGPD e a
- * CFO-226 exigem a trilha, e uma trilha que ninguém consegue consultar cumpre a
- * letra da norma e nada do propósito dela.
- *
  * <p>Só ADMIN alcança, e só para LER — nem o admin altera a trilha. Isso está na
  * matriz do {@code AvaliadorDePermissao} e é imposto no serviço; aqui não há
  * segunda checagem, que a invariante 3 proíbe.
@@ -37,9 +33,8 @@ public class AuditoriaController {
     }
 
     /**
-     * A faixa de datas tem default em vez de ser obrigatória na assinatura, mas
-     * nunca fica ausente: a tabela é particionada por {@code ocorrido_em} e uma
-     * consulta sem intervalo varre todas as partições.
+     * A faixa de datas tem default, mas nunca fica ausente: a tabela é
+     * particionada por {@code ocorrido_em} e sem intervalo varre todas as partições.
      */
     @GetMapping
     public List<EventoAuditoria> consultar(

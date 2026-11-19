@@ -92,14 +92,7 @@ public class FinanceiroServico implements FinanceiroApi {
         return new RecebivelDetalhado(r, financeiro.extrato(idRecebivel));
     }
 
-    /**
-     * Divide o total em parcelas sem perder nem inventar centavo.
-     *
-     * <p>A sobra do arredondamento vai toda na PRIMEIRA parcela. R$ 100,00 em
-     * três vezes é 33,34 + 33,33 + 33,33 — nunca 3 × 33,33, que sumiria com um
-     * centavo, nem 3 × 33,34, que cobraria dois a mais. Em doze parcelas essa
-     * diferença é a conversa que ninguém consegue explicar ao paciente.
-     */
+    /** A sobra do arredondamento vai na PRIMEIRA parcela; ver {@link NovoRecebivel}. */
     @Override
     @Transactional
     public List<Long> abrirRecebiveis(NovoRecebivel novo) {
@@ -164,10 +157,7 @@ public class FinanceiroServico implements FinanceiroApi {
         return id;
     }
 
-    /**
-     * Estorna criando o espelho negativo. Nunca apaga, nunca edita — o
-     * {@code trg_ledger_append_only} recusaria, e a API nem oferece o caminho.
-     */
+    /** Nunca apaga nem edita: o {@code trg_ledger_append_only} recusaria. */
     @Override
     @Transactional
     public long estornar(long idLancamento, String motivo) {

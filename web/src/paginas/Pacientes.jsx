@@ -25,7 +25,6 @@ export default function Pacientes() {
   const pacientes = useRecurso(`/pacientes?limite=${LIMITE_LISTA}`);
   const lista = pacientes.dados ?? [];
 
-  /* A mesma busca da Recepção: "joao" acha João, e o telefone casa por dígitos. */
   const filtrada = lista.filter((p) => casaBusca(busca, p.nomeCompleto, p.telefoneCelular));
 
   return (
@@ -116,13 +115,7 @@ export default function Pacientes() {
   );
 }
 
-/**
- * O mesmo componente do auto-cadastro em /cadastro.
- *
- * <p>Antes eram quatro campos aqui — nome, CPF, celular, e-mail — e a ficha
- * completa em lugar nenhum. Faltava tudo o que muda conduta: data de
- * nascimento (dose de anestésico), alergia, condição sistêmica, gravidez.
- */
+/** O mesmo componente do auto-cadastro em /cadastro. */
 function NovoPaciente({ onCriado }) {
   const { executar, enviando, erro, sucesso } = useAcao(onCriado);
 

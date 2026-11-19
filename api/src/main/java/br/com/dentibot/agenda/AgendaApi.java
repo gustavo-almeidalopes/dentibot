@@ -3,7 +3,6 @@ package br.com.dentibot.agenda;
 import java.time.Instant;
 import java.util.List;
 
-/** Porta pública do módulo agenda. */
 public interface AgendaApi {
 
     long agendar(NovaConsulta nova);

@@ -7,9 +7,8 @@ import {
  * Ficha do paciente: identificação, endereço e a triagem de saúde.
  *
  * <p>Um componente só, dois chamadores — a recepção em /pacientes e o
- * auto-cadastro em /cadastro. Eram duas telas candidatas a divergir campo a
- * campo, e a que ficasse para trás perderia justamente a anamnese, que é o
- * pedaço que muda a conduta clínica.
+ * auto-cadastro em /cadastro —, para a anamnese, que muda a conduta clínica,
+ * não divergir entre eles.
  *
  * <p>O que este componente NÃO faz: decidir para onde os dados vão. Ele monta o
  * corpo e entrega em `onEnviar`. Quem sabe o endpoint é a tela.

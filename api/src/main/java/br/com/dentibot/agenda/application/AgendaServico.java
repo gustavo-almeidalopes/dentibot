@@ -45,12 +45,8 @@ public class AgendaServico implements AgendaApi {
 
     /**
      * Agenda e emite {@code consulta.agendada} na MESMA transação (invariante 8).
-     *
-     * <p>A ordem errada — publicar o evento fora da transação — falha de duas
-     * formas, ambas invisíveis em desenvolvimento e certas em produção: se a
-     * transação der rollback depois do publish, o paciente recebe confirmação de
-     * um horário que ninguém marcou; se o publish falhar depois do commit, a
-     * consulta existe e ninguém é avisado.
+     * Fora dela, um rollback após o publish confirma ao paciente um horário que
+     * não existe, e um publish que falha após o commit deixa a consulta sem aviso.
      */
     @Override
     @Transactional
@@ -80,13 +76,9 @@ public class AgendaServico implements AgendaApi {
     public List<ConsultaResumo> listar(Instant de, Instant ate, Long idDentista) {
         Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.LER);
 
-        // É aqui que Alcance.PROPRIOS vira filtro de linha. O dentista não
-        // escolhe de quem é a agenda que vê: o filtro é imposto e o parâmetro
-        // que ele mandou é descartado.
-        //
-        // id_usuario != id_dentista. Traduzir um pelo outro é obrigatório: sem
-        // a tradução, o filtro casaria por coincidência numérica e mostraria a
-        // agenda de outro profissional.
+        // Com PROPRIOS o filtro é imposto e o parâmetro recebido é descartado.
+        // id_usuario != id_dentista: sem traduzir um pelo outro, o filtro casaria
+        // por coincidência numérica com a agenda de outro profissional.
         Long filtro = alcance == Alcance.PROPRIOS ? dentistaCorrente() : idDentista;
 
         return montar(consultas.listar(de, ate, filtro));
@@ -104,12 +96,9 @@ public class AgendaServico implements AgendaApi {
     }
 
     /**
-     * Toda transição passa por aqui antes de mudar status. {@code exigir()}
-     * devolve PROPRIOS para o dentista e PROPRIOS satisfaz {@code permite()} —
-     * descartar o retorno deixava um dentista cancelar ou marcar falta na
-     * consulta de um colega da mesma clínica, e o RLS não pega: os dois estão
-     * no mesmo tenant. Mesmo defeito que o orçamento teve; ver
-     * {@code OrcamentoServico.carregar}.
+     * {@code exigir()} devolve PROPRIOS para o dentista, e PROPRIOS satisfaz
+     * {@code permite()}: sem conferir o dono, um dentista cancelaria a consulta
+     * de um colega da mesma clínica — e o RLS não pega, é o mesmo tenant.
      */
     private void exigirAlcance(long idConsulta, Alcance alcance) {
         if (alcance == Alcance.PROPRIOS
@@ -122,12 +111,9 @@ public class AgendaServico implements AgendaApi {
     }
 
     /**
-     * Duas consultas, não um JOIN.
-     *
-     * <p>{@code agenda.consultas} e {@code identidade.pessoas} são de módulos
-     * diferentes. O JOIN funcionaria hoje, seria mais rápido, e é exatamente o
-     * que impediria extrair a agenda depois — a fronteira some em silêncio,
-     * porque na revisão parece só uma consulta eficiente.
+     * Duas consultas, não um JOIN: {@code agenda.consultas} e
+     * {@code identidade.pessoas} são de módulos diferentes, e o JOIN é o que
+     * impediria extrair a agenda depois.
      */
     private List<ConsultaResumo> montar(List<LinhaConsulta> linhas) {
         if (linhas.isEmpty()) {

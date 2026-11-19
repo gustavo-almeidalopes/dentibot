@@ -13,11 +13,10 @@ import org.springframework.boot.test.system.OutputCaptureExtension;
 /**
  * O log que sai do processo não carrega CPF, e-mail nem telefone.
  *
- * <p>O {@code ScrubberDePii} existia, com testes, e nada em produção o chamava.
- * Enquanto isso o {@code TratadorGlobalDeErros} logava a exceção inteira de
- * unicidade, cujo Detail do Postgres é {@code Key (id_clinica, cpf)=(42,
- * 12345678901)}. Por isso este teste passa pelo Logback configurado de
- * verdade: um conversor correto que ninguém liga é o mesmo defeito de antes.
+ * <p>Passa pelo Logback configurado de verdade, e não pelo {@code ScrubberDePii}
+ * direto: o {@code TratadorGlobalDeErros} loga a exceção de unicidade inteira,
+ * cujo Detail do Postgres é {@code Key (id_clinica, cpf)=(42, 12345678901)}, e
+ * um conversor correto que ninguém liga não protege nada.
  */
 @ExtendWith(OutputCaptureExtension.class)
 @DisplayName("Log sem dado pessoal")

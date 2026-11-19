@@ -4,8 +4,7 @@
  *   cd web && npm test
  *
  * Layout se confere olhando, mas "14:00–14:45", "200 primeiros" e o tom do selo
- * são decisões com resposta certa — e todas estavam espalhadas dentro do JSX,
- * onde não havia como testá-las.
+ * são decisões com resposta certa.
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
@@ -68,8 +67,7 @@ test('somar dias atravessa mês e ano sem fuso no caminho', () => {
 });
 
 test('a contagem não mente quando bateu o limite', () => {
-  // A tela pedia limite=200, recebia 200 e escrevia "200 no cadastro". Numa
-  // clínica com 900 pacientes a frase é falsa.
+  // Numa clínica com 900 pacientes, "200 pacientes" é falso.
   assert.equal(contagem(200, 200, 'paciente', 'pacientes'), '200 primeiros');
   assert.equal(contagem(7, 200, 'paciente', 'pacientes'), '7 pacientes');
   assert.equal(contagem(1, 200, 'paciente', 'pacientes'), '1 paciente');
@@ -77,8 +75,6 @@ test('a contagem não mente quando bateu o limite', () => {
 });
 
 test('o zero concorda em gênero com o substantivo', () => {
-  // "nenhum consulta" é o tipo de erro que só aparece em produção, no dia em
-  // que a agenda amanhece vazia.
   assert.equal(contagem(0, Infinity, 'consulta', 'consultas'), 'nenhuma consulta');
   assert.equal(contagem(0, 200, 'parcela', 'parcelas'), 'nenhuma parcela');
 });
@@ -112,7 +108,6 @@ test('a grade de horários respeita o [) do banco e esconde o que passou', () =>
   assert.equal(em(horarios('2026-10-13', [{ ...ocupada, status: 'cancelada' }], 30, vespera),
     '09:00').livre, true);
 
-  // O que já passou nem aparece.
   assert.equal(horarios('2026-10-13', [], 30, new Date(2026, 9, 13, 14, 10))[0].hora, '14:30');
 });
 

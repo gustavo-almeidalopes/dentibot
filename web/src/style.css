@@ -17,10 +17,7 @@
 
   /* ── Camada semântica ──────────────────────────────────────────
      Os literais acima são a MARCA e não mudam. Estes são o PAPEL, e
-     é só deles que componente pode depender. Enquanto `--bone` foi ao
-     mesmo tempo "o branco da DentiBot" e "a cor do texto", claro e
-     escuro não tinham como coexistir — e `--ink`, que ninguém nunca
-     definiu, viveu em nove lugares por causa disso. */
+     é só deles que componente pode depender. */
   --fundo:       var(--obsidian);
   --superficie:  var(--obsidian);
   --tinta:       var(--bone);
@@ -60,8 +57,8 @@
   --gap:     var(--spacing-59);
   --pad-sec: clamp(60px, 8vw, 127px);
 
-  /* Nothing rounds. The extraction put nav pills at 100px, but a rounded
-     pill reads as friendly SaaS — every surface here meets at a hard edge. */
+  /* Nothing rounds. A rounded pill reads as friendly SaaS — every surface
+     here meets at a hard edge. */
   --radius-cards:    0px;
   --radius-surfaces: 0px;
   --radius-buttons:  0px;
@@ -142,8 +139,8 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--f-display);
   font-weight: 700;
   font-size: var(--t-display);
-  /* Antonio's caps are taller than Brasparz's, and pt-BR is full of cedillas
-     and tildes. Cap .72em + cedilla .15em means .88 is the tightest leading
+  /* pt-BR is full of cedillas and tildes under Antonio's tall caps.
+     Cap .72em + cedilla .15em means .88 is the tightest leading
      that still clears "SERVIÇOS" over "OPERAÇÃO". Crushed, but not colliding. */
   line-height: .88;
   letter-spacing: -.020em;
@@ -189,8 +186,8 @@ a { color: inherit; text-decoration: none; }
   align-items: center;
   gap: 10px;
   padding: 13px var(--spacing-20);
-  /* Papel, não literal: no tema escuro dá no mesmo osso da marca, e no claro
-     a borda deixa de ser branco sobre papel — invisível, como estava. */
+  /* Papel, não literal: no tema claro o osso da marca seria branco sobre
+     papel. */
   border: 2px solid var(--tinta);
   border-radius: var(--radius-buttons);
   font-size: var(--text-body-sm, 19px);
@@ -637,10 +634,8 @@ html:not(.no-js) #odontograma.visible .fdi {
 }
 
 @media (max-width: 620px) {
-  /* One line would clip the brand mid-letter, so it stacks — two crushed
-     lines, letterforms nearly touching, which is the wordmark's own idiom. */
-  /* Empilhado, .70 faz DENTI e BOT se cruzarem e embaralharem a marca.
-     .78 mantém o esmagamento — as letras quase se tocam — e ainda lê. */
+  /* One line would clip the brand mid-letter, so it stacks. Empilhado, .70
+     faz DENTI e BOT se cruzarem; .78 mantém o esmagamento e ainda lê. */
   .wordmark { white-space: normal; font-size: 44vw; line-height: .78; }
   .wm-break { display: block; }
 
@@ -659,7 +654,6 @@ html:not(.no-js) #odontograma.visible .fdi {
   .wa-label { display: none; }
   .whatsapp { padding: 13px; }
 
-  /* Tabelas de plano e trilhos ficam mais apertados no toque. */
   .plan-grid { gap: var(--spacing-20); }
   .odonto-head { padding-bottom: var(--spacing-15); }
 
@@ -677,8 +671,8 @@ html:not(.no-js) #odontograma.visible .fdi {
   padding-block: var(--spacing-20);
 }
 
-/* O widget do Clerk traz o próprio formulário; sobrou só a largura de
-   leitura. 44ch é onde uma coluna de texto ainda é confortável de mirar. */
+/* O widget do Clerk traz o próprio formulário. 44ch é onde uma coluna de
+   texto ainda é confortável de mirar. */
 .auth-swap { max-width: 44ch; }
 
 .auth-swap { margin-top: var(--spacing-30); }

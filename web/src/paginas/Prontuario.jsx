@@ -38,8 +38,7 @@ export default function Prontuario() {
       />
 
       {/* Não é decoração: toda abertura desta tela grava uma linha de auditoria
-          de LEITURA, e quem abre precisa saber disso. Em letra miúda na linha
-          de detalhe, ninguém lia. */}
+          de LEITURA, e quem abre precisa saber disso. */}
       <p className="faixa-auditoria">
         Abrir este prontuário grava uma linha na trilha de auditoria, com o seu nome.
       </p>
@@ -54,10 +53,7 @@ export default function Prontuario() {
             aria-controls={`painel-${id}`}
             aria-selected={aba === id}
             /* Aba não selecionada sai da ordem de Tab: no padrão ARIA o grupo
-               inteiro é UMA parada, e as setas andam dentro dele. Sem isto o
-               leitor de tela anunciava "guia" e o teclado se comportava como
-               uma fileira de botões — ARIA pela metade mente sobre o que a
-               coisa é. */
+               inteiro é UMA parada, e as setas andam dentro dele. */
             tabIndex={aba === id ? 0 : -1}
             onKeyDown={(e) => {
               if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
@@ -180,8 +176,6 @@ function Odontograma({ idPaciente, recurso }) {
 
   return (
     <>
-      {/* Sete condições codificadas em borda e nenhuma legenda: ninguém sabia
-          ler o que a tela estava dizendo. */}
       <ul className="odonto-legenda">
         {Object.entries(CONDICAO_DENTE).map(([c, { rotulo }]) => (
           <li key={c}><span className="odonto-amostra" data-condicao={c} />{rotulo}</li>
@@ -191,7 +185,7 @@ function Odontograma({ idPaciente, recurso }) {
       <Aviso texto={sucesso} />
 
       {/* Em tela de mesa o formulário do dente abre AO LADO da arcada: abrindo
-          abaixo, cada clique num dente rolava a página. */}
+          abaixo, cada clique num dente rolaria a página. */}
       <div className="odonto-area">
         <Estado status={recurso.status} erro={recurso.erro} onTentarDeNovo={recurso.recarregar}>
           <div className="odonto">

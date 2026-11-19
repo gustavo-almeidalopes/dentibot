@@ -14,12 +14,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Assinatura da clínica no DentiBot.
- *
- * <p>Só leitura. Não existe endpoint para ativar, mudar de plano ou marcar
- * fatura como paga: quem decide isso é o provedor, e a API só espelha o que ele
- * informa por webhook. Um POST que ativasse assinatura aqui seria a porta para
- * usar o produto de graça.
+ * Só leitura: ativar, mudar de plano ou marcar fatura como paga é decisão do
+ * provedor, espelhada por webhook (ver {@link BillingApi}).
  *
  * <p>Mudança de plano e cancelamento acontecem no portal do próprio provedor —
  * o front manda o cliente para lá com uma sessão do Customer Portal, e o

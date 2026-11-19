@@ -37,8 +37,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>O {@code MatrizDePermissaoTest} confere a tabela; este confere que os
  * serviços perguntam a ela e respeitam o {@link
  * br.com.dentibot.plataforma.seguranca.Alcance} devolvido. Os dois defeitos que
- * motivaram esta classe passavam no teste da matriz: o de pacientes não
- * chamava {@code exigir()}, e o da agenda chamava e jogava o alcance fora.
+ * ela guarda passam no teste da matriz: serviço que não chama {@code exigir()},
+ * e serviço que chama e joga o alcance fora.
  */
 @DisplayName("Alcance aplicado nas escritas")
 class AlcanceNaEscritaTest extends TesteIntegracao {

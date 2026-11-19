@@ -155,7 +155,6 @@ public class FinanceiroRepositorio {
                 .optional();
     }
 
-    /** Já existe estorno para este lançamento? Estornar duas vezes credita em dobro. */
     public boolean jaEstornado(long idLancamento) {
         return jdbc.sql("""
                         SELECT 1 FROM financeiro.lancamentos

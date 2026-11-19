@@ -31,8 +31,7 @@ public interface ProvedorDeIdentidade {
      *                        qualquer um digita.
      * @return o contexto correspondente, ou vazio quando não há conta ativa para
      *         esse sujeito. Conta inexistente e conta bloqueada devolvem a mesma
-     *         coisa, pela mesma razão que o login antigo tinha resposta única:
-     *         a diferença entre as duas é informação sobre quem existe.
+     *         coisa: a diferença entre as duas é informação sobre quem existe.
      */
     Optional<ContextoRequisicao> resolver(String sujeito, String emailVerificado, UUID correlacao);
 }

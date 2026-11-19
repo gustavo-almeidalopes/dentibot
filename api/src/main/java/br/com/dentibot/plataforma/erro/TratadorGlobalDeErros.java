@@ -76,8 +76,8 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
     /**
      * O que o Spring MVC lança antes de chegar ao controller: JSON malformado,
      * parâmetro com tipo errado ou ausente, método ou mídia que a rota não
-     * aceita, rota inexistente. Antes caía em {@link #inesperado} e virava 500
-     * com {@code log.error} — erro do cliente disparando o alerta do servidor.
+     * aceita, rota inexistente. É erro do cliente: não pode virar 500 nem
+     * disparar {@code log.error}.
      *
      * <p>A classe base escolhe o status; aqui só se troca o corpo pelo da casa.
      * O detalhe do Spring é descartado de propósito: o de tipo errado cita o
@@ -138,8 +138,7 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
      *
      * <p>Chega como {@link BadSqlGrammarException}, não como violação de
      * integridade: o tradutor do Spring classifica pela classe "42", a de
-     * gramática. Por isso os ramos de RLS e append-only que moravam em
-     * {@link #integridade} nunca rodavam, e as duas recusas respondiam 500.
+     * gramática.
      *
      * <p>O mesmo SQLState cobre as duas: o RLS e o trigger append-only, que o
      * levanta de propósito. O trigger se distingue pela mensagem, que é nossa

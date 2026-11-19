@@ -17,12 +17,10 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
  * <p>Trocar o silêncio por uma exceção com o conserto escrito nela custa este
  * arquivo, e fecha a porta de saída errada.
  *
- * <p>Nota sobre uma tentativa anterior, que ficou no histórico: sobrescrever
+ * <p>Sobrescrever
  * {@code JdbcTemplate.execute(PreparedStatementCreator, PreparedStatementCallback)}
- * NÃO funciona. O {@code query()} do Spring chama uma sobrecarga interna de três
- * argumentos e passa ao largo da pública. O teste que deveria falhar passou, e
- * só apareceu porque havia um teste cobrando o guard — motivo para o guard ter
- * teste próprio.
+ * NÃO funciona: o {@code query()} do Spring chama uma sobrecarga interna de três
+ * argumentos e passa ao largo da pública. Por isso o guard tem teste próprio.
  */
 @Aspect
 @Component

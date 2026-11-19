@@ -3,10 +3,9 @@
  *
  * Três decisões que valem uma linha de explicação cada:
  *
- * 1. **A sessão é do Clerk.** O token curto e a renovação saíram daqui: quem
- *    guarda é o `tokenCache` do @clerk/expo, sobre expo-secure-store — Keychain
- *    no iOS, Keystore no Android. Sumiram o refresh manual, o mutex de
- *    renovação e o handler de sessão expirada, porque o SDK já faz os três.
+ * 1. **A sessão é do Clerk.** Quem guarda é o `tokenCache` do @clerk/expo,
+ *    sobre expo-secure-store — Keychain no iOS, Keystore no Android — e o SDK
+ *    renova sozinho.
  *
  * 2. **getClerkInstance, não useAuth.** Este módulo não é componente e não tem
  *    hook. O singleton é o caminho documentado para chamar a API fora do React,
@@ -15,8 +14,7 @@
  * 3. **A chave de idempotência é gerada uma vez por requisição lógica**, não por
  *    tentativa HTTP. Se um 401 disparar refresh e retry, a segunda tentativa
  *    manda a MESMA chave — senão o retry de "confirmar consulta" viraria uma
- *    segunda operação, que é precisamente o que o `FiltroIdempotencia` existe
- *    para impedir.
+ *    segunda operação.
  */
 import { getClerkInstance } from '@clerk/expo';
 import * as Crypto from 'expo-crypto';
@@ -24,8 +22,8 @@ import * as Crypto from 'expo-crypto';
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 /**
- * Espelha `PREFIXOS_OBRIGATORIOS` do `FiltroIdempotencia`. Um POST para estes
- * caminhos sem `Idempotency-Key` é recusado pelo backend — inclusive
+ * Um POST para estes caminhos sem `Idempotency-Key` é recusado pelo backend —
+ * inclusive
  * `/consultas/{id}/confirmar`, que parece inofensivo e não é.
  */
 const EXIGEM_IDEMPOTENCIA = [
@@ -204,8 +202,8 @@ export type Paciente = {
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
 export const api = {
-  // login/logout saíram: quem cria e derruba sessão é o Clerk. O eu() fica —
-  // papel e clínica são do domínio, não da identidade, e só o backend os sabe.
+  // Quem cria e derruba sessão é o Clerk. Papel e clínica são do domínio, não
+  // da identidade, e só o backend os sabe.
   eu: () => pedir<Eu>('/api/v1/eu'),
 
   /** `de`/`ate` em ISO-8601 UTC — o backend os recebe como Instant. */

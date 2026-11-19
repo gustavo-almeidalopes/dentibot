@@ -24,14 +24,11 @@ public class ConsultaRepositorio {
     }
 
     /**
-     * Nenhuma verificação de conflito de horário aqui, de propósito.
-     *
-     * <p>A V1 fazia {@code SELECT COUNT(*) ... IF > 0 THEN RAISE}: duas
-     * requisições simultâneas contam zero, as duas passam, e o dentista fica com
-     * dois pacientes no mesmo horário. A garantia agora é a EXCLUDE constraint
-     * {@code ex_dentista_sem_sobreposicao}, que o banco avalia sob qualquer
-     * concorrência. A violação chega como DataIntegrityViolationException e vira
-     * 409 no TratadorGlobalDeErros.
+     * Sem checagem de conflito de horário aqui, de propósito: um
+     * {@code SELECT COUNT(*)} antes do INSERT deixa duas requisições simultâneas
+     * passarem. Quem garante é a EXCLUDE constraint
+     * {@code ex_dentista_sem_sobreposicao}; a violação chega como
+     * DataIntegrityViolationException e vira 409 no TratadorGlobalDeErros.
      */
     public long inserir(long idPaciente, long idDentista, Long idProcedimento,
                         Instant inicioEm, Instant terminoEm, String observacoes) {

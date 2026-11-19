@@ -64,7 +64,6 @@ export default function Agenda() {
       )}
 
       <div className="filtros filtros-linha">
-        {/* Trocar de dia exigia abrir o date picker para andar uma casa. */}
         <div className="acoes">
           <button type="button" className="btn btn-sm"
                   onClick={() => setDia((d) => somarDias(d, -1))}>← Ontem</button>

@@ -12,13 +12,11 @@ import { ehPaciente, marcarPaciente } from './AreaPaciente.jsx';
  * O que acontece DEPOIS de criar a conta — inclusive pelo Google, Microsoft ou
  * Apple.
  *
- * <p>Existia um buraco aqui: o Clerk cria a conta e devolve um `sub`, mas o
- * back-end só conhece quem tem linha em `identidade.usuarios`. Sem passar por
- * `POST /auth/cadastro`, o {@code ResolvedorDeAcessoClerk} devolve
- * {@code Optional.empty()} e a conta nova toma 401 em toda tela. O login "dava
- * certo" e o sistema inteiro respondia não. Este é o passo que faltava, e ele
- * vale igual para OAuth e para e-mail e senha — criar conta com o Google pula o
- * formulário do Clerk, não este.
+ * <p>O Clerk cria a conta e devolve um `sub`, mas o back-end só conhece quem tem
+ * linha em `identidade.usuarios`: sem `POST /auth/cadastro`, o
+ * {@code ResolvedorDeAcessoClerk} devolve {@code Optional.empty()} e a conta
+ * nova toma 401 em toda tela. Vale igual para OAuth e para e-mail e senha —
+ * criar conta com o Google pula o formulário do Clerk, não este.
  *
  * <p>A bifurcação é a do documento:
  * <ul>

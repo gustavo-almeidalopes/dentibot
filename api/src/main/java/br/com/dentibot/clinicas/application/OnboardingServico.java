@@ -19,10 +19,8 @@ import org.springframework.transaction.annotation.Transactional;
  * exemplo), a clínica não fica órfã no banco sem ninguém que consiga entrar
  * nela.
  *
- * <p>Desde a V18 o fluxo é o inverso do que era: a conta no Clerk vem PRIMEIRO,
- * e o cadastro acontece com o requisitante já autenticado. É por isso que a
- * clínica nasce com o `sub` do admin já gravado, e não com uma senha escolhida
- * por um formulário que este serviço nunca deveria ter visto.
+ * <p>A conta no Clerk vem PRIMEIRO e o cadastro acontece já autenticado: a
+ * clínica nasce com o `sub` do admin, e este serviço nunca vê senha.
  */
 @Service
 public class OnboardingServico {

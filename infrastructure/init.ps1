@@ -113,9 +113,7 @@ try {
 }
 
 Etapa 'Conferindo o invariante de RLS'
-# Toda tabela com id_clinica precisa de ENABLE + FORCE + política. Um banco com
-# migration aplicada e RLS incompleto parece saudável por fora — foi assim que a
-# V1 rodou com vazamento entre clínicas.
+# Toda tabela com id_clinica precisa de ENABLE + FORCE + política.
 $consulta = @'
 WITH t AS (
   SELECT c.oid, n.nspname s, c.relname r, c.relrowsecurity, c.relforcerowsecurity

@@ -13,13 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Invariantes de schema verificados contra o catálogo do Postgres.
  *
- * <p>Este é o teste que a V1 do projeto não tinha. Lá, um bloco {@code DO} criava
- * as políticas de RLS em laço; ele abortava na décima primeira tabela (uma sem
- * coluna {@code id_clinica}), e como {@code DO} é uma transação só, NENHUMA
- * política era criada. O script "rodava", o sistema subia, e o vazamento entre
- * clínicas era demonstrável em três linhas de SQL. Nada nem ninguém avisava.
- *
- * <p>Uma consulta ao catálogo teria pego tudo de uma vez. É o que está aqui.
+ * <p>Um bloco {@code DO} que cria políticas em laço e aborta numa tabela não
+ * cria NENHUMA — {@code DO} é uma transação só —, e o sistema sobe sem RLS,
+ * sem aviso. Uma consulta ao catálogo pega isso de uma vez.
  */
 @DisplayName("Conformidade do schema")
 class ConformidadeDoSchemaTest extends TesteIntegracao {

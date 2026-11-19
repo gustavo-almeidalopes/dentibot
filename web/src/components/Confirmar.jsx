@@ -3,16 +3,15 @@
  *
  * <p>Sobre o `<dialog>` nativo, e não sobre uma div com `role="dialog"`: foco
  * preso, `Esc`, fundo inerte e devolução do foco ao elemento anterior vêm da
- * plataforma. A versão em div precisaria de todas as quatro coisas escritas à
- * mão, e é sempre a devolução do foco que fica faltando.
+ * plataforma.
  *
  * <p>`showModal()` e não o atributo `open`: só a chamada dá o modo modal — com
  * `open` o resto da página continua alcançável por Tab.
  */
 import { useEffect, useRef } from 'react';
 
-/* `rotuloVoltar` existe por causa de "Cancelar consulta?": com o rótulo fixo, o
-   diálogo tinha dois botões chamados Cancelar, um de cada lado da decisão.
+/* `rotuloVoltar` existe por causa de "Cancelar consulta?": com o rótulo fixo,
+   seriam dois botões chamados Cancelar, um de cada lado da decisão.
    `podeConfirmar` segura o botão enquanto falta o que o ato exige (o motivo). */
 export default function Confirmar({
   aberto, titulo, corpo, rotuloConfirmar = 'Confirmar', rotuloVoltar = 'Cancelar',

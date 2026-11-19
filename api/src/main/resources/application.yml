@@ -62,7 +62,7 @@ dentibot:
   # diferentes (camada 12).
   ratelimit:
     # Apertado: /api/v1/auth/cadastro cria clínica e é a rota que roda sem
-    # tenant. Tentativa de senha não passa mais por aqui — é do Clerk.
+    # tenant.
     auth-por-minuto: ${DENTIBOT_RATELIMIT_AUTH:10}
     geral-por-minuto: ${DENTIBOT_RATELIMIT_GERAL:300}
     janela: PT1M
@@ -86,8 +86,7 @@ management:
   endpoints:
     web:
       exposure:
-        # Só health. prometheus estava listado sem a dependência do registry
-        # (o endpoint nem existia), e info não tem conteúdo.
+        # Só health: não há registry do prometheus, e info não tem conteúdo.
         include: health
   endpoint:
     health:

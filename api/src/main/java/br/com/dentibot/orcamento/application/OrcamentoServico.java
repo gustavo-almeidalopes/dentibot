@@ -232,17 +232,10 @@ public class OrcamentoServico implements OrcamentoApi {
      * Porta única das escritas: carrega a linha e confere o alcance antes de
      * qualquer mutação.
      *
-     * <p>Existe porque o alcance vinha sendo obtido e jogado fora nos seis
-     * mutadores — {@code exigir()} devolve {@link Alcance}, {@code PROPRIOS}
-     * satisfaz {@code permite()}, e nada mais olhava para o {@code id_dentista}.
-     * Na prática um dentista aprovava o orçamento de um colega da mesma clínica
-     * pelo id, e o evento {@code orcamento.aprovado} saía com o
-     * {@code idDentista} do colega — abrindo recebível e comissão para um plano
-     * que ele nunca aprovou. O RLS não pega isso: ele fecha o eixo do tenant, e
-     * os dois dentistas estão no mesmo.
-     *
-     * <p>Todo mutador passa por aqui. Um caminho de escrita que não chame este
-     * método é o bug voltando.
+     * <p>Todo mutador passa por aqui. O RLS fecha só o eixo do tenant: sem esta
+     * conferência, um dentista com alcance {@code PROPRIOS} aprovaria pelo id o
+     * orçamento de um colega da mesma clínica, abrindo recebível e comissão em
+     * nome do colega.
      */
     private OrcamentoResumo carregar(long idOrcamento, Alcance alcance) {
         OrcamentoResumo o = orcamentos.buscar(idOrcamento)
@@ -309,11 +302,9 @@ public class OrcamentoServico implements OrcamentoApi {
     }
 
     /**
-     * O id_dentista de quem está falando, resolvido a partir do contexto.
-     *
-     * <p>Vem do contexto e não de parâmetro de propósito: quem decide "quem é
+     * Vem do contexto e não de parâmetro de propósito: quem decide "quem é
      * você" é o token, e um id_dentista vindo da requisição seria exatamente a
-     * forma de ver a agenda alheia.
+     * forma de ver o orçamento alheio.
      */
     private Long dentistaCorrente() {
         Long idUsuario = ContextoAtual.obter().usuarioId();

@@ -79,8 +79,7 @@ public class PacienteServico implements PacientesApi {
     @Override
     @Transactional
     public long criar(NovoPaciente novo) {
-        // Financeiro e auxiliar leem paciente e não cadastram: sem esta linha a
-        // matriz dizia uma coisa e o POST fazia outra.
+        // Financeiro e auxiliar leem paciente, mas não cadastram.
         permissoes.exigir(Recurso.PACIENTE, Acao.CRIAR);
         long idPessoa = identidade.criarPessoa(novo.dadosPessoais());
         return pacientes.inserir(idPessoa, novo.idPlanoConvenio(), novo.numeroCarteirinha(),

@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Dados da clínica e tabela de procedimentos. */
 @RestController
 @RequestMapping("/api/v1/clinica")
 public class ClinicaController {

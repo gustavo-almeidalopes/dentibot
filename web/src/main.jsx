@@ -26,18 +26,9 @@ import {
   PRONTUARIO, RECEPCAO,
 } from './rotas.js';
 
-/* Router de verdade, e não o mapa de `window.location.pathname` que estava
-   aqui. O comentário anterior dizia "vale um router quando existir rota com
-   parâmetro" — `/pacientes/:id/prontuario` é essa rota. O mapa também não tinha
-   404: qualquer caminho desconhecido caía na landing com 200, então um link
-   errado parecia funcionar. */
-
-/* Sem a chave o ClerkProvider não carrega NADA e não reclama: o próprio SDK faz
-   `else if (this.#publishableKey) this.getEntryChunks()` — chave ausente é um
-   ramo vazio. Aí todo <Show> devolve null para sempre e /login sobe com a
-   metade direita em branco, sem os botões do Google/Microsoft/Apple. Era um
-   sintoma sem nenhuma mensagem em lugar nenhum; agora a falta da variável no
-   build aparece na tela em vez de virar depuração de página vazia. */
+/* Sem a chave o ClerkProvider não carrega NADA e não reclama: todo <Show>
+   devolve null para sempre e /login sobe com a metade direita em branco. Por
+   isso a falta da variável no build aparece na tela. */
 const chaveClerk = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 createRoot(document.getElementById('root')).render(

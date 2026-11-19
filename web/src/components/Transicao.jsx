@@ -44,10 +44,10 @@ export default function Transicoes({ consulta, executar, enviando, cabe = () => 
  * <p>A `Idempotency-Key` é gerada UMA VEZ por montagem do botão, não por
  * clique: dois toques em "Confirmar" são a mesma requisição lógica, e uma chave
  * nova no segundo clique faria o filtro do back-end tratá-lo como operação
- * distinta — que é exatamente o que ele existe para impedir.
+ * distinta.
  *
- * <p>Cancelar pede o motivo porque o `PedidoCancelamento` o exige (`@NotBlank`):
- * sem o campo aqui, o botão terminava num 400.
+ * <p>Cancelar pede o motivo porque o `PedidoCancelamento` o exige (`@NotBlank`),
+ * e sem ele o back-end responde 400.
  */
 function Transicao({ id, acao, paciente, executar, enviando }) {
   const { rotulo, feito, pergunta, confirmar, voltar, corpo } = ACOES[acao];

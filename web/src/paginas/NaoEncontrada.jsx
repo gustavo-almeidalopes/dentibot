@@ -1,14 +1,7 @@
 import { Link } from 'react-router-dom';
 import { AGENDA } from '../rotas.js';
 
-/**
- * 404 de verdade.
- *
- * <p>O mapa de rotas anterior devolvia a landing para qualquer caminho
- * desconhecido, com status 200 — um link errado parecia funcionar, e o
- * catch-all do vercel.json fazia o mesmo no servidor. Um endereço que não
- * existe precisa dizer isso.
- */
+/** 404 de verdade: um endereço que não existe precisa dizer isso. */
 export default function NaoEncontrada() {
   return (
     <main id="main" className="sec edge">

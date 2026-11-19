@@ -152,8 +152,7 @@ public class IdentidadeServico implements IdentidadeApi {
     }
 
     /**
-     * Admite um membro. Sem senha: a pessoa cria a própria conta no Clerk e o
-     * vínculo acontece na primeira entrada dela — ver
+     * Sem senha: o vínculo com o Clerk acontece na primeira entrada — ver
      * {@link ResolvedorDeAcessoClerk}.
      */
     @Override

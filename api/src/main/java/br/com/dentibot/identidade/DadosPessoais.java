@@ -5,10 +5,8 @@ import java.time.LocalDate;
 /**
  * Uma pessoa física da clínica, como a ficha a coleta.
  *
- * <p>Substituiu quatro parâmetros soltos ({@code nome, cpf, telefone, email})
- * em {@link IdentidadeApi#criarPessoa}. O motivo não é estético: a ficha do
- * paciente tem quinze campos, e quinze parâmetros posicionais do mesmo tipo
- * {@code String} é a assinatura em que trocar cidade por bairro compila.
+ * <p>Um record, e não quinze parâmetros {@code String} posicionais: nessa
+ * assinatura trocar cidade por bairro compila.
  *
  * <p>Endereço e documentos ficam aqui, e não em {@code pacientes}, porque a
  * mesma pessoa pode ser paciente e responsável por outro — o dado pessoal mora

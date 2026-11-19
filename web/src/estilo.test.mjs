@@ -6,8 +6,7 @@
  * Este projeto não tem jsdom nem testing-library, e não vai ganhar: layout se
  * confere olhando. O que dá para provar por máquina é o que apodrece calado —
  * token usado e nunca definido, endpoint vazando para a interface, primitivo da
- * landing usado como linha de dado. Foi exatamente assim que `--ink` viveu em 9
- * lugares sem ninguém ver.
+ * landing usado como linha de dado.
  */
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -26,7 +25,7 @@ test('todo token que o CSS usa está definido em algum lugar', () => {
   const fonte = cssDaLanding() + cssDoApp();
 
   // `var(--x)` sem fallback: se ninguém definir --x, a propriedade inteira é
-  // descartada. `background: var(--ink)` virava transparente, não vermelho.
+  // descartada, sem erro.
   const usados = new Set(
     [...fonte.matchAll(/var\(\s*(--[\w-]+)\s*\)/g)].map((m) => m[1]),
   );
@@ -52,16 +51,14 @@ test('o tema claro define todo token semântico que o escuro define', () => {
   const escuro = semanticos(bloco(/:root\s*\{[^}]*\}/));
   const claro = semanticos(bloco(/:root\[data-tema="claro"\]:has\(\.app-main\)\s*\{[^}]*\}/));
 
-  // Token definido só no escuro é o bug do --ink de novo, com outro nome: a
-  // tela clara herda o valor do preto e o texto some no fundo.
+  // Token definido só no escuro: a tela clara herda o valor do preto e o texto
+  // some no fundo.
   const faltando = [...escuro].filter((t) => !claro.has(t));
   assert.deepEqual(faltando, [], `sem valor no tema claro: ${faltando}`);
   assert.ok(escuro.size >= 7, 'os sete tokens semânticos precisam existir');
 });
 
 test('nenhuma tela imprime o endpoint na interface', () => {
-  // O `detalhe` do Cabecalho mostrava "GET /api/v1/consultas" enquanto
-  // carregava. Resquício de depuração, visível para o cliente pagante.
   for (const [nome, fonte] of telas()) {
     // assert.ok e não doesNotMatch: o doesNotMatch despeja o arquivo inteiro
     // no erro, e a falha vira 200 linhas de JSX escapado.
@@ -70,8 +67,8 @@ test('nenhuma tela imprime o endpoint na interface', () => {
 });
 
 test('as telas do sistema não usam o .row da landing', () => {
-  // `.row` é grid de DUAS colunas com padding-block de 42px. As telas passavam
-  // TRÊS filhos, e a coluna de ações caía numa linha implícita.
+  // `.row` é grid de DUAS colunas com padding-block de 42px, feito para a
+  // landing: um terceiro filho cai numa linha implícita.
   // `row-title` é outra classe (o título em Antonio), e `\b` casava com ela.
   for (const [nome, fonte] of telas()) {
     assert.ok(!/className="(?:[^"]*\s)?row["\s]/.test(fonte),

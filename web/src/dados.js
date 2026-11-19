@@ -4,11 +4,8 @@ import { api } from './api.js';
 /**
  * Carrega um recurso da API com os três estados que toda tela precisa.
  *
- * <p>Existe porque as cinco telas do app fazem exatamente a mesma dança:
- * carregando → ok → erro, com cancelamento no desmonte. Repetir isso cinco
- * vezes garante que uma delas vai esquecer o cancelamento e escrever num
- * componente já desmontado — em dev o StrictMode monta duas vezes e o bug
- * aparece; em produção ele aparece quando o usuário navega rápido.
+ * <p>Cancela no desmonte: em dev o StrictMode monta duas vezes, e em produção o
+ * usuário navega rápido.
  *
  * @param caminho o caminho da API, ou null para não carregar nada ainda
  */
@@ -48,9 +45,7 @@ export function useAcao(aoConcluir) {
     try {
       const resultado = await promessa;
       aoConcluir?.(resultado);
-      /* Sucesso mudo era o buraco: a lista recarregava e quem clicou não sabia
-         se clicou. Quem não passar mensagem continua sem aviso — nem toda
-         escrita precisa de uma, e "Salvo." em cima de um formulário que já
+      /* Sem mensagem, sem aviso: "Salvo." em cima de um formulário que já
          fechou é ruído. */
       if (mensagem) setSucesso(mensagem);
       return resultado;

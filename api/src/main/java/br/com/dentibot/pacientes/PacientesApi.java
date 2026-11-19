@@ -4,10 +4,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-/** Porta pública do módulo pacientes. */
 public interface PacientesApi {
 
-    /** Resumo para listagem em outros módulos (agenda, financeiro). */
     Map<Long, PacienteResumo> mapaDeResumos(Collection<Long> idsPaciente);
 
     List<PacienteResumo> listarResumos(int limite, long apos);

@@ -17,9 +17,8 @@ const DURACOES = [30, 45, 60, 90];
  * pergunta ao telefone.
  *
  * <p>A grade mostra só o que cabe: é calculada sobre a agenda do dentista
- * naquele dia, com a mesma regra da EXCLUDE do banco. Sem ela a recepção
- * chutava um horário, tomava 409 e chutava outro com o paciente esperando na
- * linha.
+ * naquele dia, com a mesma regra da EXCLUDE do banco, para a recepção não
+ * descobrir o conflito num 409 com o paciente esperando na linha.
  *
  * <p>Usado na Recepção (com `onCadastrar`, porque lá o paciente novo nasce no
  * mesmo fluxo) e na Agenda.
@@ -40,13 +39,11 @@ export default function Agendar({
   const [escolhido, setEscolhido] = useState(null);
   const [obs, setObs] = useState('');
 
-  /* `dentistas` null = ainda carregando. Tratar como lista vazia fazia o
+  /* `dentistas` null = ainda carregando. Tratar como lista vazia faria o
      "Sem dentista" piscar a cada abertura da tela. */
   const carregandoDentistas = dentistas === null;
   const equipe = dentistas ?? [];
 
-  /* Derivado, não estado: a lista de dentistas chega depois da montagem, e
-     clínica com um dentista só não deveria precisar escolher. */
   const dentista = idDentista || (equipe.length === 1 ? String(equipe[0].idDentista) : '');
   const nomeDentista = equipe.find((d) => String(d.idDentista) === dentista)?.nomeCompleto;
 

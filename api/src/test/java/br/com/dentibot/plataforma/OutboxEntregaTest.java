@@ -32,7 +32,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Entrega do outbox quando um consumidor falha.
  *
- * <p>O lote inteiro rodava numa transação só. Um erro de SQL num consumidor
+ * <p>Com o lote inteiro numa transação só, um erro de SQL num consumidor
  * aborta a transação no Postgres; o {@code reagendar()} seguinte também falha,
  * o lote volta atrás, {@code tentativas} nunca sobe e o mesmo evento volta ao
  * topo da fila a cada ciclo — travando todos os que vêm atrás dele.

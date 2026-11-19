@@ -14,7 +14,7 @@ dentibot:
     # consumidores dele. Os testes chamam OutboxWorker.processarAgora().
     intervalo: 3600000
   ratelimit:
-    # Teste roda dezenas de logins em segundos; o limite de produção
+    # Teste roda dezenas de requisições em segundos; o limite de produção
     # transformaria isso em 429 intermitente e num teste instável.
     auth-por-minuto: 10000
     geral-por-minuto: 10000

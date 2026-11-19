@@ -84,7 +84,6 @@ public class LgpdRepositorio {
                 .update();
     }
 
-    /** Desativa as versões anteriores do MESMO tipo ao publicar uma nova. */
     public int desativarOutrasVersoes(String tipo, long idNovoTermo) {
         return jdbc.sql("""
                         UPDATE lgpd.termos SET ativo = FALSE

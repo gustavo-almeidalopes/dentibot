@@ -110,7 +110,6 @@ public class ProntuarioRepositorio {
                 .single();
     }
 
-    /** O dentista responsável por uma evolução — usado para checar o alcance PROPRIOS. */
     public java.util.Optional<Long> dentistaDaEvolucao(long idEvolucao) {
         return jdbc.sql("SELECT id_dentista FROM prontuario.evolucoes WHERE id_evolucao = :id")
                 .param("id", idEvolucao)
