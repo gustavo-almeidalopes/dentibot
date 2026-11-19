@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { query } from '../api.js';
 import {
   STATUS_CONSULTA, agruparPorHora, contagem, faixaHoraria, fimDoDia, hoje, inicioDoDia,
-  porExtenso, somarDias, telHref,
+  nomeDoPaciente, nomesPorId, porExtenso, somarDias,
 } from '../apresentacao.js';
 import Agendar from '../components/Agendar.jsx';
-import Transicao from '../components/Transicao.jsx';
-import { Aviso, Selo } from '../components/primitivos.jsx';
+import Transicoes from '../components/Transicao.jsx';
+import { Aviso, Cabecalho, Estado, Selo, Telefone } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
+import { usePode } from '../permissoes.js';
 import { RECEPCAO } from '../rotas.js';
-import { Cabecalho, Estado, usePode } from './Layout.jsx';
 
 export default function Agenda() {
   const [dia, setDia] = useState(hoje);
@@ -26,20 +26,14 @@ export default function Agenda() {
 
   const consultas = useRecurso(caminho);
   const dentistas = useRecurso('/equipe/dentistas');
-  /* Só quando o painel abre: a lista de pacientes serve à busca do agendar, e
-     quem só consulta o dia não precisa pagar por ela. */
-  const pacientes = useRecurso(agendando ? '/pacientes?limite=200' : null);
   const { executar, enviando, sucesso } = useAcao(consultas.recarregar);
 
   const lista = consultas.dados ?? [];
 
-  /* ConsultaResumo traz `idDentista` e não o nome — a projeção do back-end é
-     deliberadamente enxuta. A tela já carrega a lista de dentistas para o
-     filtro, então o nome sai daí sem uma segunda ida à API. */
-  const nomeDoDentista = useMemo(() => {
-    const mapa = new Map((dentistas.dados ?? []).map((d) => [d.idDentista, d.nomeCompleto]));
-    return (id) => mapa.get(id) ?? `Dentista ${id}`;
-  }, [dentistas.dados]);
+  const nomeDoDentista = useMemo(
+    () => nomesPorId(dentistas.dados, 'idDentista', 'Dentista'),
+    [dentistas.dados],
+  );
 
   return (
     <>
@@ -59,9 +53,7 @@ export default function Agenda() {
         <Agendar
           key={dia}
           diaInicial={dia}
-          pacientes={pacientes.dados ?? []}
           dentistas={dentistas.status === 'ok' ? dentistas.dados ?? [] : null}
-          podeVerEquipe={pode('EQUIPE')}
           /* O cadastro com a ficha inteira mora na Recepção; o nome digitado
              vai junto para não ser digitado de novo. */
           onCadastrar={pode('PACIENTE', 'CRIAR')
@@ -121,35 +113,11 @@ export default function Agenda() {
                 {doHorario.map((c) => (
                   <article className="consulta" key={c.idConsulta} data-status={c.status}>
                     <p className="consulta-faixa">{faixaHoraria(c.inicioEm, c.terminoEm)}</p>
-                    <p className="sub">{c.nomePaciente ?? `Paciente ${c.idPaciente}`}</p>
+                    <p className="sub">{nomeDoPaciente(c)}</p>
                     <p className="body body-ash">{nomeDoDentista(c.idDentista)}</p>
-                    {/* Já vinha no ConsultaResumo e era descartado. É o dado
-                        que a recepção mais usa: ela liga para o paciente. */}
-                    {telHref(c.telefonePaciente) && (
-                      <a className="consulta-tel" href={telHref(c.telefonePaciente)}>
-                        {c.telefonePaciente}
-                      </a>
-                    )}
+                    <Telefone numero={c.telefonePaciente} className="consulta-tel" />
                     <Selo mapa={STATUS_CONSULTA} valor={c.status} />
-                    <div className="acoes">
-                      {/* Só as transições que o estado atual permite. Mostrar
-                          um botão que o back-end recusa com 409 é ensinar o
-                          usuário a ignorar mensagem de erro. */}
-                      {c.status === 'agendada' && (
-                        <Transicao id={c.idConsulta} acao="confirmar" paciente={c.nomePaciente}
-                                   executar={executar} enviando={enviando} />
-                      )}
-                      {(c.status === 'agendada' || c.status === 'confirmada') && (
-                        <>
-                          <Transicao id={c.idConsulta} acao="concluir" paciente={c.nomePaciente}
-                                     executar={executar} enviando={enviando} />
-                          <Transicao id={c.idConsulta} acao="falta" paciente={c.nomePaciente}
-                                     executar={executar} enviando={enviando} />
-                          <Transicao id={c.idConsulta} acao="cancelar" paciente={c.nomePaciente}
-                                     executar={executar} enviando={enviando} />
-                        </>
-                      )}
-                    </div>
+                    <Transicoes consulta={c} executar={executar} enviando={enviando} />
                   </article>
                 ))}
               </div>

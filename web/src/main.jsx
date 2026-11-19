@@ -20,7 +20,7 @@ import './style.css';
 import './app.css';
 /* Antes do primeiro render: o atributo do tema já está no <html> quando a
    primeira tela pinta, e o tema claro não pisca preto ao recarregar. */
-import './tema.js';
+import { APARENCIA } from './tema.js';
 import {
   AGENDA, AREA_PACIENTE, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES,
   PRONTUARIO, RECEPCAO,
@@ -31,26 +31,6 @@ import {
    parâmetro" — `/pacientes/:id/prontuario` é essa rota. O mapa também não tinha
    404: qualquer caminho desconhecido caía na landing com 200, então um link
    errado parecia funcionar. */
-
-/* Variáveis em vez de @clerk/themes: o tema daqui é preto, branco e canto
-   vivo — sete tokens cobrem isso e não entra dependência para reescrevê-los
-   depois. */
-const aparencia = {
-  variables: {
-    colorBackground: '#000000',
-    colorForeground: '#ffffff',
-    colorMuted: '#000000',
-    colorMutedForeground: '#838383',
-    colorPrimary: '#ffffff',
-    colorPrimaryForeground: '#000000',
-    colorInput: '#000000',
-    colorInputForeground: '#ffffff',
-    colorBorder: 'rgba(255, 255, 255, .26)',
-    colorDanger: '#ed1c24',
-    borderRadius: '0px',
-    fontFamily: "'Inter', 'Neue Haas Grotesk', 'Helvetica Neue', Helvetica, sans-serif",
-  },
-};
 
 /* Sem a chave o ClerkProvider não carrega NADA e não reclama: o próprio SDK faz
    `else if (this.#publishableKey) this.getEntryChunks()` — chave ausente é um
@@ -76,7 +56,7 @@ createRoot(document.getElementById('root')).render(
       <ClerkProvider
         localization={ptBR}
         publishableKey={chaveClerk}
-        appearance={aparencia}
+        appearance={{ variables: APARENCIA.escuro }}
         signInUrl={LOGIN}
         signUpUrl={CRIAR}
         afterSignOutUrl="/"

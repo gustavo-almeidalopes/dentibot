@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { Aviso } from '../components/primitivos.jsx';
+import { CONDICAO_DENTE, descrever, nomesPorId } from '../apresentacao.js';
+import { Aviso, Cabecalho, Estado } from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
 import { PACIENTES } from '../rotas.js';
-import { Cabecalho, Estado } from './Layout.jsx';
 
 const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'short',
@@ -14,8 +14,8 @@ const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
 const SUPERIOR = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
 const INFERIOR = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
 
-const CONDICOES = ['hígido', 'cárie', 'restaurado', 'ausente', 'implante', 'coroa', 'fraturado'];
 const FACES = ['V', 'L', 'M', 'D', 'O', 'I', 'P'];
+const rotuloDaCondicao = (c) => descrever(CONDICAO_DENTE, c).rotulo;
 
 export default function Prontuario() {
   const { idPaciente } = useParams();
@@ -90,16 +90,14 @@ function Evolucoes({ idPaciente, recurso }) {
     recurso.recarregar();
   });
 
-  /* Exceção deliberada ao "nenhum endpoint novo": a evolução traz `idDentista`
-     e não o nome, e "Dentista 3" assinando registro clínico é o tipo de coisa
-     que derruba uma demonstração. A Auditoria já chama /equipe pelo mesmo
-     motivo — `auditoria` não pode depender de `identidade`, e quem casa os
-     dois lados é a tela. */
-  const equipe = useRecurso('/equipe');
-  const nomeDoDentista = useMemo(() => {
-    const mapa = new Map((equipe.dados ?? []).map((m) => [m.idUsuario, m.nomeCompleto]));
-    return (id) => mapa.get(id) ?? `Dentista ${id}`;
-  }, [equipe.dados]);
+  /* A evolução traz `idDentista` e não o nome: "Dentista 3" assinando registro
+     clínico não serve. É id de DENTISTA, então a lista é a de dentistas — a de
+     /equipe é por idUsuario, outro número. */
+  const dentistas = useRecurso('/equipe/dentistas');
+  const nomeDoDentista = useMemo(
+    () => nomesPorId(dentistas.dados, 'idDentista', 'Dentista'),
+    [dentistas.dados],
+  );
 
   /* Uma entrada que retifica outra aponta para ela, e as DUAS continuam
      visíveis. Prontuário se corrige somando, nunca sobrescrevendo (CFO-226) —
@@ -185,8 +183,8 @@ function Odontograma({ idPaciente, recurso }) {
       {/* Sete condições codificadas em borda e nenhuma legenda: ninguém sabia
           ler o que a tela estava dizendo. */}
       <ul className="odonto-legenda">
-        {CONDICOES.map((c) => (
-          <li key={c}><span className="odonto-amostra" data-condicao={c} />{c}</li>
+        {Object.entries(CONDICAO_DENTE).map(([c, { rotulo }]) => (
+          <li key={c}><span className="odonto-amostra" data-condicao={c} />{rotulo}</li>
         ))}
       </ul>
 
@@ -208,7 +206,7 @@ function Odontograma({ idPaciente, recurso }) {
                       className="odonto-dente"
                       data-condicao={l?.condicao ?? 'higido'}
                       aria-pressed={selecionado === dente}
-                      aria-label={`Dente ${dente}${l ? `: ${l.condicao}` : ''}`}
+                      aria-label={`Dente ${dente}${l ? `: ${rotuloDaCondicao(l.condicao)}` : ''}`}
                       onClick={() => setSelecionado(selecionado === dente ? null : dente)}
                     >
                       {dente}
@@ -239,22 +237,25 @@ function Odontograma({ idPaciente, recurso }) {
 }
 
 function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
-  const [condicao, setCondicao] = useState(CONDICOES[1]);
+  const [condicao, setCondicao] = useState('carie');
   const [face, setFace] = useState('');
   const [observacao, setObservacao] = useState('');
+  /* O `ck_face_coerente`: condição de dente inteiro não leva face, as outras
+     exigem uma. */
+  const inteiro = CONDICAO_DENTE[condicao].inteiro;
 
   return (
     <form
       className="form-bloco"
       onSubmit={(e) => {
         e.preventDefault();
-        onLancar({ face: face || null, condicao, observacao: observacao.trim() || null });
+        onLancar({ face: inteiro ? null : face, condicao, observacao: observacao.trim() || null });
       }}
     >
       <p className="sub">Dente {dente}</p>
       {atual && (
         <p className="cap cap-ash">
-          Hoje: {atual.condicao}{atual.face ? ` · face ${atual.face}` : ''}
+          Hoje: {rotuloDaCondicao(atual.condicao)}{atual.face ? ` · face ${atual.face}` : ''}
           {atual.observacao ? ` · ${atual.observacao}` : ''}
         </p>
       )}
@@ -263,18 +264,20 @@ function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
         <label className="campo-app">
           <span className="cap cap-ash">Condição</span>
           <select value={condicao} onChange={(e) => setCondicao(e.target.value)}>
-            {CONDICOES.map((c) => <option key={c} value={c}>{c}</option>)}
+            {Object.entries(CONDICAO_DENTE).map(([c, { rotulo }]) => (
+              <option key={c} value={c}>{rotulo}</option>
+            ))}
           </select>
         </label>
-        <label className="campo-app">
-          <span className="cap cap-ash">Face</span>
-          <select value={face} onChange={(e) => setFace(e.target.value)}>
-            {/* Vazio é o dente inteiro, não "não informado": há condição que não
-                é de face nenhuma (ausente, implante). */}
-            <option value="">Dente inteiro</option>
-            {FACES.map((f) => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </label>
+        {!inteiro && (
+          <label className="campo-app">
+            <span className="cap cap-ash">Face *</span>
+            <select required value={face} onChange={(e) => setFace(e.target.value)}>
+              <option value="" disabled>Escolha</option>
+              {FACES.map((f) => <option key={f} value={f}>{f}</option>)}
+            </select>
+          </label>
+        )}
       </div>
 
       <label className="campo-app">

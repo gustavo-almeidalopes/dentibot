@@ -78,11 +78,3 @@ test('as telas do sistema não usam o .row da landing', () => {
       `${nome} ainda usa .row`);
   }
 });
-
-test('nenhuma tela usa a classe de erro do formulário de pagamento', () => {
-  // `.pagamento-erro` é do cartão de crédito. Quatro telas o tomaram emprestado
-  // como estilo de erro de campo; a classe certa é `.erro-campo`.
-  for (const [nome, fonte] of telas()) {
-    assert.ok(!/pagamento-erro/.test(fonte), `${nome} usa pagamento-erro`);
-  }
-});

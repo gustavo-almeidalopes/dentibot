@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api.js';
-import { casaBusca, contagem, telHref } from '../apresentacao.js';
+import { LIMITE_LISTA, api } from '../api.js';
+import { STATUS_PACIENTE, casaBusca, contagem } from '../apresentacao.js';
 import FichaPaciente from '../components/FichaPaciente.jsx';
-import { Aviso, Celula, Selo, Tabela } from '../components/primitivos.jsx';
+import {
+  Aviso, Cabecalho, Celula, Estado, Selo, Tabela, Telefone,
+} from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
+import { usePode } from '../permissoes.js';
 import { RECEPCAO, prontuarioDe } from '../rotas.js';
-import { Cabecalho, Estado, usePode } from './Layout.jsx';
-
-/* O `LIMITE_MAXIMO` do PacienteController é 200, e pedir mais não traz mais.
-   A constante existe para a frase de contagem saber quando a lista bateu o
-   teto — sem isso a tela escrevia "200 no cadastro" para uma clínica de 900. */
-const LIMITE = 200;
 
 /**
  * Lista de pacientes.
@@ -25,7 +22,7 @@ export default function Pacientes() {
   const [criando, setCriando] = useState(false);
   const [busca, setBusca] = useState('');
   const pode = usePode();
-  const pacientes = useRecurso(`/pacientes?limite=${LIMITE}`);
+  const pacientes = useRecurso(`/pacientes?limite=${LIMITE_LISTA}`);
   const lista = pacientes.dados ?? [];
 
   /* A mesma busca da Recepção: "joao" acha João, e o telefone casa por dígitos. */
@@ -36,7 +33,7 @@ export default function Pacientes() {
       <Cabecalho
         titulo="Pacientes."
         detalhe={pacientes.status === 'ok'
-          ? contagem(lista.length, LIMITE, 'paciente', 'pacientes')
+          ? contagem(lista.length, LIMITE_LISTA, 'paciente', 'pacientes')
           : 'Cadastro da clínica'}
         /* Financeiro e auxiliar leem o cadastro e não criam. Mostrar o botão
            para eles seria oferecer um formulário que termina em 403. */
@@ -85,15 +82,9 @@ export default function Pacientes() {
             <tr key={p.idPaciente}>
               <Celula rotulo="Nome" className="celula-nome">{p.nomeCompleto ?? '—'}</Celula>
               <Celula rotulo="Telefone" num>
-                {telHref(p.telefoneCelular)
-                  ? <a href={telHref(p.telefoneCelular)}>{p.telefoneCelular}</a>
-                  : '—'}
+                <Telefone numero={p.telefoneCelular} vazio="—" />
               </Celula>
-              {/* Mapa vazio de propósito: os valores do CHECK de
-                  `pacientes.status` não foram conferidos contra o banco, e um
-                  rótulo inventado esconderia um estado real atrás de um
-                  travessão. `descrever` mostra o valor como veio. */}
-              <Celula rotulo="Status"><Selo mapa={{}} valor={p.status} /></Celula>
+              <Celula rotulo="Status"><Selo mapa={STATUS_PACIENTE} valor={p.status} /></Celula>
               <Celula rotulo="">
                 <div className="acoes">
                   {/* Do cadastro direto para o horário, com o paciente já escolhido

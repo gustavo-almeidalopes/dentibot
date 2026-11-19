@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
-import { api } from '../api.js';
-import { STATUS_RECEBIVEL, contagem } from '../apresentacao.js';
+import { LIMITE_LISTA, api } from '../api.js';
+import { STATUS_RECEBIVEL, contagem, nomesPorId } from '../apresentacao.js';
 import Confirmar from '../components/Confirmar.jsx';
-import { Aviso, Celula, Selo, Tabela } from '../components/primitivos.jsx';
+import {
+  Aviso, Cabecalho, Celula, Estado, Selo, Tabela,
+} from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
-import { Cabecalho, Estado, usePode } from './Layout.jsx';
+import { usePode } from '../permissoes.js';
 
 const DINHEIRO = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
@@ -28,8 +30,6 @@ function Valor({ valor }) {
     .map((p) => p.value).join('');
   return <><sup>{moeda}</sup>{numero}</>;
 }
-
-const LIMITE = 200;
 
 /* O recorte de CADA número, porque eles não compartilham um.
    "Do primeiro dia do mês até hoje" estava no cabeçalho como se valesse para
@@ -56,7 +56,7 @@ const INDICADORES = [
  */
 export default function Financeiro() {
   const resumo = useRecurso('/financeiro/resumo');
-  const recebiveis = useRecurso(`/financeiro/recebiveis?limite=${LIMITE}`);
+  const recebiveis = useRecurso(`/financeiro/recebiveis?limite=${LIMITE_LISTA}`);
   const lista = recebiveis.dados ?? [];
   const pode = usePode();
   const podeReceber = pode('FINANCEIRO', 'CRIAR');
@@ -72,10 +72,10 @@ export default function Financeiro() {
 
   /* Exceção deliberada ao "nenhum endpoint novo": RecebivelResumo traz
      idPaciente e não o nome, e uma cobrança sem nome não dá para conferir. */
-  const pacientes = useRecurso(`/pacientes?limite=${LIMITE}`);
+  const pacientes = useRecurso(`/pacientes?limite=${LIMITE_LISTA}`);
   const nomeDoPaciente = useMemo(() => {
-    const mapa = new Map((pacientes.dados ?? []).map((p) => [p.idPaciente, p.nomeCompleto]));
-    return (id) => (id == null ? '—' : mapa.get(id) ?? `Paciente ${id}`);
+    const nome = nomesPorId(pacientes.dados, 'idPaciente', 'Paciente');
+    return (id) => (id == null ? '—' : nome(id));
   }, [pacientes.dados]);
 
   /* Ordem imposta aqui: a pergunta desta tabela é "o que vence primeiro".
@@ -115,7 +115,7 @@ export default function Financeiro() {
       </p>
 
       <Cabecalho secao titulo="Recebíveis." detalhe={recebiveis.status === 'ok'
-        ? contagem(lista.length, LIMITE, 'parcela', 'parcelas')
+        ? contagem(lista.length, LIMITE_LISTA, 'parcela', 'parcelas')
         : 'Parcelas em aberto'} />
 
       <Aviso texto={aviso} />
@@ -153,7 +153,7 @@ export default function Financeiro() {
               <Celula rotulo="Status"><Selo mapa={STATUS_RECEBIVEL} valor={r.status} /></Celula>
               {podeReceber && (
                 <Celula rotulo="">
-                  {Number(r.saldoDevedor) > 0 && r.status !== 'cancelado' && (
+                  {Number(r.saldoDevedor) > 0 && r.status !== 'cancelada' && (
                     <Receber recebivel={r} paciente={nomeDoPaciente(r.idPaciente)}
                              formas={formas.dados ?? []} onRecebido={recebido} />
                   )}

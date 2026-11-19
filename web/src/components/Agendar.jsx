@@ -1,19 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api, query } from '../api.js';
+import { LIMITE_LISTA, api, query } from '../api.js';
 import {
-  casaBusca, fimDoDia, hoje, horarios, inicioDoDia, porExtenso, somarDias,
+  casaBusca, fimDoDia, hoje, hora, horarios, inicioDoDia, porExtenso, somarDias,
 } from '../apresentacao.js';
 import { useAcao, useRecurso } from '../dados.js';
 import { formatarTelefone } from '../documento.js';
+import { usePode } from '../permissoes.js';
 import { EQUIPE } from '../rotas.js';
 import { Aviso, Esqueleto } from './primitivos.jsx';
 
 const DURACOES = [30, 45, 60, 90];
-
-/* A lista de pacientes vem de `/pacientes?limite=200`, que é o teto do
-   controller. Passou disso, "ninguém com esse nome" pode ser mentira. */
-const TETO_PACIENTES = 200;
 
 /**
  * Marcar uma consulta: quem, com quem, quando — na ordem em que a recepção
@@ -28,9 +25,13 @@ const TETO_PACIENTES = 200;
  * mesmo fluxo) e na Agenda.
  */
 export default function Agendar({
-  pacientes, dentistas, diaInicial = hoje(), pacienteInicial = null,
-  onCadastrar, onAgendado, podeVerEquipe = false,
+  dentistas, diaInicial = hoje(), pacienteInicial = null, onCadastrar, onAgendado,
 }) {
+  const pode = usePode();
+  /* Só monta quando o painel abre, então quem só olha a agenda não paga por
+     esta lista. Passou do teto, "ninguém com esse nome" pode ser mentira. */
+  const cadastro = useRecurso(`/pacientes?limite=${LIMITE_LISTA}`);
+  const pacientes = cadastro.dados ?? [];
   const [busca, setBusca] = useState('');
   const [paciente, setPaciente] = useState(pacienteInicial);
   const [idDentista, setIdDentista] = useState('');
@@ -146,7 +147,7 @@ export default function Agendar({
               {busca.trim() && encontrados.length === 0 && (
                 <p className="cap cap-ash">
                   Ninguém com esse nome ou telefone
-                  {pacientes.length >= TETO_PACIENTES ? ' nos 200 primeiros do cadastro' : ''}.
+                  {pacientes.length >= LIMITE_LISTA ? ` nos ${LIMITE_LISTA} primeiros do cadastro` : ''}.
                 </p>
               )}
               {onCadastrar && (
@@ -202,7 +203,7 @@ export default function Agendar({
           <p className="vazio-titulo">Sem dentista.</p>
           <p className="body body-ash">
             A agenda é por dentista, e esta clínica ainda não tem nenhum na equipe.{' '}
-            {podeVerEquipe
+            {pode('EQUIPE')
               ? <>Admita um em <Link to={EQUIPE}>Equipe</Link>.</>
               : 'Quem administra a clínica admite um em Equipe.'}
           </p>
@@ -261,7 +262,7 @@ export default function Agendar({
             {/* O botão desabilitado não explica por quê; a linha de cima sim. */}
             <p className="agendar-resumo" aria-live="polite">
               {falta.length === 0
-                ? <><b>{paciente.nomeCompleto}</b> com {nomeDentista}, {porExtenso(dia)}, {slot.hora} às {slot.fim.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}.</>
+                ? <><b>{paciente.nomeCompleto}</b> com {nomeDentista}, {porExtenso(dia)}, {slot.hora} às {hora(slot.fim)}.</>
                 : `Falta escolher: ${falta.join(', ')}.`}
             </p>
             <button type="submit" className="btn btn-fill" disabled={falta.length > 0 || enviando}>

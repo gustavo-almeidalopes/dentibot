@@ -13,11 +13,12 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { EXIGEM_IDEMPOTENCIA } from './api.js';
+import { EXIGEM_IDEMPOTENCIA, LIMITE_LISTA } from './api.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
-const FILTRO = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com',
-  'dentibot', 'plataforma', 'idempotencia', 'FiltroIdempotencia.java');
+const PLATAFORMA = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com',
+  'dentibot', 'plataforma');
+const FILTRO = join(PLATAFORMA, 'idempotencia', 'FiltroIdempotencia.java');
 
 test('a lista de rotas idempotentes do front é a do FiltroIdempotencia', () => {
   const java = readFileSync(FILTRO, 'utf8');
@@ -32,4 +33,11 @@ test('a lista de rotas idempotentes do front é a do FiltroIdempotencia', () => 
 
   assert.ok(doBackend.length > 0, 'o extrator não encontrou prefixo nenhum');
   assert.deepEqual([...EXIGEM_IDEMPOTENCIA].sort(), doBackend);
+});
+
+test('o teto de listagem do front é o do back-end', () => {
+  const java = readFileSync(join(PLATAFORMA, 'config', 'Listagem.java'), 'utf8');
+  const limite = java.match(/LIMITE_MAXIMO\s*=\s*(\d+);/);
+  assert.ok(limite, 'não achei LIMITE_MAXIMO em Listagem.java');
+  assert.equal(LIMITE_LISTA, Number(limite[1]));
 });

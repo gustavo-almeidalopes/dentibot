@@ -39,6 +39,10 @@ export const EXIGEM_IDEMPOTENCIA = [
   '/pacientes',
 ];
 
+/** O teto de toda listagem do back-end (`Listagem.LIMITE_MAXIMO`). Uma lista
+    que veio com exatamente isto provavelmente não é a lista inteira. */
+export const LIMITE_LISTA = 200;
+
 export class ApiError extends Error {
   constructor(message, status, data) {
     super(message);

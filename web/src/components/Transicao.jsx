@@ -2,30 +2,44 @@ import { useState } from 'react';
 import { api } from '../api.js';
 import Confirmar from './Confirmar.jsx';
 
-/* As quatro transições que o AgendaController expõe. `pergunta` marca o que
-   não tem volta — o back-end responde 409 ao caminho inverso — e esses ficavam
-   a um clique, encostados no botão que não faz mal nenhum. */
+/* Como cada ação de `ConsultaResumo.acoes` aparece. Quais existem e quando
+   valem é o back-end quem diz; `pergunta` marca o que não tem volta — ele
+   responde 409 ao caminho inverso — para não ficar a um clique. */
 const ACOES = {
   confirmar: { rotulo: 'Confirmar', feito: 'Consulta confirmada.' },
-  cancelar: {
-    rotulo: 'Cancelar', feito: 'Consulta cancelada — o horário ficou livre.',
-    pergunta: 'Cancelar a consulta', confirmar: 'Cancelar consulta', voltar: 'Manter',
-    corpo: 'O horário volta a ficar livre na agenda do dentista.',
+  concluir: {
+    rotulo: 'Concluir', feito: 'Consulta concluída.',
+    pergunta: 'Concluir a consulta', confirmar: 'Concluir',
+    corpo: 'Esta mudança não tem volta pela tela: o back-end recusa o caminho inverso.',
   },
   falta: {
     rotulo: 'Faltou', feito: 'Falta registrada.',
     pergunta: 'Registrar falta', confirmar: 'Registrar falta',
     corpo: 'Esta mudança não tem volta pela tela: o back-end recusa o caminho inverso.',
   },
-  concluir: {
-    rotulo: 'Concluir', feito: 'Consulta concluída.',
-    pergunta: 'Concluir a consulta', confirmar: 'Concluir',
-    corpo: 'Esta mudança não tem volta pela tela: o back-end recusa o caminho inverso.',
+  cancelar: {
+    rotulo: 'Cancelar', feito: 'Consulta cancelada — o horário ficou livre.',
+    pergunta: 'Cancelar a consulta', confirmar: 'Cancelar consulta', voltar: 'Manter',
+    corpo: 'O horário volta a ficar livre na agenda do dentista.',
   },
 };
 
 /**
- * Um POST de transição de consulta — Agenda e Recepção usam o mesmo.
+ * Os botões das ações que o back-end liberou para esta consulta, filtradas por
+ * `cabe` quando a tela tem uma regra a mais (a Recepção olha o relógio).
+ */
+export default function Transicoes({ consulta, executar, enviando, cabe = () => true, className = 'acoes' }) {
+  const acoes = Object.keys(ACOES).filter((a) => consulta.acoes?.includes(a) && cabe(a));
+  if (acoes.length === 0) return null;
+  const botoes = acoes.map((acao) => (
+    <Transicao key={acao} id={consulta.idConsulta} acao={acao} paciente={consulta.nomePaciente}
+               executar={executar} enviando={enviando} />
+  ));
+  return className ? <div className={className}>{botoes}</div> : botoes;
+}
+
+/**
+ * Um POST de transição de consulta.
  *
  * <p>A `Idempotency-Key` é gerada UMA VEZ por montagem do botão, não por
  * clique: dois toques em "Confirmar" são a mesma requisição lógica, e uma chave
@@ -35,7 +49,7 @@ const ACOES = {
  * <p>Cancelar pede o motivo porque o `PedidoCancelamento` o exige (`@NotBlank`):
  * sem o campo aqui, o botão terminava num 400.
  */
-export default function Transicao({ id, acao, paciente, executar, enviando }) {
+function Transicao({ id, acao, paciente, executar, enviando }) {
   const { rotulo, feito, pergunta, confirmar, voltar, corpo } = ACOES[acao];
   const [chave] = useState(() => crypto.randomUUID());
   const [perguntando, setPerguntando] = useState(false);

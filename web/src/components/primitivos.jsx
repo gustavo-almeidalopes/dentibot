@@ -5,7 +5,8 @@
  * responsabilidade — dizer estado sem fazer nada. Quem fizer alguma coisa
  * (o <dialog>) mora separado.
  */
-import { descrever } from '../apresentacao.js';
+import { descrever, telHref } from '../apresentacao.js';
+import { formatarTelefone } from '../documento.js';
 
 /**
  * Status com forma, nunca só cor.
@@ -94,4 +95,90 @@ export function Celula({ rotulo, num, children, ...resto }) {
       {children}
     </td>
   );
+}
+
+/** Os três estados de carga, num componente só. */
+export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNovo }) {
+  if (status === 'carregando') {
+    /* Quem passa a forma do que vai chegar não vê a página saltar quando ela
+       chega — e o salto é o que faz alguém clicar no lugar errado. Quem não
+       passa continua com o texto, então nenhuma tela quebrou na troca. */
+    return esqueleto
+      ? <Esqueleto linhas={esqueleto.linhas} colunas={esqueleto.colunas} />
+      : <p className="body body-ash" aria-live="polite">Carregando…</p>;
+  }
+  if (status === 'erro') {
+    return (
+      <div aria-live="assertive">
+        <p className="body" style={{ color: 'var(--alarm)' }}>
+          {erro?.message || 'Não foi possível carregar.'}
+        </p>
+        {/* O correlacaoId vem do ProblemDetail do back-end e é o que o suporte
+            usa para achar a linha de log exata sem pedir print de tela. */}
+        {erro?.data?.correlacaoId && (
+          <p className="cap cap-ash">
+            Referência: <code>{erro.data.correlacaoId}</code>{' '}
+            {/* O suporte pede este número por telefone. Ler 36 caracteres de
+                UUID em voz alta é onde a pessoa desiste e desliga. */}
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => navigator.clipboard?.writeText(erro.data.correlacaoId)}
+            >
+              Copiar
+            </button>
+          </p>
+        )}
+        {onTentarDeNovo && (
+          <button type="button" className="btn" onClick={onTentarDeNovo}>
+            Tentar de novo
+          </button>
+        )}
+      </div>
+    );
+  }
+  if (vazio) {
+    /* `vazio` aceita só a frase, ou { titulo, texto } quando o vazio é uma
+       resposta e não um defeito — "Dia livre." diz mais que "nenhuma". */
+    const { titulo, texto } = typeof vazio === 'string' ? { texto: vazio } : vazio;
+    return (
+      <div className="vazio">
+        {titulo && <p className="vazio-titulo">{titulo}</p>}
+        <p className="body">{texto}</p>
+      </div>
+    );
+  }
+  return children;
+}
+
+/* A máscara de onde o título sobe. As classes `.ln` são as do <Lines> da
+   landing; a animação é CSS puro, porque o título já nasce na tela e o
+   IntersectionObserver do Reveal não teria nada a observar. */
+export const Linha = ({ children }) => <span className="ln"><i>{children}</i></span>;
+
+/**
+ * Cabeçalho de tela: o nome dela no corpo da landing, e uma linha de contexto.
+ *
+ * <p>`secao` faz o mesmo papel para um bloco dentro da tela (Recebíveis, abaixo
+ * dos indicadores) — h2, menor, sem subir: só o título da tela anuncia a rota.
+ */
+export function Cabecalho({ titulo, detalhe, acao, secao = false }) {
+  const Titulo = secao ? 'h2' : 'h1';
+  return (
+    <div className={`app-cabecalho${secao ? ' app-cabecalho-secao' : ''}`}>
+      <div>
+        <Titulo className={`display ${secao ? 'display-xs' : 'display-sm titulo-tela'}`}>
+          {secao ? titulo : <Linha>{titulo}</Linha>}
+        </Titulo>
+        {detalhe && <p className="credit">{detalhe}</p>}
+      </div>
+      {acao}
+    </div>
+  );
+}
+
+/** Telefone que liga, ou `vazio` quando o número não é discável. */
+export function Telefone({ numero, className, vazio = null }) {
+  const href = telHref(numero);
+  return href ? <a className={className} href={href}>{formatarTelefone(numero)}</a> : vazio;
 }

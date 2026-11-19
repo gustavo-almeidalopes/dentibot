@@ -1,27 +1,11 @@
 import { RedirectToSignIn, Show, UserButton } from '@clerk/react';
-import { createContext, useContext, useState } from 'react';
+import { useState } from 'react';
 import { NavLink, Navigate, Outlet, useLocation } from 'react-router-dom';
-import { Esqueleto } from '../components/primitivos.jsx';
+import { Estado, Linha } from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
+import { Permissoes, podeCom } from '../permissoes.js';
 import { CADASTRO, MENU, recursoDaTela } from '../rotas.js';
-import { aplicarTema, lerTema } from '../tema.js';
-
-/* Espelha os tokens de `:root[data-tema="claro"]:has(.app-main)` em app.css. O
-   Clerk não lê variável CSS nossa; se a paleta clara mudar lá, muda aqui. No
-   escuro não precisa de nada: é a aparência do provider, a mesma da landing. */
-const APARENCIA_CLARA = {
-  colorBackground: '#ffffff',
-  colorForeground: '#111111',
-  colorMuted: '#faf9f7',
-  colorMutedForeground: '#5c5c5c',
-  colorPrimary: '#111111',
-  colorPrimaryForeground: '#ffffff',
-  colorInput: '#ffffff',
-  colorInputForeground: '#111111',
-  colorBorder: 'rgba(0, 0, 0, .22)',
-  colorDanger: '#ed1c24',
-  borderRadius: '0px',
-};
+import { APARENCIA, aplicarTema, lerTema } from '../tema.js';
 
 /**
  * Casca das telas autenticadas.
@@ -43,23 +27,6 @@ export default function Layout() {
       </Show>
     </>
   );
-}
-
-/* Recurso → ação → alcance, como o back-end calculou para ESTE token. Guardado
-   em contexto porque as telas também precisam (esconder "Novo paciente" de quem
-   só lê), e buscar de novo em cada uma seria a mesma resposta quatro vezes. */
-const Permissoes = createContext(null);
-
-/* A única leitura da resposta do /eu, e ela é burra de propósito: quem decidiu
-   já foi o AvaliadorDePermissao do back-end. Traduzir "NENHUM" em booleano é o
-   limite do que o front sabe sobre permissão — qualquer regra a mais aqui é a
-   segunda fonte de verdade que a invariante 3 proíbe. */
-const podeCom = (permissoes) => (recurso, acao = 'LER') =>
-  (permissoes?.[recurso]?.[acao] ?? 'NENHUM') !== 'NENHUM';
-
-/** `const pode = usePode(); pode('PACIENTE', 'CRIAR')` dentro de qualquer tela. */
-export function usePode() {
-  return podeCom(useContext(Permissoes));
 }
 
 function Autenticado() {
@@ -153,7 +120,7 @@ function Casca({ pode, papel, permissoes, children }) {
           </button>
           {/* O provider inteiro tem a aparência preta da landing. No tema claro
               o popover do Clerk entraria preto sobre papel. */}
-          <UserButton appearance={claro ? { variables: APARENCIA_CLARA } : undefined} />
+          <UserButton appearance={claro ? { variables: APARENCIA.claro } : undefined} />
         </div>
       </header>
 
@@ -170,86 +137,6 @@ function SemAcesso({ papel }) {
         O papel {papel ? <b>{papel.toLowerCase()}</b> : 'atual'} não alcança esta tela.
         Quem administra a clínica pode mudar isso em Equipe.
       </p>
-    </div>
-  );
-}
-
-/** Os três estados de carga, num componente só. */
-export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNovo }) {
-  if (status === 'carregando') {
-    /* Quem passa a forma do que vai chegar não vê a página saltar quando ela
-       chega — e o salto é o que faz alguém clicar no lugar errado. Quem não
-       passa continua com o texto, então nenhuma tela quebrou na troca. */
-    return esqueleto
-      ? <Esqueleto linhas={esqueleto.linhas} colunas={esqueleto.colunas} />
-      : <p className="body body-ash" aria-live="polite">Carregando…</p>;
-  }
-  if (status === 'erro') {
-    return (
-      <div aria-live="assertive">
-        <p className="body" style={{ color: 'var(--alarm)' }}>
-          {erro?.message || 'Não foi possível carregar.'}
-        </p>
-        {/* O correlacaoId vem do ProblemDetail do back-end e é o que o suporte
-            usa para achar a linha de log exata sem pedir print de tela. */}
-        {erro?.data?.correlacaoId && (
-          <p className="cap cap-ash">
-            Referência: <code>{erro.data.correlacaoId}</code>{' '}
-            {/* O suporte pede este número por telefone. Ler 36 caracteres de
-                UUID em voz alta é onde a pessoa desiste e desliga. */}
-            <button
-              type="button"
-              className="btn btn-sm"
-              onClick={() => navigator.clipboard?.writeText(erro.data.correlacaoId)}
-            >
-              Copiar
-            </button>
-          </p>
-        )}
-        {onTentarDeNovo && (
-          <button type="button" className="btn" onClick={onTentarDeNovo}>
-            Tentar de novo
-          </button>
-        )}
-      </div>
-    );
-  }
-  if (vazio) {
-    /* `vazio` aceita só a frase, ou { titulo, texto } quando o vazio é uma
-       resposta e não um defeito — "Dia livre." diz mais que "nenhuma". */
-    const { titulo, texto } = typeof vazio === 'string' ? { texto: vazio } : vazio;
-    return (
-      <div className="vazio">
-        {titulo && <p className="vazio-titulo">{titulo}</p>}
-        <p className="body">{texto}</p>
-      </div>
-    );
-  }
-  return children;
-}
-
-/* A máscara de onde o título sobe. As classes `.ln` são as do <Lines> da
-   landing; a animação é CSS puro, porque o título já nasce na tela e o
-   IntersectionObserver do Reveal não teria nada a observar. */
-const Linha = ({ children }) => <span className="ln"><i>{children}</i></span>;
-
-/**
- * Cabeçalho de tela: o nome dela no corpo da landing, e uma linha de contexto.
- *
- * <p>`secao` faz o mesmo papel para um bloco dentro da tela (Recebíveis, abaixo
- * dos indicadores) — h2, menor, sem subir: só o título da tela anuncia a rota.
- */
-export function Cabecalho({ titulo, detalhe, acao, secao = false }) {
-  const Titulo = secao ? 'h2' : 'h1';
-  return (
-    <div className={`app-cabecalho${secao ? ' app-cabecalho-secao' : ''}`}>
-      <div>
-        <Titulo className={`display ${secao ? 'display-xs' : 'display-sm titulo-tela'}`}>
-          {secao ? titulo : <Linha>{titulo}</Linha>}
-        </Titulo>
-        {detalhe && <p className="credit">{detalhe}</p>}
-      </div>
-      {acao}
     </div>
   );
 }

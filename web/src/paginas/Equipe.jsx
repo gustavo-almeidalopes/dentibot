@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { api } from '../api.js';
 import { STATUS_MEMBRO } from '../apresentacao.js';
 import Confirmar from '../components/Confirmar.jsx';
-import { Aviso, Celula, Selo, Tabela } from '../components/primitivos.jsx';
+import {
+  Aviso, Cabecalho, Celula, Estado, Selo, Tabela,
+} from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
-import { Cabecalho, Estado } from './Layout.jsx';
 
 const PAPEIS = [
   { valor: 'ADMIN', rotulo: 'Administrador' },
@@ -12,12 +13,6 @@ const PAPEIS = [
   { valor: 'RECEPCIONISTA', rotulo: 'Recepcionista' },
   { valor: 'FINANCEIRO', rotulo: 'Financeiro' },
   { valor: 'AUXILIAR', rotulo: 'Auxiliar' },
-];
-
-const STATUS = [
-  { valor: 'ativo', rotulo: 'Ativo' },
-  { valor: 'bloqueado', rotulo: 'Bloqueado' },
-  { valor: 'desativado', rotulo: 'Desativado' },
 ];
 
 /* Vínculo não é status: "ainda não entrou" é diferente de "está com problema
@@ -139,7 +134,9 @@ function Membro({ membro, onMudou }) {
       <Celula rotulo="Status">
         <select aria-label={`Status de ${membro.nomeCompleto}`}
                 value={status} onChange={(e) => setStatus(e.target.value)}>
-          {STATUS.map((s) => <option key={s.valor} value={s.valor}>{s.rotulo}</option>)}
+          {Object.entries(STATUS_MEMBRO).map(([valor, { rotulo }]) => (
+            <option key={valor} value={valor}>{rotulo}</option>
+          ))}
         </select>
       </Celula>
 

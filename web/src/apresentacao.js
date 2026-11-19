@@ -11,8 +11,9 @@ const EXTENSO = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long', day: 'numeric', month: 'long',
 });
 
-/* Status → rótulo e tom do selo. O tom é forma, não cor: `riscado` e `contorno`
-   continuam legíveis para quem não distingue vermelho de cinza. */
+/* Valor do banco → rótulo e tom do selo. As chaves são as do CHECK de cada
+   coluna, conferidas em vocabulario.test.mjs. O tom é forma, não cor: `riscado`
+   e `contorno` continuam legíveis para quem não distingue vermelho de cinza. */
 export const STATUS_CONSULTA = {
   agendada: { rotulo: 'Agendada', tom: 'contorno' },
   confirmada: { rotulo: 'Confirmada', tom: 'cheio' },
@@ -23,10 +24,47 @@ export const STATUS_CONSULTA = {
 };
 
 export const STATUS_RECEBIVEL = {
-  aberto: { rotulo: 'Em aberto', tom: 'contorno' },
-  pago: { rotulo: 'Pago', tom: 'fraco' },
-  vencido: { rotulo: 'Vencido', tom: 'alarme' },
-  cancelado: { rotulo: 'Cancelado', tom: 'riscado' },
+  aberta: { rotulo: 'Em aberto', tom: 'contorno' },
+  parcial: { rotulo: 'Parcial', tom: 'contorno' },
+  paga: { rotulo: 'Paga', tom: 'fraco' },
+  vencida: { rotulo: 'Vencida', tom: 'alarme' },
+  cancelada: { rotulo: 'Cancelada', tom: 'riscado' },
+};
+
+export const STATUS_PACIENTE = {
+  ativo: { rotulo: 'Ativo', tom: 'cheio' },
+  inativo: { rotulo: 'Inativo', tom: 'fraco' },
+  obito: { rotulo: 'Óbito', tom: 'riscado' },
+};
+
+/* Exclusão, falha de login e exportação são as três que precisam saltar numa
+   trilha — o resto é o ruído normal de um dia de trabalho. */
+export const ACAO_AUDITORIA = {
+  leitura: { rotulo: 'Leitura', tom: 'fraco' },
+  criacao: { rotulo: 'Criação', tom: 'contorno' },
+  alteracao: { rotulo: 'Alteração', tom: 'contorno' },
+  exclusao: { rotulo: 'Exclusão', tom: 'alarme' },
+  login: { rotulo: 'Login', tom: 'fraco' },
+  logout: { rotulo: 'Logout', tom: 'fraco' },
+  falha_login: { rotulo: 'Falha de login', tom: 'alarme' },
+  exportacao: { rotulo: 'Exportação', tom: 'alarme' },
+};
+
+/* Condição de dente. `inteiro` é o lado do `ck_face_coerente` em que a face é
+   NULL; as demais exigem face. 'fratura' está no CHECK da coluna mas em nenhum
+   dos dois lados do ck_face_coerente, então o banco não aceita lançá-la — fica
+   fora até a migration decidir de que lado ela mora. */
+export const CONDICAO_DENTE = {
+  higido: { rotulo: 'Hígido', inteiro: false },
+  carie: { rotulo: 'Cárie', inteiro: false },
+  restauracao: { rotulo: 'Restauração', inteiro: false },
+  selante: { rotulo: 'Selante', inteiro: false },
+  ausente: { rotulo: 'Ausente', inteiro: true },
+  extraido: { rotulo: 'Extraído', inteiro: true },
+  implante: { rotulo: 'Implante', inteiro: true },
+  coroa: { rotulo: 'Coroa', inteiro: true },
+  canal: { rotulo: 'Canal', inteiro: true },
+  protese: { rotulo: 'Prótese', inteiro: true },
 };
 
 export const STATUS_MEMBRO = {
@@ -45,6 +83,18 @@ export const STATUS_MEMBRO = {
 export function descrever(mapa, valor) {
   if (valor == null || valor === '') return { rotulo: '—', tom: 'fraco' };
   return mapa[valor] ?? { rotulo: String(valor), tom: 'fraco' };
+}
+
+export const nomeDoPaciente = (c) => c.nomePaciente ?? `Paciente ${c.idPaciente}`;
+
+/**
+ * `id → nome` sobre uma lista carregada, com um rótulo honesto para o id que
+ * não está nela. As respostas trazem o id e não o nome (a fronteira entre
+ * módulos do back-end), e é a tela que casa os dois lados.
+ */
+export function nomesPorId(lista, chave, rotulo) {
+  const mapa = new Map((lista ?? []).map((item) => [item[chave], item.nomeCompleto]));
+  return (id) => mapa.get(id) ?? `${rotulo} ${id}`;
 }
 
 /** `14:00 – 14:45`, ou só o início quando não há término utilizável. */
@@ -185,6 +235,22 @@ export function momento(consultas, agora = new Date()) {
     proxima: vivas.find((c) => new Date(c.inicioEm) > agora) ?? null,
   };
 }
+
+/**
+ * O relógio por cima das ações que o back-end já liberou: "Faltou" antes do
+ * horário é chute, confirmar ou cancelar depois que começou não faz sentido, e
+ * concluir espera o horário acabar.
+ */
+export function cabeAgora(acao, c, agora = new Date()) {
+  const comecou = new Date(c.inicioEm) <= agora;
+  if (acao === 'confirmar' || acao === 'cancelar') return !comecou;
+  if (acao === 'falta') return comecou;
+  if (acao === 'concluir') return new Date(c.terminoEm) <= agora;
+  return true;
+}
+
+/** Ainda sem desfecho: nem realizada, nem cancelada, nem falta. */
+export const semDesfecho = (c) => VIVAS.has(c.status);
 
 /** Saiu do dia: terminou de fato, ou o horário dela já acabou. */
 export const jaPassou = (c, agora = new Date()) =>

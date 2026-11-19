@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api, query } from '../api.js';
 import {
-  STATUS_CONSULTA, contagem, diaDe, fimDoDia, hora, inicioDoDia, jaPassou, momento,
-  porExtenso, relativo, somarDias, telHref, whatsappHref,
+  STATUS_CONSULTA, cabeAgora, contagem, diaDe, fimDoDia, hora, inicioDoDia, jaPassou, momento,
+  nomeDoPaciente, nomesPorId, porExtenso, relativo, semDesfecho, somarDias, telHref,
+  whatsappHref,
 } from '../apresentacao.js';
 import Agendar from '../components/Agendar.jsx';
 import FichaPaciente from '../components/FichaPaciente.jsx';
-import Transicao from '../components/Transicao.jsx';
-import { Aviso, Celula, Selo, Tabela } from '../components/primitivos.jsx';
+import Transicoes from '../components/Transicao.jsx';
+import {
+  Aviso, Cabecalho, Celula, Estado, Selo, Tabela, Telefone,
+} from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
-import { formatarTelefone } from '../documento.js';
-import { Cabecalho, Estado, usePode } from './Layout.jsx';
-
-const LIMITE_PACIENTES = 200;
+import { usePode } from '../permissoes.js';
 
 /* O relógio da tela. Meio minuto basta: "em 25 min" não precisa de segundos,
    e o dia vira sozinho à meia-noite porque `dia` deriva daqui. */
@@ -46,7 +46,6 @@ export default function Recepcao() {
 
   const consultas = useRecurso(`/consultas${query({ de: inicioDoDia(dia), ate: fimDoDia(amanha) })}`);
   const dentistas = useRecurso('/equipe/dentistas');
-  const pacientes = useRecurso(`/pacientes?limite=${LIMITE_PACIENTES}`);
   const clinica = useRecurso('/clinica');
   const { executar, enviando, sucesso } = useAcao(consultas.recarregar);
 
@@ -56,12 +55,10 @@ export default function Recepcao() {
   const [novo, setNovo] = useState(state?.paciente ?? null);
   const cadastro = useAcao();
 
-  const podeMudar = pode('AGENDA', 'ALTERAR');
-
-  const nomeDoDentista = useMemo(() => {
-    const mapa = new Map((dentistas.dados ?? []).map((d) => [d.idDentista, d.nomeCompleto]));
-    return (id) => mapa.get(id) ?? `Dentista ${id}`;
-  }, [dentistas.dados]);
+  const nomeDoDentista = useMemo(
+    () => nomesPorId(dentistas.dados, 'idDentista', 'Dentista'),
+    [dentistas.dados],
+  );
 
   const todas = consultas.dados ?? [];
   const doDia = (d) => todas.filter((c) => diaDe(c.inicioEm) === d)
@@ -72,7 +69,7 @@ export default function Recepcao() {
   const passaram = deHoje.filter((c) => jaPassou(c, agora));
   /* Passou do horário e ninguém fechou: nem realizada, nem falta. É o que a
      recepção precisa resolver antes de ir embora. */
-  const semDesfecho = passaram.filter((c) => c.status === 'agendada' || c.status === 'confirmada');
+  const pendentes = passaram.filter(semDesfecho);
   const aConfirmar = deAmanha.filter((c) => c.status === 'agendada');
   const confirmadasAmanha = deAmanha.filter((c) => c.status === 'confirmada').length;
 
@@ -83,7 +80,6 @@ export default function Recepcao() {
     setNovo({ idPaciente: r.idPaciente, nomeCompleto: corpo.nomeCompleto,
       telefoneCelular: corpo.telefoneCelular });
     setCadastrando(null);
-    pacientes.recarregar();
   }
 
   const mensagemConfirmacao = (c) => {
@@ -135,7 +131,7 @@ export default function Recepcao() {
           <Estado status={consultas.status} erro={consultas.erro}
                   onTentarDeNovo={consultas.recarregar} esqueleto={{ linhas: 6, colunas: 4 }}>
             <Agora deHoje={deHoje} agora={agora} nomeDoDentista={nomeDoDentista}
-                   podeMudar={podeMudar} executar={executar} enviando={enviando} />
+                   executar={executar} enviando={enviando} />
 
             <section aria-labelledby="hoje-titulo">
               <div className="app-cabecalho app-cabecalho-secao">
@@ -149,19 +145,19 @@ export default function Recepcao() {
 
               {seguem.length > 0 && (
                 <Fila consultas={seguem} agora={agora} nomeDoDentista={nomeDoDentista}
-                      podeMudar={podeMudar} executar={executar} enviando={enviando} />
+                      executar={executar} enviando={enviando} />
               )}
 
               {passaram.length > 0 && (
-                <details className="recepcao-passadas" open={semDesfecho.length > 0}>
+                <details className="recepcao-passadas" open={pendentes.length > 0}>
                   <summary>
                     Já passaram · {passaram.length}
-                    {semDesfecho.length > 0 && (
-                      <span className="recepcao-pendente"> · {semDesfecho.length} sem desfecho</span>
+                    {pendentes.length > 0 && (
+                      <span className="recepcao-pendente"> · {pendentes.length} sem desfecho</span>
                     )}
                   </summary>
                   <Fila consultas={passaram} agora={agora} nomeDoDentista={nomeDoDentista}
-                        podeMudar={podeMudar} executar={executar} enviando={enviando} />
+                        executar={executar} enviando={enviando} />
                 </details>
               )}
             </section>
@@ -210,10 +206,8 @@ export default function Recepcao() {
                                 WhatsApp
                               </a>
                             )}
-                            {podeMudar && (
-                              <Transicao id={c.idConsulta} acao="confirmar" paciente={c.nomePaciente}
-                                         executar={executar} enviando={enviando} />
-                            )}
+                            <Transicoes consulta={c} cabe={(a) => a === 'confirmar'} className={null}
+                                        executar={executar} enviando={enviando} />
                           </div>
                         </Celula>
                       </tr>
@@ -229,10 +223,8 @@ export default function Recepcao() {
           <aside className="recepcao-lado">
             <Agendar
               key={novo?.idPaciente ?? 'agendar'}
-              pacientes={pacientes.dados ?? []}
               dentistas={dentistas.status === 'ok' ? dentistas.dados ?? [] : null}
               pacienteInicial={novo}
-              podeVerEquipe={pode('EQUIPE')}
               onCadastrar={pode('PACIENTE', 'CRIAR') ? (nome) => setCadastrando(nome) : undefined}
               /* `novo` fica: trocá-lo mudaria a `key`, remontaria o painel e
                  apagaria o aviso de "consulta marcada" que ele acabou de dar. */
@@ -253,7 +245,7 @@ export default function Recepcao() {
  * máscara quando o próximo muda — o único movimento da tela, e ele diz que
  * alguém chegou à vez.
  */
-function Agora({ deHoje, agora, nomeDoDentista, podeMudar, executar, enviando }) {
+function Agora({ deHoje, agora, nomeDoDentista, executar, enviando }) {
   const { naCadeira, proxima } = momento(deHoje, agora);
   const realizadas = deHoje.filter((c) => c.status === 'realizada').length;
   const faltas = deHoje.filter((c) => c.status === 'faltou').length;
@@ -271,22 +263,18 @@ function Agora({ deHoje, agora, nomeDoDentista, podeMudar, executar, enviando })
             <p className="cap">Próximo · {relativo(proxima.inicioEm, agora)}</p>
           </div>
           <div className="agora-quem">
-            <p className="agora-nome">{proxima.nomePaciente ?? `Paciente ${proxima.idPaciente}`}</p>
+            <p className="agora-nome">{nomeDoPaciente(proxima)}</p>
             <p className="agora-linha">
               {nomeDoDentista(proxima.idDentista)}
               {telHref(proxima.telefonePaciente) && (
-                <> · <a href={telHref(proxima.telefonePaciente)}>
-                  {formatarTelefone(proxima.telefonePaciente)}
-                </a></>
+                <> · <Telefone numero={proxima.telefonePaciente} /></>
               )}
             </p>
           </div>
           <div className="agora-acoes">
             <Selo mapa={STATUS_CONSULTA} valor={proxima.status} />
-            {podeMudar && proxima.status === 'agendada' && (
-              <Transicao id={proxima.idConsulta} acao="confirmar" paciente={proxima.nomePaciente}
-                         executar={executar} enviando={enviando} />
-            )}
+            <Transicoes consulta={proxima} cabe={(a) => a === 'confirmar'} className={null}
+                        executar={executar} enviando={enviando} />
           </div>
         </div>
       ) : (
@@ -309,7 +297,7 @@ function Agora({ deHoje, agora, nomeDoDentista, podeMudar, executar, enviando })
           {naCadeira.map((c) => (
             <li key={c.idConsulta}>
               <span className="cap">Na cadeira</span>
-              <b>{c.nomePaciente ?? `Paciente ${c.idPaciente}`}</b>
+              <b>{nomeDoPaciente(c)}</b>
               <span>{nomeDoDentista(c.idDentista)} · até {hora(c.terminoEm)}</span>
             </li>
           ))}
@@ -321,14 +309,11 @@ function Agora({ deHoje, agora, nomeDoDentista, podeMudar, executar, enviando })
 
 /* Nome e telefone na mesma célula: é o par que a recepção usa junto. */
 function CelulaPaciente({ c }) {
-  const tel = telHref(c.telefonePaciente);
   return (
     <Celula rotulo="Paciente" className="celula-nome">
-      {c.nomePaciente ?? `Paciente ${c.idPaciente}`}
-      {tel && (
-        <p className="cap cap-ash">
-          <a href={tel}>{formatarTelefone(c.telefonePaciente)}</a>
-        </p>
+      {nomeDoPaciente(c)}
+      {telHref(c.telefonePaciente) && (
+        <p className="cap cap-ash"><Telefone numero={c.telefonePaciente} /></p>
       )}
     </Celula>
   );
@@ -340,7 +325,7 @@ function CelulaPaciente({ c }) {
  * <p>As ações mudam com o relógio, não só com o status: "Faltou" antes do
  * horário é chute, e é o tipo de clique que não tem volta.
  */
-function Fila({ consultas, agora, nomeDoDentista, podeMudar, executar, enviando }) {
+function Fila({ consultas, agora, nomeDoDentista, executar, enviando }) {
   return (
     <Tabela colunas={[
       { chave: 'hora', rotulo: 'Horário', num: true },
@@ -349,43 +334,20 @@ function Fila({ consultas, agora, nomeDoDentista, podeMudar, executar, enviando 
       { chave: 'status', rotulo: 'Status' },
       { chave: 'acoes', rotulo: '' },
     ]}>
-      {consultas.map((c) => {
-        const viva = c.status === 'agendada' || c.status === 'confirmada';
-        const comecou = new Date(c.inicioEm) <= agora;
-        const acabou = new Date(c.terminoEm) <= agora;
-        return (
-          <tr key={c.idConsulta} data-status={c.status}>
-            <Celula rotulo="Horário" num className="num recepcao-hora">
-              {hora(c.inicioEm)}<span className="cap cap-ash"> – {hora(c.terminoEm)}</span>
-            </Celula>
-            <CelulaPaciente c={c} />
-            <Celula rotulo="Dentista">{nomeDoDentista(c.idDentista)}</Celula>
-            <Celula rotulo="Status"><Selo mapa={STATUS_CONSULTA} valor={c.status} /></Celula>
-            <Celula rotulo="">
-              {podeMudar && viva && (
-                <div className="acoes recepcao-acoes">
-                  {c.status === 'agendada' && !comecou && (
-                    <Transicao id={c.idConsulta} acao="confirmar" paciente={c.nomePaciente}
-                               executar={executar} enviando={enviando} />
-                  )}
-                  {acabou && (
-                    <Transicao id={c.idConsulta} acao="concluir" paciente={c.nomePaciente}
-                               executar={executar} enviando={enviando} />
-                  )}
-                  {comecou && (
-                    <Transicao id={c.idConsulta} acao="falta" paciente={c.nomePaciente}
-                               executar={executar} enviando={enviando} />
-                  )}
-                  {!comecou && (
-                    <Transicao id={c.idConsulta} acao="cancelar" paciente={c.nomePaciente}
-                               executar={executar} enviando={enviando} />
-                  )}
-                </div>
-              )}
-            </Celula>
-          </tr>
-        );
-      })}
+      {consultas.map((c) => (
+        <tr key={c.idConsulta} data-status={c.status}>
+          <Celula rotulo="Horário" num className="num recepcao-hora">
+            {hora(c.inicioEm)}<span className="cap cap-ash"> – {hora(c.terminoEm)}</span>
+          </Celula>
+          <CelulaPaciente c={c} />
+          <Celula rotulo="Dentista">{nomeDoDentista(c.idDentista)}</Celula>
+          <Celula rotulo="Status"><Selo mapa={STATUS_CONSULTA} valor={c.status} /></Celula>
+          <Celula rotulo="">
+            <Transicoes consulta={c} cabe={(a) => cabeAgora(a, c, agora)}
+                        className="acoes recepcao-acoes" executar={executar} enviando={enviando} />
+          </Celula>
+        </tr>
+      ))}
     </Tabela>
   );
 }
