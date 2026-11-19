@@ -1,5 +1,6 @@
 package br.com.dentibot.pacientes;
 
+import br.com.dentibot.identidade.DadosPessoais;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -45,6 +46,17 @@ public record NovoPaciente(
 
         Long idPlanoConvenio,
         @Size(max = 60) String numeroCarteirinha) {
+
+    /**
+     * A parte da ficha que é da pessoa, e não do paciente. Os nomes dos campos
+     * são os mesmos dos dois lados; {@code NovoPacienteTest} confere que cada
+     * um cai no campo de mesmo nome.
+     */
+    public DadosPessoais dadosPessoais() {
+        return new DadosPessoais(nomeCompleto, cpf, rg, dataNascimento, telefoneCelular, email,
+                profissao, responsavelLegal, cep, logradouro, numero, complemento, bairro,
+                cidade, uf);
+    }
 
     /**
      * O mínimo que a recepção consegue salvar com o paciente ainda no balcão:

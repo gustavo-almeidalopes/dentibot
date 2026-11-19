@@ -1,6 +1,5 @@
 package br.com.dentibot.pacientes.application;
 
-import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.identidade.PessoaResumo;
 import br.com.dentibot.pacientes.NovoPaciente;
@@ -83,11 +82,7 @@ public class PacienteServico implements PacientesApi {
         // Financeiro e auxiliar leem paciente e não cadastram: sem esta linha a
         // matriz dizia uma coisa e o POST fazia outra.
         permissoes.exigir(Recurso.PACIENTE, Acao.CRIAR);
-        long idPessoa = identidade.criarPessoa(new DadosPessoais(
-                novo.nomeCompleto(), novo.cpf(), novo.rg(), novo.dataNascimento(),
-                novo.telefoneCelular(), novo.email(), novo.profissao(), novo.responsavelLegal(),
-                novo.cep(), novo.logradouro(), novo.numero(), novo.complemento(),
-                novo.bairro(), novo.cidade(), novo.uf()));
+        long idPessoa = identidade.criarPessoa(novo.dadosPessoais());
         return pacientes.inserir(idPessoa, novo.idPlanoConvenio(), novo.numeroCarteirinha(),
                 novo.anamnese());
     }
