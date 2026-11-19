@@ -10,6 +10,7 @@ import br.com.dentibot.pacientes.PacienteResumo;
 import br.com.dentibot.pacientes.PacientesApi;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
+import br.com.dentibot.plataforma.erro.TransicaoInvalidaException;
 import br.com.dentibot.plataforma.outbox.Outbox;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
 import br.com.dentibot.plataforma.seguranca.Acao;
@@ -40,12 +41,6 @@ public class AgendaServico implements AgendaApi {
         this.identidade = identidade;
         this.permissao = permissao;
         this.outbox = outbox;
-    }
-
-    public static class TransicaoInvalidaException extends RuntimeException {
-        public TransicaoInvalidaException(String mensagem) {
-            super(mensagem);
-        }
     }
 
     /**
@@ -141,78 +136,45 @@ public class AgendaServico implements AgendaApi {
         Map<Long, PacienteResumo> resumos = pacientes.mapaDeResumos(
                 linhas.stream().map(LinhaConsulta::idPaciente).distinct().toList());
 
+        // `acoes` diz o que ESTE usuário pode fazer com cada consulta, pelo mesmo
+        // critério que transicionar() aplica: status e alcance de AGENDA/ALTERAR.
+        Alcance alterar = permissao.alcance(Recurso.AGENDA, Acao.ALTERAR);
+        long dentista = alterar == Alcance.PROPRIOS ? dentistaCorrente() : -1L;
+
         return linhas.stream()
                 .map(l -> {
                     PacienteResumo p = resumos.get(l.idPaciente());
+                    boolean podeAlterar = alterar == Alcance.TODOS
+                            || (alterar == Alcance.PROPRIOS && l.idDentista() == dentista);
                     return new ConsultaResumo(
                             l.idConsulta(), l.idPaciente(),
                             p == null ? null : p.nomeCompleto(),
                             p == null ? null : p.telefoneCelular(),
-                            l.idDentista(), l.inicioEm(), l.terminoEm(), l.status());
+                            l.idDentista(), l.inicioEm(), l.terminoEm(), l.status(),
+                            podeAlterar ? TransicaoConsulta.disponiveis(l.status()) : List.of());
                 })
                 .toList();
     }
 
     @Override
     @Transactional
-    public void confirmar(long idConsulta) {
-        transicionar(idConsulta, "agendada", "confirmada", null,
-                TiposDeEvento.CONSULTA_CONFIRMADA);
-    }
-
-    @Override
-    @Transactional
-    public void cancelar(long idConsulta, String motivo) {
-        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionarDeQualquerUm(
-                idConsulta, List.of("agendada", "confirmada"), "cancelada", motivo);
-        if (linhas == 0) {
-            throw new TransicaoInvalidaException(
-                    "Só é possível cancelar consulta agendada ou confirmada.");
+    public void transicionar(long idConsulta, String acao, String motivo) {
+        TransicaoConsulta t = TransicaoConsulta.doCaminho(acao);
+        if (t.exigeMotivo() && (motivo == null || motivo.isBlank())) {
+            throw new IllegalArgumentException("Informe o motivo.");
         }
-        outbox.gravar(TiposDeEvento.CONSULTA_CANCELADA,
-                Map.of("consulta_id", idConsulta, "motivo", motivo == null ? "" : motivo));
-    }
-
-    @Override
-    @Transactional
-    public void registrarFalta(long idConsulta) {
         exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionarDeQualquerUm(
-                idConsulta, List.of("agendada", "confirmada"), "faltou", null);
-        if (linhas == 0) {
-            throw new TransicaoInvalidaException(
-                    "Só é possível registrar falta em consulta agendada ou confirmada.");
-        }
-        // Alimenta o score de falta do svc-python (Fase 5).
-        outbox.gravar(TiposDeEvento.CONSULTA_FALTOU, Map.of("consulta_id", idConsulta));
-    }
 
-    @Override
-    @Transactional
-    public void concluir(long idConsulta) {
-        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionarDeQualquerUm(
-                idConsulta, List.of("confirmada", "em_atendimento", "agendada"),
-                "realizada", null);
-        if (linhas == 0) {
-            throw new TransicaoInvalidaException("Consulta não está em estado que permita concluir.");
+        String guardado = t.exigeMotivo() ? motivo.trim() : null;
+        // Zero linhas é ambíguo entre "não existe" e "está noutro estado". O RLS
+        // já garante que não é de outro tenant; responder 409 evita confirmar a
+        // existência de um id que o usuário não deveria conhecer.
+        if (consultas.transicionar(idConsulta, t.origens, t.destino, guardado) == 0) {
+            throw new TransicaoInvalidaException(t.recusa);
         }
-        outbox.gravar(TiposDeEvento.CONSULTA_REALIZADA, Map.of("consulta_id", idConsulta));
-    }
-
-    private void transicionar(long idConsulta, String de, String para, String motivo,
-                              String evento) {
-        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionar(idConsulta, de, para, motivo);
-        if (linhas == 0) {
-            // Zero linhas é ambíguo entre "não existe" e "está noutro estado".
-            // O RLS já garante que não é de outro tenant; responder 409 evita
-            // confirmar existência de id que o usuário não deveria conhecer.
-            throw new TransicaoInvalidaException(
-                    "Transição de '%s' para '%s' não é válida no estado atual.".formatted(de, para));
-        }
-        outbox.gravar(evento, Map.of("consulta_id", idConsulta));
+        outbox.gravar(t.evento, guardado == null
+                ? Map.of("consulta_id", idConsulta)
+                : Map.of("consulta_id", idConsulta, "motivo", guardado));
     }
 
     @Override

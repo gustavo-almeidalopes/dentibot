@@ -218,14 +218,10 @@ public class LgpdServico implements LgpdApi {
     }
 
     private Consentimento montar(LinhaConsentimento l) {
-        List<String> finalidades;
-        try {
-            finalidades = List.of(json.readValue(l.finalidadesJson(), String[].class));
-        } catch (RuntimeException e) {
-            // JSONB ilegível é dado corrompido, não motivo para derrubar a tela
-            // que investiga justamente isso.
-            finalidades = List.of();
-        }
+        // Sem try/catch: JSONB ilegível num registro de consentimento é dado
+        // corrompido, e uma lista vazia no lugar dele afirmaria que o paciente
+        // não consentiu com nada.
+        List<String> finalidades = List.of(json.readValue(l.finalidadesJson(), String[].class));
         return new Consentimento(
                 l.idConsentimento(), l.idPaciente(), l.idTermo(),
                 l.tipoDoTermo(), l.versaoDoTermo(), finalidades,

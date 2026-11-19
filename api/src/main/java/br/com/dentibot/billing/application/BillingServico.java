@@ -184,16 +184,6 @@ public class BillingServico implements BillingApi {
                 .orElse(planos.get(0));
     }
 
-    /**
-     * Contabiliza mensagens enviadas. Chamado pelo módulo de comunicação quando
-     * ele existir; por ora o método já está aqui porque o limite de plano
-     * depende dele e o contador não pode nascer depois do uso.
-     */
-    @Transactional
-    public void contabilizarMensagens(long idClinica, int quantas) {
-        billing.somarMensagens(idClinica, competenciaDe(LocalDate.now()), quantas);
-    }
-
     /** Fotografa o número de profissionais na competência corrente. */
     @Override
     @Transactional

@@ -101,17 +101,4 @@ class ScrubberDePiiTest {
 
         assertThat(limpo.values()).containsOnly("[REMOVIDO]");
     }
-
-    @Test
-    @DisplayName("evento de produto carrega clinica_id, nunca paciente_id")
-    void eventoDeProdutoNaoIdentificaPessoa() {
-        Map<String, Object> evento = scrubber.eventoDeProduto("prontuario.aberto", 42L, "dentista");
-
-        assertThat(evento).containsEntry("clinica_id", 42L);
-        assertThat(evento).containsEntry("papel", "dentista");
-        // A métrica responde "quantas vezes" e "por qual clínica" — nunca "de
-        // quem". paciente_id é pseudônimo de pessoa, e o simples fato de existir
-        // registro numa clínica odontológica já é informação sobre ela.
-        assertThat(evento).doesNotContainKeys("paciente_id", "usuario_id", "nome");
-    }
 }

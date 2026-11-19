@@ -14,6 +14,7 @@ import br.com.dentibot.orcamento.infrastructure.OrcamentoRepositorio;
 import br.com.dentibot.orcamento.infrastructure.OrcamentoRepositorio.LinhaItem;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
+import br.com.dentibot.plataforma.erro.TransicaoInvalidaException;
 import br.com.dentibot.plataforma.outbox.Outbox;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
 import br.com.dentibot.plataforma.seguranca.Acao;
@@ -317,11 +318,5 @@ public class OrcamentoServico implements OrcamentoApi {
     private Long dentistaCorrente() {
         Long idUsuario = ContextoAtual.obter().usuarioId();
         return idUsuario == null ? null : identidade.dentistaDoUsuario(idUsuario).orElse(null);
-    }
-
-    public static class TransicaoInvalidaException extends RuntimeException {
-        public TransicaoInvalidaException(String mensagem) {
-            super(mensagem);
-        }
     }
 }

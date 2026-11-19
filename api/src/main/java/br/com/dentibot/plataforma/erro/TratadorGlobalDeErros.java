@@ -44,6 +44,11 @@ public class TratadorGlobalDeErros extends ResponseEntityExceptionHandler {
                 "Seu perfil não permite esta operação.");
     }
 
+    @ExceptionHandler(TransicaoInvalidaException.class)
+    public ProblemDetail transicaoInvalida(TransicaoInvalidaException e) {
+        return problema(HttpStatus.CONFLICT, "transicao-invalida", e.getMessage());
+    }
+
     @ExceptionHandler(RecursoNaoEncontradoException.class)
     public ProblemDetail naoEncontrado(RecursoNaoEncontradoException e) {
         return problema(HttpStatus.NOT_FOUND, "nao-encontrado", "Recurso não encontrado.");

@@ -10,13 +10,11 @@ public interface AgendaApi {
 
     List<ConsultaResumo> listar(Instant de, Instant ate, Long idDentista);
 
-    void confirmar(long idConsulta);
-
-    void cancelar(long idConsulta, String motivo);
-
-    void registrarFalta(long idConsulta);
-
-    void concluir(long idConsulta);
+    /**
+     * @param acao   uma das palavras de {@link ConsultaResumo#acoes()}
+     * @param motivo exigido só para {@code cancelar}; ignorado nas outras
+     */
+    void transicionar(long idConsulta, String acao, String motivo);
 
     /**
      * O paciente já teve consulta com este dentista?

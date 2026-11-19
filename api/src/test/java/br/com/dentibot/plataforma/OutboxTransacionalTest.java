@@ -135,7 +135,7 @@ class OutboxTransacionalTest extends TesteIntegracao {
         br.com.dentibot.plataforma.outbox.Outbox outbox =
                 new br.com.dentibot.plataforma.outbox.Outbox(jdbc,
                         new tools.jackson.databind.ObjectMapper());
-        outbox.gravar(TiposDeEvento.PACIENTE_CRIADO, java.util.Map.of("paciente_id", idPaciente));
+        outbox.gravar(TiposDeEvento.CONSULTA_AGENDADA, java.util.Map.of("paciente_id", idPaciente));
     }
 
     // ─── auxiliares ──────────────────────────────────────────────────────────

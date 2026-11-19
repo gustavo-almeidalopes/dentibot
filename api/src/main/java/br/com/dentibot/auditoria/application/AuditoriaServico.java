@@ -56,14 +56,6 @@ public class AuditoriaServico implements AuditoriaApi {
         gravar("exclusao", recurso, idRecurso, serializar(dadosAnteriores), null);
     }
 
-    @Override
-    @Transactional
-    public void registrarAutenticacao(String acao, Long idClinica, Long idUsuario,
-                                      String ipOrigem, String userAgent) {
-        repositorio.inserirAutenticacao(acao, idClinica, idUsuario, ipOrigem, userAgent,
-                ContextoAtual.correlacao());
-    }
-
     /**
      * Consultar a trilha é, ele mesmo, um ato auditável — e por isso a leitura
      * grava sua própria linha antes de devolver. Sem isso, "quem andou olhando
@@ -110,10 +102,8 @@ public class AuditoriaServico implements AuditoriaApi {
         if (valor == null) {
             return null;
         }
-        try {
-            return json.writeValueAsString(valor);
-        } catch (Exception e) {
-            return "{\"erro\":\"payload não serializável\"}";
-        }
+        // Sem try/catch: uma linha de trilha com um placeholder no lugar do
+        // antes/depois é uma trilha que mente. Falhar aqui desfaz a transação.
+        return json.writeValueAsString(valor);
     }
 }

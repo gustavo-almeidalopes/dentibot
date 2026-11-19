@@ -100,20 +100,4 @@ public class ScrubberDePii {
         String normalizada = chave.toLowerCase(Locale.ROOT);
         return CAMPOS_PROIBIDOS.stream().anyMatch(normalizada::contains);
     }
-
-    /**
-     * O que PODE sair: identificadores que não descrevem pessoa.
-     *
-     * <p>{@code clinica_id} é aceitável — a clínica é o cliente, e a métrica de
-     * produto é sobre ela. {@code paciente_id} NÃO entra: é pseudônimo de uma
-     * pessoa, e dado de saúde é sensível (LGPD art. 11); o simples fato de
-     * existir um registro numa clínica odontológica já é informação sobre a
-     * pessoa.
-     */
-    public Map<String, Object> eventoDeProduto(String nomeDoEvento, long clinicaId, String papel) {
-        return Map.of(
-                "evento", nomeDoEvento,
-                "clinica_id", clinicaId,
-                "papel", papel == null ? "desconhecido" : papel);
-    }
 }

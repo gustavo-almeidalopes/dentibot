@@ -101,7 +101,7 @@ public class ConsultaRepositorio {
     /**
      * Transição de status com o estado ANTERIOR na cláusula WHERE.
      *
-     * <p>Sem {@code AND status = :de}, dois cliques em "confirmar" e "cancelar"
+     * <p>Sem {@code AND status IN (:de)}, dois cliques em "confirmar" e "cancelar"
      * chegando juntos deixariam o último a escrever vencer, e não há como saber
      * qual foi. Com ele, a segunda transição afeta zero linhas e o serviço
      * responde 409.
@@ -109,32 +109,17 @@ public class ConsultaRepositorio {
      * @return quantas linhas mudaram: 1 se a transição valeu, 0 se o estado já
      *         era outro
      */
-    public int transicionar(long idConsulta, String de, String para, String motivo) {
+    public int transicionar(long idConsulta, List<String> de, String para, String motivo) {
         return jdbc.sql("""
                         UPDATE agenda.consultas
                         SET status = :para,
                             motivo_cancelamento = COALESCE(:motivo, motivo_cancelamento),
                             termino_real_em = CASE WHEN :para = 'realizada' THEN NOW()
                                                    ELSE termino_real_em END
-                        WHERE id_consulta = :id AND status = :de
-                        """)
-                .param("id", idConsulta)
-                .param("de", de)
-                .param("para", para)
-                .param("motivo", motivo)
-                .update();
-    }
-
-    public int transicionarDeQualquerUm(long idConsulta, List<String> deQualquerUm, String para,
-                                        String motivo) {
-        return jdbc.sql("""
-                        UPDATE agenda.consultas
-                        SET status = :para,
-                            motivo_cancelamento = COALESCE(:motivo, motivo_cancelamento)
                         WHERE id_consulta = :id AND status IN (:de)
                         """)
                 .param("id", idConsulta)
-                .param("de", deQualquerUm)
+                .param("de", de)
                 .param("para", para)
                 .param("motivo", motivo)
                 .update();

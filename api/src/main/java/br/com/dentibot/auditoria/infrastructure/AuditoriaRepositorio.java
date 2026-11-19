@@ -90,34 +90,4 @@ public class AuditoriaRepositorio {
                 .param("correlacao", correlacao == null ? null : correlacao.toString())
                 .update();
     }
-
-    /**
-     * Login e falha de login acontecem antes de haver contexto completo — às
-     * vezes antes de existir usuário resolvido. Por isso a clínica vem por
-     * parâmetro em vez de sair do contexto.
-     */
-    public void inserirAutenticacao(String acao, Long idClinica, Long idUsuario,
-                                    String ipOrigem, String userAgent, UUID correlacao) {
-        if (idClinica == null) {
-            // Sem clínica resolvida (e-mail inexistente) não há linha de
-            // auditoria de tenant possível: o RLS recusaria, e forçar a escrita
-            // exigiria abrir a tabela. Fica no log da aplicação, sem o e-mail.
-            return;
-        }
-        jdbc.sql("""
-                        INSERT INTO auditoria.eventos
-                            (id_clinica, id_usuario, acao, recurso, id_recurso,
-                             ip_origem, user_agent, correlacao_id)
-                        VALUES (:clinica, :usuario, :acao, 'autenticacao', NULL,
-                                CAST(:ip AS INET), :ua, CAST(:correlacao AS UUID))
-                        """)
-                .param("clinica", idClinica)
-                .param("usuario", idUsuario)
-                .param("acao", acao)
-                .param("ip", ipOrigem)
-                .param("ua", userAgent == null ? null
-                        : userAgent.substring(0, Math.min(userAgent.length(), 500)))
-                .param("correlacao", correlacao == null ? null : correlacao.toString())
-                .update();
-    }
 }

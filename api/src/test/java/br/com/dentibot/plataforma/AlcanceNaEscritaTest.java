@@ -137,10 +137,10 @@ class AlcanceNaEscritaTest extends TesteIntegracao {
     @DisplayName("dentista não mexe na consulta de um colega — nenhuma das transições")
     void dentistaNaoTransicionaConsultaDeOutro() {
         Map<String, LongConsumer> transicoes = Map.of(
-                "confirmar", agenda::confirmar,
-                "cancelar", id -> agenda.cancelar(id, "tentativa"),
-                "registrarFalta", agenda::registrarFalta,
-                "concluir", agenda::concluir);
+                "confirmar", id -> agenda.transicionar(id, "confirmar", null),
+                "cancelar", id -> agenda.transicionar(id, "cancelar", "tentativa"),
+                "falta", id -> agenda.transicionar(id, "falta", null),
+                "concluir", id -> agenda.transicionar(id, "concluir", null));
 
         int dia = 2;
         for (var t : transicoes.entrySet()) {
@@ -166,11 +166,22 @@ class AlcanceNaEscritaTest extends TesteIntegracao {
 
         long propria = agenda.agendar(new NovaConsulta(
                 idPaciente, dentistaA, null, inicio, inicio.plus(30, ChronoUnit.MINUTES), null));
-        agenda.cancelar(propria, "paciente desmarcou");
+        Instant de = inicio.minus(1, ChronoUnit.HOURS);
+        Instant ate = inicio.plus(1, ChronoUnit.HOURS);
 
-        assertThat(agenda.listar(inicio.minus(1, ChronoUnit.HOURS), inicio.plus(1, ChronoUnit.HOURS), null))
+        assertThat(agenda.listar(de, ate, null))
                 .singleElement()
-                .satisfies(c -> assertThat(c.status()).isEqualTo("cancelada"));
+                .satisfies(c -> assertThat(c.acoes())
+                        .containsExactlyInAnyOrder("confirmar", "cancelar", "falta", "concluir"));
+
+        agenda.transicionar(propria, "cancelar", "paciente desmarcou");
+
+        assertThat(agenda.listar(de, ate, null))
+                .singleElement()
+                .satisfies(c -> {
+                    assertThat(c.status()).isEqualTo("cancelada");
+                    assertThat(c.acoes()).isEmpty();
+                });
     }
 
     // ─── auxiliares ──────────────────────────────────────────────────────────

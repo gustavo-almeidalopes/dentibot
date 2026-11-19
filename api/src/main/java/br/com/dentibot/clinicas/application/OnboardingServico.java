@@ -5,7 +5,6 @@ import br.com.dentibot.clinicas.domain.Plano;
 import br.com.dentibot.clinicas.infrastructure.ClinicaRepositorio;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
-import br.com.dentibot.plataforma.contexto.ContextoRequisicao;
 import br.com.dentibot.plataforma.contexto.Papel;
 import br.com.dentibot.plataforma.tenant.ContextoBanco;
 import java.time.ZoneId;
@@ -61,17 +60,7 @@ public class OnboardingServico {
         long idClinica = clinicas.provisionar(
                 cmd.cnpj(), cmd.razaoSocial(), cmd.nomeFantasia(), cmd.timezone(), cmd.plano());
 
-        // A partir daqui as inserções são DENTRO do tenant recém-criado. Duas
-        // promoções, porque há dois consumidores do contexto:
-        //   · o Postgres, para o RLS aceitar as próximas linhas;
-        //   · o ContextoAtual, porque os repositórios leem id_clinica dele para
-        //     preencher a coluna (invariante 5: vem do contexto, não do corpo).
-        contextoBanco.promoverClinica(idClinica);
-        ContextoRequisicao anterior = ContextoAtual.obter();
-        ContextoAtual.definir(ContextoRequisicao.deClinica(
-                idClinica, 0L, Papel.ADMIN, anterior.correlacaoId()));
-
-        try {
+        return contextoBanco.comoClinica(idClinica, ContextoAtual.correlacao(), () -> {
             clinicas.criarConfiguracoesPadrao(idClinica);
             long idAdmin = identidade.criarUsuario(
                     cmd.nomeAdmin(), cmd.emailAdmin(), Papel.ADMIN, cmd.clerkUserIdAdmin());
@@ -81,11 +70,6 @@ public class OnboardingServico {
             // justamente para quem acabou de se cadastrar.
             billing.iniciarTrial(cmd.plano().valorBanco());
             return new ClinicaCriada(idClinica, idAdmin);
-        } finally {
-            // Restaura para não deixar a thread do pool com o tenant da última
-            // clínica provisionada — a versão em memória do bug que o
-            // set_config(..., true) evita no banco.
-            ContextoAtual.definir(anterior);
-        }
+        });
     }
 }

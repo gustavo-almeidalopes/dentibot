@@ -27,10 +27,6 @@ public interface AuditoriaApi {
 
     void registrarExclusao(String recurso, String idRecurso, Object dadosAnteriores);
 
-    /** Login, logout, falha de login. Escrito mesmo quando não há usuário resolvido. */
-    void registrarAutenticacao(String acao, Long idClinica, Long idUsuario,
-                               String ipOrigem, String userAgent);
-
     /**
      * Consulta a trilha da própria clínica.
      *

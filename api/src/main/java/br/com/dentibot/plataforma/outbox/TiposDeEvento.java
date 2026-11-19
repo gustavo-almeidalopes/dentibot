@@ -10,17 +10,6 @@ public final class TiposDeEvento {
     private TiposDeEvento() {
     }
 
-    public static final String CLINICA_CRIADA = "clinica.criada";
-    public static final String CLINICA_SUSPENSA = "clinica.suspensa";
-    public static final String CLINICA_REATIVADA = "clinica.reativada";
-
-    public static final String USUARIO_CRIADO = "usuario.criado";
-    public static final String USUARIO_PAPEL_ALTERADO = "usuario.papel_alterado";
-    public static final String USUARIO_DESATIVADO = "usuario.desativado";
-
-    public static final String PACIENTE_CRIADO = "paciente.criado";
-    public static final String PACIENTE_ATUALIZADO = "paciente.atualizado";
-
     public static final String CONSULTA_AGENDADA = "consulta.agendada";
     public static final String CONSULTA_CONFIRMADA = "consulta.confirmada";
     public static final String CONSULTA_CANCELADA = "consulta.cancelada";
@@ -39,21 +28,12 @@ public final class TiposDeEvento {
     public static final String ORCAMENTO_CRIADO = "orcamento.criado";
     public static final String ORCAMENTO_APROVADO = "orcamento.aprovado";
 
-    public static final String COBRANCA_EMITIDA = "cobranca.emitida";
     public static final String COBRANCA_PAGA = "cobranca.paga";
-    public static final String COBRANCA_VENCIDA = "cobranca.vencida";
     public static final String COBRANCA_ESTORNADA = "cobranca.estornada";
-    public static final String NFSE_EMITIDA = "nfse.emitida";
 
     public static final String ASSINATURA_CRIADA = "assinatura.criada";
     public static final String ASSINATURA_ATUALIZADA = "assinatura.atualizada";
     public static final String ASSINATURA_CANCELADA = "assinatura.cancelada";
     public static final String ASSINATURA_INADIMPLENTE = "assinatura.inadimplente";
     public static final String LIMITE_PLANO_ATINGIDO = "limite_plano.atingido";
-
-    public static final String ESTOQUE_BAIXO = "estoque.baixo";
-    public static final String NOTIFICACAO_SOLICITADA = "notificacao.solicitada";
-    public static final String RELATORIO_SOLICITADO = "relatorio.solicitado";
-    public static final String RELATORIO_CONCLUIDO = "relatorio.concluido";
-    public static final String RELATORIO_FALHOU = "relatorio.falhou";
 }
