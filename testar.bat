@@ -10,7 +10,7 @@ set "API=api"
 rem O mesmo "Verificar" do README, parando na primeira falha.
 echo === API  %API%  (Testcontainers: precisa do Docker) ===
 pushd "%API%"
-call .\mvnw.cmd -B test
+call .\mvnw.cmd -B verify
 if errorlevel 1 goto :falha
 popd
 
@@ -21,6 +21,8 @@ if not exist node_modules (
   call npm ci
   if errorlevel 1 goto :falha
 )
+call npm run lint
+if errorlevel 1 goto :falha
 call npm test
 if errorlevel 1 goto :falha
 call npm run build

@@ -3,6 +3,7 @@ package br.com.dentibot.agenda.application;
 import br.com.dentibot.agenda.AgendaApi;
 import br.com.dentibot.agenda.ConsultaResumo;
 import br.com.dentibot.agenda.NovaConsulta;
+import br.com.dentibot.agenda.SituacaoNaAgenda;
 import br.com.dentibot.agenda.infrastructure.ConsultaRepositorio;
 import br.com.dentibot.agenda.infrastructure.ConsultaRepositorio.LinhaConsulta;
 import br.com.dentibot.identidade.IdentidadeApi;
@@ -18,8 +19,10 @@ import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao.AcessoNegadoException;
 import br.com.dentibot.plataforma.seguranca.Recurso;
 import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,14 @@ public class AgendaServico implements AgendaApi {
         this.identidade = identidade;
         this.permissao = permissao;
         this.outbox = outbox;
+    }
+
+    public static class TransicaoInvalidaException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public TransicaoInvalidaException(String mensagem) {
+            super(mensagem);
+        }
     }
 
     /**
@@ -75,10 +86,18 @@ public class AgendaServico implements AgendaApi {
     public List<ConsultaResumo> listar(Instant de, Instant ate, Long idDentista) {
         Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.LER);
 
-        // Com PROPRIOS o filtro é imposto e o parâmetro recebido é descartado.
-        // id_usuario != id_dentista: sem traduzir um pelo outro, o filtro casaria
-        // por coincidência numérica com a agenda de outro profissional.
-        Long filtro = alcance == Alcance.PROPRIOS ? dentistaCorrente() : idDentista;
+        // É aqui que Alcance.PROPRIOS vira filtro de linha. O dentista não
+        // escolhe de quem é a agenda que vê: o filtro é imposto e o parâmetro
+        // que ele mandou é descartado.
+        //
+        // id_usuario != id_dentista. Traduzir um pelo outro é obrigatório: sem
+        // a tradução, o filtro casaria por coincidência numérica e mostraria a
+        // agenda de outro profissional.
+        //
+        // Long.valueOf explícito: com `long` num lado e `Long` no outro, o
+        // ternário desembrulhava idDentista — e a agenda da clínica inteira
+        // (recepção sem filtro de dentista, que é o padrão da tela) dava NPE.
+        Long filtro = alcance == Alcance.PROPRIOS ? Long.valueOf(dentistaCorrente()) : idDentista;
 
         return montar(consultas.listar(de, ate, filtro));
     }
@@ -117,8 +136,9 @@ public class AgendaServico implements AgendaApi {
         if (linhas.isEmpty()) {
             return List.of();
         }
-        Map<Long, PacienteResumo> resumos = pacientes.mapaDeResumos(
-                linhas.stream().map(LinhaConsulta::idPaciente).distinct().toList());
+        List<Long> ids = linhas.stream().map(LinhaConsulta::idPaciente).distinct().toList();
+        Map<Long, PacienteResumo> resumos = pacientes.mapaDeResumos(ids);
+        Map<Long, int[]> faltas = consultas.historicoDeFaltas(ids);
 
         // `acoes` diz o que ESTE usuário pode fazer com cada consulta, pelo mesmo
         // critério que transicionar() aplica: status e alcance de AGENDA/ALTERAR.
@@ -128,6 +148,7 @@ public class AgendaServico implements AgendaApi {
         return linhas.stream()
                 .map(l -> {
                     PacienteResumo p = resumos.get(l.idPaciente());
+                    int[] f = faltas.getOrDefault(l.idPaciente(), new int[] {0, 0});
                     boolean podeAlterar = alterar == Alcance.TODOS
                             || (alterar == Alcance.PROPRIOS && l.idDentista() == dentista);
                     return new ConsultaResumo(
@@ -135,9 +156,36 @@ public class AgendaServico implements AgendaApi {
                             p == null ? null : p.nomeCompleto(),
                             p == null ? null : p.telefoneCelular(),
                             l.idDentista(), l.inicioEm(), l.terminoEm(), l.status(),
-                            podeAlterar ? TransicaoConsulta.disponiveis(l.status()) : List.of());
+                            podeAlterar ? TransicaoConsulta.disponiveis(l.status()) : List.of(),
+                            f[0], f[1]);
                 })
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Map<Long, SituacaoNaAgenda> situacaoDosPacientes(Collection<Long> idsPaciente) {
+        Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.LER);
+        if (idsPaciente.isEmpty()) {
+            return Map.of();
+        }
+        return consultas.situacao(idsPaciente,
+                alcance == Alcance.PROPRIOS ? dentistaCorrente() : null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ConsultaResumo> historicoDoPaciente(long idPaciente) {
+        Alcance alcance = permissao.exigir(Recurso.AGENDA, Acao.LER);
+        return montar(consultas.doPaciente(idPaciente,
+                alcance == Alcance.PROPRIOS ? dentistaCorrente() : null));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<ConsultaResumo> buscar(long idConsulta) {
+        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.LER));
+        return consultas.buscar(idConsulta).map(l -> montar(List.of(l)).getFirst());
     }
 
     @Override

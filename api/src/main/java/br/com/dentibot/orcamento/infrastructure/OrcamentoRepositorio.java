@@ -77,6 +77,65 @@ public class OrcamentoRepositorio {
 
     // ─── Itens ───────────────────────────────────────────────────────────────
 
+    /** Item de orçamento aprovado com o cabeçalho junto; o nome do procedimento é do serviço. */
+    public record LinhaDePlano(long idOrcamento, long idPaciente, long idDentista, long idItem,
+                               long idProcedimento, Integer dente, BigDecimal valorCobrado,
+                               String statusExecucao, java.time.Instant aprovadoEm,
+                               java.time.Instant executadoEm, Long idConsulta) {
+    }
+
+    private static final String PLANO = """
+            SELECT o.id_orcamento, o.id_paciente, o.id_dentista, i.id_item, i.id_procedimento,
+                   i.dente, i.valor_cobrado, i.status_execucao, o.aprovado_em,
+                   i.executado_em, i.id_consulta
+            FROM orcamento.itens i
+            JOIN orcamento.orcamentos o ON o.id_orcamento = i.id_orcamento
+            WHERE o.status = 'aprovado'
+              AND (CAST(:dentista AS BIGINT) IS NULL OR o.id_dentista = :dentista)
+            """;
+
+    public List<LinhaDePlano> itensEmAberto(Long idPaciente, Long idDentista) {
+        return jdbc.sql(PLANO + """
+                          AND i.status_execucao IN ('pendente', 'em_andamento')
+                          AND (CAST(:paciente AS BIGINT) IS NULL OR o.id_paciente = :paciente)
+                        ORDER BY o.aprovado_em, i.id_item
+                        """)
+                .param("dentista", idDentista)
+                .param("paciente", idPaciente)
+                .query(OrcamentoRepositorio::mapearPlano)
+                .list();
+    }
+
+    public List<LinhaDePlano> itensConcluidos(java.time.Instant de, java.time.Instant ate,
+                                              Long idDentista) {
+        return jdbc.sql(PLANO + """
+                          AND i.status_execucao = 'concluido'
+                          AND i.executado_em >= :de AND i.executado_em < :ate
+                        ORDER BY i.executado_em
+                        """)
+                .param("dentista", idDentista)
+                .param("de", java.sql.Timestamp.from(de))
+                .param("ate", java.sql.Timestamp.from(ate))
+                .query(OrcamentoRepositorio::mapearPlano)
+                .list();
+    }
+
+    private static LinhaDePlano mapearPlano(java.sql.ResultSet rs, int n) throws java.sql.SQLException {
+        int dente = rs.getInt("dente");
+        Integer denteOuNulo = rs.wasNull() ? null : dente;
+        long consulta = rs.getLong("id_consulta");
+        Long consultaOuNula = rs.wasNull() ? null : consulta;
+        java.sql.Timestamp aprovado = rs.getTimestamp("aprovado_em");
+        java.sql.Timestamp executado = rs.getTimestamp("executado_em");
+        return new LinhaDePlano(
+                rs.getLong("id_orcamento"), rs.getLong("id_paciente"), rs.getLong("id_dentista"),
+                rs.getLong("id_item"), rs.getLong("id_procedimento"), denteOuNulo,
+                rs.getBigDecimal("valor_cobrado"), rs.getString("status_execucao"),
+                aprovado == null ? null : aprovado.toInstant(),
+                executado == null ? null : executado.toInstant(),
+                consultaOuNula);
+    }
+
     public List<LinhaItem> itens(long idOrcamento) {
         return jdbc.sql("""
                         SELECT id_item, id_procedimento, dente, face, valor_cobrado,

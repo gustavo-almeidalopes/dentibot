@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>DentiBot — sem conexão</title>
+  <meta name="theme-color" content="#000000">
+  <!-- Sem conexão não há fonte do Google nem CSS do build: o estilo mora aqui,
+       nos mesmos termos — obsidiana, osso, canto vivo, caixa alta condensada. -->
+  <style>
+    :root { color-scheme: dark; }
+    body { margin: 0; background: #000; color: #fff; font: 16px/1.5 Inter, system-ui, sans-serif; }
+    main { padding: 40px 16px 60px; max-width: 720px; margin: 0 auto; }
+    h1 { font-family: Antonio, Impact, 'Arial Narrow', sans-serif; font-size: clamp(56px, 14vw, 120px);
+         line-height: .9; text-transform: uppercase; margin: 0 0 16px; letter-spacing: -.01em; }
+    .aviso { border-left: 6px solid #ed1c24; padding: 8px 12px; margin: 0 0 24px; }
+    .dia { font-weight: 700; text-transform: uppercase; letter-spacing: .08em; margin: 0; }
+    .nota { color: #838383; margin: 0; }
+    ol { list-style: none; padding: 0; margin: 24px 0 0; }
+    li { border-top: 1px solid #838383; padding: 14px 0; display: grid; gap: 2px; }
+    .hora { font-family: Antonio, Impact, 'Arial Narrow', sans-serif; font-size: 28px; margin: 0; }
+    .nome { font-weight: 700; margin: 0; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Sem<br>conexão.</h1>
+    <p class="aviso">
+      Esta é a última agenda salva neste navegador — só leitura. Nada do que você anotar aqui é
+      enviado. A página volta sozinha para o sistema quando a internet voltar.
+    </p>
+    <div id="agenda"></div>
+  </main>
+  <script type="module" src="/agenda-offline.js"></script>
+</body>
+</html>

@@ -19,5 +19,7 @@ public record SolicitacaoTitular(
         String status,
         String justificativaRecusa,
         Instant respondidaEm,
-        boolean vencida) {
+        boolean vencida,
+        // Oposição (V25): o acesso contestado, nas palavras do titular.
+        String detalhe) {
 }

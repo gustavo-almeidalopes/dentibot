@@ -1,5 +1,7 @@
 package br.com.dentibot.pacientes.application;
 
+import br.com.dentibot.identidade.Celular;
+import br.com.dentibot.identidade.DadosPessoais;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.identidade.PessoaResumo;
 import br.com.dentibot.pacientes.NovoPaciente;
@@ -13,6 +15,7 @@ import br.com.dentibot.plataforma.seguranca.Recurso;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -45,6 +48,15 @@ public class PacienteServico implements PacientesApi {
     public Map<Long, PacienteResumo> mapaDeResumos(Collection<Long> idsPaciente) {
         return montar(pacientes.buscarPorIds(List.copyOf(idsPaciente))).stream()
                 .collect(Collectors.toMap(PacienteResumo::idPaciente, Function.identity()));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<Long> porCelular(String telefone) {
+        return Celular.chave(telefone)
+                .map(identidade::pessoasPorCelular)
+                .map(pacientes::idsDasPessoas)
+                .orElse(List.of());
     }
 
     /**
@@ -84,6 +96,13 @@ public class PacienteServico implements PacientesApi {
         long idPessoa = identidade.criarPessoa(novo.dadosPessoais());
         return pacientes.inserir(idPessoa, novo.idPlanoConvenio(), novo.numeroCarteirinha(),
                 novo.anamnese());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<NovoPaciente.Anamnese> anamnese(long idPaciente) {
+        permissoes.exigir(Recurso.PRONTUARIO, Acao.LER);
+        return pacientes.anamnese(idPaciente);
     }
 
     @Override

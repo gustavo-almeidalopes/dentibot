@@ -46,7 +46,7 @@ public class OnboardingServico {
             Plano plano,
             String nomeAdmin,
             String emailAdmin,
-            /** O `sub` do Clerk de quem está cadastrando. Nunca uma senha. */
+            // O `sub` do Clerk de quem está cadastrando. Nunca uma senha.
             String clerkUserIdAdmin) {
     }
 

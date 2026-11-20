@@ -17,7 +17,10 @@
 
   /* ── Camada semântica ──────────────────────────────────────────
      Os literais acima são a MARCA e não mudam. Estes são o PAPEL, e
-     é só deles que componente pode depender. */
+     é só deles que componente pode depender. Enquanto `--bone` foi ao
+     mesmo tempo "o branco da DentiBot" e "a cor do texto", claro e
+     escuro não tinham como coexistir — e `--ink`, que ninguém nunca
+     definiu, viveu em nove lugares por causa disso. */
   --fundo:       var(--obsidian);
   --superficie:  var(--obsidian);
   --tinta:       var(--bone);
@@ -57,16 +60,13 @@
   --gap:     var(--spacing-59);
   --pad-sec: clamp(60px, 8vw, 127px);
 
-  /* Nothing rounds. A rounded pill reads as friendly SaaS — every surface
-     here meets at a hard edge. */
+  /* Nothing rounds. The extraction put nav pills at 100px, but a rounded
+     pill reads as friendly SaaS — every surface here meets at a hard edge. */
   --radius-cards:    0px;
   --radius-surfaces: 0px;
   --radius-buttons:  0px;
 
   --ease-brut: cubic-bezier(.16, 1, .3, 1);
-  /* Curva de gaveta (iOS-like): usada em painéis que entram/saem de uma borda
-     da tela — o menu mobile, não o reveal editorial, que já tem a sua. */
-  --ease-drawer: cubic-bezier(.32, .72, 0, 1);
 }
 
 /* ── RESET ───────────────────────────────────────────────────── */
@@ -81,8 +81,8 @@ html {
 body {
   margin: 0;
   overflow-x: clip;
-  background: var(--fundo);
-  color: var(--tinta);
+  background: var(--obsidian);
+  color: var(--bone);
   font-family: var(--f-ui);
   font-size: var(--t-body);
   line-height: 1.32;
@@ -107,10 +107,10 @@ a { color: inherit; text-decoration: none; }
   top: -100px;
   z-index: 200;
   padding: 7px 20px;
-  border: 1px solid var(--bone);
+  border: 1px solid var(--tinta);
   border-radius: 0;
-  background: var(--bone);
-  color: var(--obsidian);
+  background: var(--tinta);
+  color: var(--fundo);
   font-size: 19px;
   transition: top .15s;
 }
@@ -139,14 +139,17 @@ a { color: inherit; text-decoration: none; }
   font-family: var(--f-display);
   font-weight: 700;
   font-size: var(--t-display);
-  /* pt-BR is full of cedillas and tildes under Antonio's tall caps.
-     Cap .72em + cedilla .15em means .88 is the tightest leading
+  /* Antonio's caps are taller than Brasparz's, and pt-BR is full of cedillas
+     and tildes. Cap .72em + cedilla .15em means .88 is the tightest leading
      that still clears "SERVIÇOS" over "OPERAÇÃO". Crushed, but not colliding. */
   line-height: .88;
   letter-spacing: -.020em;
   text-transform: uppercase;
   padding-block: .15em;
   font-feature-settings: "ss01" 0, "ss02" 0;
+  /* A 320px uma palavra longa ("ENCONTRADO.") passa da borda; quebrar só
+     quando não cabe mantém o reflow do 1.4.10. */
+  overflow-wrap: anywhere;
 }
 
 .sub {
@@ -162,6 +165,8 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.25;
   text-transform: uppercase;
 }
+/* --tinta-fraca e não --ash: no preto são o mesmo cinza, mas no papel o --ash
+   dá 3,6:1 e reprova. As telas do sistema usam estas duas classes 67 vezes. */
 .cap-ash { color: var(--tinta-fraca); }
 
 .body { line-height: 1.32; max-width: 56ch; }
@@ -177,14 +182,18 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
 }
 
+.rule { height: 1px; background: var(--bone); border: 0; margin: 0; }
+.rule-hair { height: 1px; background: var(--hair); border: 0; margin: 0; }
+
 /* ── BUTTONS — blocks, not pills. Hard edge, hard border, hard label. ── */
 .btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
   padding: 13px var(--spacing-20);
-  /* Papel, não literal: no tema claro o osso da marca seria branco sobre
-     papel. */
+  /* Token semântico, não literal: no preto --tinta é osso e --fundo é
+     obsidiana, e a landing não muda. No papel o botão vira a caixa preta de
+     canto vivo, em vez de uma borda branca que sumia. */
   border: 2px solid var(--tinta);
   border-radius: var(--radius-buttons);
   font-size: var(--text-body-sm, 19px);
@@ -476,10 +485,6 @@ a { color: inherit; text-decoration: none; }
   font-feature-settings: "ss01" 0, "ss02" 0;
 }
 
-/* Entra/sai da borda de cima, não do nada: `display` é propriedade discreta,
-   então ela só anima com `allow-discrete` + o estado de partida em
-   `@starting-style` — sem isso o menu ficaria preso em display:none e nunca
-   chegaria a animar a saída (só a entrada). */
 .menu {
   position: fixed;
   inset: 0;
@@ -489,19 +494,8 @@ a { color: inherit; text-decoration: none; }
   background: var(--obsidian);
   overflow-y: auto;
   overscroll-behavior: contain;
-  opacity: 1;
-  transform: none;
-  transition: opacity .32s var(--ease-drawer), transform .32s var(--ease-drawer),
-    display .32s allow-discrete;
 }
-.menu[hidden] {
-  display: none;
-  opacity: 0;
-  transform: translateY(-16px);
-}
-@starting-style {
-  .menu:not([hidden]) { opacity: 0; transform: translateY(-16px); }
-}
+.menu[hidden] { display: none; }
 
 .menu-top {
   display: flex;
@@ -591,6 +585,7 @@ html:not(.no-js) #odontograma.visible .fdi {
 
 /* ── TICKER — the day running past, ending in the word the wall shouts ── */
 .ticker {
+  position: relative;
   border-block: 1px solid var(--hair);
   padding-block: var(--spacing-16);
   overflow: hidden;
@@ -602,7 +597,16 @@ html:not(.no-js) #odontograma.visible .fdi {
 }
 .ticker-set { white-space: nowrap; padding-right: .6em; }
 .ticker b { color: var(--alarm); font-weight: 700; }
-.ticker:hover .ticker-track { animation-play-state: paused; }
+.ticker:hover .ticker-track,
+.ticker[data-parado] .ticker-track { animation-play-state: paused; }
+/* Por cima do texto, sem mudar a altura da faixa: o fundo cobre o que passa. */
+.ticker-pausa {
+  position: absolute;
+  top: 50%;
+  right: var(--edge);
+  translate: 0 -50%;
+  background: var(--fundo);
+}
 
 @keyframes ticker-run { to { transform: translateX(-50%); } }
 
@@ -617,6 +621,7 @@ html:not(.no-js) #odontograma.visible .fdi {
   html:not(.no-js) [data-reveal].has-lines .ln > i { transform: none; }
   html:not(.no-js) #odontograma .fdi { opacity: 1; transform: none; }
   .ticker-track { animation: none; }
+  .ticker-pausa { display: none; }
 }
 
 /* ── RESPONSIVE ──────────────────────────────────────────────── */
@@ -631,8 +636,10 @@ html:not(.no-js) #odontograma.visible .fdi {
 }
 
 @media (max-width: 620px) {
-  /* One line would clip the brand mid-letter, so it stacks. Empilhado, .70
-     faz DENTI e BOT se cruzarem; .78 mantém o esmagamento e ainda lê. */
+  /* One line would clip the brand mid-letter, so it stacks — two crushed
+     lines, letterforms nearly touching, which is the wordmark's own idiom. */
+  /* Empilhado, .70 faz DENTI e BOT se cruzarem e embaralharem a marca.
+     .78 mantém o esmagamento — as letras quase se tocam — e ainda lê. */
   .wordmark { white-space: normal; font-size: 44vw; line-height: .78; }
   .wm-break { display: block; }
 
@@ -651,6 +658,7 @@ html:not(.no-js) #odontograma.visible .fdi {
   .wa-label { display: none; }
   .whatsapp { padding: 13px; }
 
+  /* Tabelas de plano e trilhos ficam mais apertados no toque. */
   .plan-grid { gap: var(--spacing-20); }
   .odonto-head { padding-bottom: var(--spacing-15); }
 
@@ -668,18 +676,18 @@ html:not(.no-js) #odontograma.visible .fdi {
   padding-block: var(--spacing-20);
 }
 
-/* O widget do Clerk traz o próprio formulário. 44ch é onde uma coluna de
-   texto ainda é confortável de mirar. */
+/* O widget do Clerk traz o próprio formulário; sobrou só a largura de
+   leitura. 44ch é onde uma coluna de texto ainda é confortável de mirar. */
 .auth-swap { max-width: 44ch; }
 
 .auth-swap { margin-top: var(--spacing-30); }
 .auth-swap a, .auth-swap button {
   cursor: pointer;
-  color: var(--ash);
+  color: var(--tinta-fraca);
   text-decoration: underline;
   text-underline-offset: 4px;
 }
-.auth-swap a:hover, .auth-swap button:hover { color: var(--bone); }
+.auth-swap a:hover, .auth-swap button:hover { color: var(--tinta); }
 
 /* Bloco inerte não deve prometer o wipe que não vai acontecer. */
 .btn:disabled { opacity: .5; cursor: not-allowed; }
@@ -690,3 +698,209 @@ html:not(.no-js) #odontograma.visible .fdi {
   .auth-swap { max-width: none; }
   .auth-top { padding-block: var(--spacing-15); }
 }
+
+/* ── TILT — card que inclina seguindo o ponteiro ──────────────────────────── */
+/* O wrapper só cria a perspectiva; quem gira é o filho. Aplicar perspective e
+   transform no MESMO elemento faz o navegador achatar os dois numa matriz só, e
+   a rotação perde a profundidade — parece um cisalhamento, não um giro. */
+.tilt {
+  perspective: var(--perspectiva, 1200px);
+  /* Isola repaint: sem isto, girar o card convida o navegador a repintar a
+     seção inteira a cada frame do ponteiro. */
+  isolation: isolate;
+}
+
+.tilt-plano {
+  position: relative;
+  transform:
+    rotateX(var(--rx, 0deg))
+    rotateY(var(--ry, 0deg))
+    scale(var(--escala-atual, 1));
+  transform-style: preserve-3d;
+  /* Curto: a transição existe só para o RETORNO ao repouso e para o primeiro
+     frame. Mais que isto e o card "persegue" o cursor com atraso visível. */
+  transition: transform .12s var(--ease-brut);
+  will-change: transform;
+}
+
+.tilt:hover .tilt-plano { --escala-atual: var(--escala, 1.05); }
+
+/* Volta ao repouso com mais calma do que acompanha o cursor: a saída é a única
+   parte do movimento que o olho realmente lê. */
+.tilt:not(:hover) .tilt-plano { transition-duration: .4s; }
+
+.tilt-brilho {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--brilho, 0);
+  transition: opacity .2s linear;
+  background: radial-gradient(
+    circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255, 255, 255, .16),
+    transparent 55%);
+}
+
+/* O card é decoração. Quem pediu menos movimento não recebe nenhum — e o
+   conteúdo continua inteiro, que é o ponto. */
+@media (prefers-reduced-motion: reduce) {
+  .tilt-plano,
+  .tilt:not(:hover) .tilt-plano {
+    transform: none;
+    transition: none;
+  }
+  .tilt-brilho { display: none; }
+}
+
+/* ── CARTÃO DE CRÉDITO ────────────────────────────────────────────────────── */
+/* Três camadas de transform empilhadas, e a ordem é o que faz funcionar:
+     .tilt        → perspective (só ela)
+     .tilt-plano  → rotação que segue o ponteiro
+     .cartao      → rotação do FLIP
+   Juntar o flip e o tilt no mesmo elemento faria um cancelar o outro na mesma
+   matriz — o cartão viraria 180° e perderia a inclinação, ou vice-versa. */
+.cartao-tilt { width: min(370px, 100%); }
+
+.cartao {
+  position: relative;
+  aspect-ratio: 1.586;          /* ISO/IEC 7810 ID-1: 85,6 × 53,98 mm */
+  transform-style: preserve-3d;
+  transition: transform .62s var(--ease-brut);
+}
+.cartao[data-virado="sim"] { transform: rotateY(180deg); }
+
+.cartao-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border: 1px solid var(--hair);
+  background:
+    linear-gradient(148deg, #141414 0%, #000000 58%, #0d0d0d 100%);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.cartao-frente { padding: 24px 24px 20px; justify-content: space-between; }
+.cartao-verso  { transform: rotateY(180deg); padding-block: 22px; }
+
+.cartao-topo { display: flex; align-items: center; justify-content: space-between; }
+
+/* O chip dourado é o único ponto de cor quente do sistema. Ele existe porque é
+   o que faz o retângulo ser lido como "cartão" antes de qualquer texto. */
+.cartao-chip {
+  width: 42px; height: 32px;
+  background: linear-gradient(135deg, #d4af6a, #8c6f3f 48%, #e6c98a);
+  position: relative;
+}
+.cartao-chip::before,
+.cartao-chip::after {
+  content: ""; position: absolute; left: 0; right: 0;
+  height: 1px; background: rgba(0, 0, 0, .38);
+}
+.cartao-chip::before { top: 10px; }
+.cartao-chip::after  { top: 21px; }
+
+.cartao-marca { color: var(--tinta); display: block; }
+.marca { width: 62px; height: 20px; display: block; }
+.marca-texto {
+  fill: currentColor;
+  font-family: var(--f-display);
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.cartao-numero {
+  margin: 0;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: clamp(16px, 5vw, 21px);
+  letter-spacing: .06em;
+  /* tabular-nums: sem isto a linha "pula" de largura a cada dígito digitado,
+     porque a bolinha e o algarismo têm medidas diferentes. */
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cartao-rodape { display: flex; align-items: flex-end; gap: 18px; }
+.cartao-campo { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cartao-campo-validade { margin-left: auto; }
+.cartao-rotulo {
+  font-size: 8px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--ash);
+}
+.cartao-valor {
+  font-size: 13px; letter-spacing: .06em; text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+/* O nome é o único campo de tamanho imprevisível; ele corta, nunca empurra a
+   validade para fora do cartão. */
+.cartao-nome { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.cartao-tarja { height: 44px; background: #0a0a0a; border-block: 1px solid var(--hair-fraca); }
+.cartao-assinatura {
+  display: flex; align-items: center; gap: 10px;
+  margin: 20px 24px 0;
+}
+.cartao-painel {
+  flex: 1; height: 32px;
+  background: repeating-linear-gradient(
+    -45deg, rgba(255,255,255,.10) 0 6px, rgba(255,255,255,.03) 6px 12px);
+}
+.cartao-cvv {
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 15px; letter-spacing: .18em;
+  font-variant-numeric: tabular-nums;
+  background: var(--tinta); color: var(--obsidian);
+  padding: 6px 10px;
+}
+.cartao-aviso {
+  margin: auto 24px 0;
+  font-size: 10px; line-height: 1.4; color: var(--ash);
+}
+
+/* Virar é informação, não enfeite: quem pediu menos movimento continua vendo o
+   verso, só que sem os 620ms de giro. */
+@media (prefers-reduced-motion: reduce) {
+  .cartao { transition: none; }
+}
+
+/* ── FORMULÁRIO DE PAGAMENTO ──────────────────────────────────────────────── */
+.pagamento {
+  display: grid;
+  grid-template-columns: min(370px, 100%) minmax(0, 1fr);
+  gap: var(--spacing-30, 30px);
+  align-items: start;
+}
+@media (max-width: 760px) { .pagamento { grid-template-columns: 1fr; } }
+
+.pagamento-campos { display: flex; flex-direction: column; gap: 16px; }
+.pagamento-linha { display: flex; gap: 14px; }
+.pagamento-linha .pagamento-campo { flex: 1; min-width: 0; }
+.pagamento-campo { display: flex; flex-direction: column; gap: 6px; }
+
+.pagamento-campo input {
+  appearance: none;
+  background: transparent;
+  /* Controle, não hairline: --hair dava 2,10:1 no preto (1.4.11 pede 3:1). */
+  border: 1px solid var(--tinta-fraca);
+  border-radius: 0;
+  color: var(--tinta);
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+  padding: 12px 14px;
+  width: 100%;
+}
+.pagamento-campo input::placeholder { color: var(--ash); }
+.pagamento-campo input:focus-visible { outline: 2px solid var(--tinta); outline-offset: -1px; }
+
+.pagamento-erro { margin: 0; font-size: 12px; color: var(--alarm); }
+
+.pagamento-campos button[disabled] {
+  opacity: .4;
+  cursor: not-allowed;
+}
+

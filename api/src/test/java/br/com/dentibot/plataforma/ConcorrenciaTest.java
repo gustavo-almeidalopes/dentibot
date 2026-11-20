@@ -21,7 +21,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -43,8 +42,6 @@ import org.springframework.transaction.support.TransactionTemplate;
  */
 @DisplayName("Concorrência nas guardas de negócio")
 class ConcorrenciaTest extends TesteIntegracao {
-
-    private static final AtomicLong SEQ = new AtomicLong(System.nanoTime() % 100_000);
 
     @Autowired
     private OnboardingServico onboarding;

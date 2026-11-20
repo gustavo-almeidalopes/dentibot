@@ -1,5 +1,5 @@
 -- ─────────────────────────────────────────────────────────────────────────────
--- V23 — Prova do aceite feito no cadastro (LGPD art. 8º §2º).
+-- V26 — Prova do aceite feito no cadastro (LGPD art. 8º §2º).
 --
 -- O ônus de provar o consentimento é de quem coleta. O cadastro — de clínica e
 -- de paciente — roda SEM tenant, então lgpd.consentimentos (que exige

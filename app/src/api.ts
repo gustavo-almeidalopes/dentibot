@@ -3,9 +3,10 @@
  *
  * Três decisões que valem uma linha de explicação cada:
  *
- * 1. **A sessão é do Clerk.** Quem guarda é o `tokenCache` do @clerk/expo,
- *    sobre expo-secure-store — Keychain no iOS, Keystore no Android — e o SDK
- *    renova sozinho.
+ * 1. **A sessão é do Clerk.** O token curto e a renovação saíram daqui: quem
+ *    guarda é o `tokenCache` do @clerk/expo, sobre expo-secure-store — Keychain
+ *    no iOS, Keystore no Android. Sumiram o refresh manual, o mutex de
+ *    renovação e o handler de sessão expirada, porque o SDK já faz os três.
  *
  * 2. **getClerkInstance, não useAuth.** Este módulo não é componente e não tem
  *    hook. O singleton é o caminho documentado para chamar a API fora do React,
@@ -14,7 +15,8 @@
  * 3. **A chave de idempotência é gerada uma vez por requisição lógica**, não por
  *    tentativa HTTP. Se um 401 disparar refresh e retry, a segunda tentativa
  *    manda a MESMA chave — senão o retry de "confirmar consulta" viraria uma
- *    segunda operação.
+ *    segunda operação, que é precisamente o que o `FiltroIdempotencia` existe
+ *    para impedir.
  */
 import { getClerkInstance } from '@clerk/expo';
 import * as Crypto from 'expo-crypto';
@@ -22,8 +24,8 @@ import * as Crypto from 'expo-crypto';
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:8080';
 
 /**
- * Um POST para estes caminhos sem `Idempotency-Key` é recusado pelo backend —
- * inclusive
+ * Espelha `PREFIXOS_OBRIGATORIOS` do `FiltroIdempotencia`. Um POST para estes
+ * caminhos sem `Idempotency-Key` é recusado pelo backend — inclusive
  * `/consultas/{id}/confirmar`, que parece inofensivo e não é.
  */
 const EXIGEM_IDEMPOTENCIA = [
@@ -161,14 +163,12 @@ export async function pedir<T>(caminho: string, o: Opcoes = {}): Promise<T> {
 // Espelham os records do backend. Nomes idênticos de propósito: a tradução
 // acontece na tela, não aqui, para que uma mudança de DTO apareça no typecheck.
 
-/** `GET /eu`: o papel e a matriz recurso → ação → alcance deste token. */
-export type Eu = {
+/** O /eu (EuController): papel e o que ele alcança, calculado pelo backend. */
+export type Identidade = {
   papel: string | null;
   staffPapel: string | null;
   permissoes: Record<string, Record<string, string>>;
 };
-
-export type Acao = 'confirmar' | 'concluir' | 'falta' | 'cancelar';
 
 export type StatusConsulta =
   | 'agendada'
@@ -187,8 +187,9 @@ export type Consulta = {
   inicioEm: string;
   terminoEm: string;
   status: StatusConsulta;
-  /** As transições que este usuário pode fazer agora. O backend calcula. */
-  acoes: Acao[];
+  /** IA-15: das últimas consultas encerradas (até dez), quantas foram falta. */
+  faltasRecentes: number;
+  consultasRecentes: number;
 };
 
 export type Paciente = {
@@ -199,12 +200,25 @@ export type Paciente = {
   status: string;
 };
 
+/** Parte do resumo: `permitido=false` é "sem acesso", `dados=null` é "nada aqui". */
+export type Secao<T> = { permitido: boolean; dados: T | null };
+
+export type ResumoDoPaciente = {
+  idPaciente: number;
+  nomePaciente: string;
+  alertas: Secao<{ avisos: string[] }>;
+  ultimaEvolucao: Secao<{ descricao: string; registradoEm: string }>;
+  planoEmAberto: Secao<{ nomeProcedimento: string | null; dente: number | null }[]>;
+  financeiro: Secao<{ emAberto: number; vencido: number }>;
+  agenda: Secao<{ ultimaRealizada: string | null; proximaMarcada: string | null }>;
+};
+
 // ─── Endpoints ───────────────────────────────────────────────────────────────
 
 export const api = {
-  // Quem cria e derruba sessão é o Clerk. Papel e clínica são do domínio, não
-  // da identidade, e só o backend os sabe.
-  eu: () => pedir<Eu>('/api/v1/eu'),
+  // login/logout saíram: quem cria e derruba sessão é o Clerk. O eu() fica —
+  // papel e clínica são do domínio, não da identidade, e só o backend os sabe.
+  eu: () => pedir<Identidade>('/api/v1/eu'),
 
   /** `de`/`ate` em ISO-8601 UTC — o backend os recebe como Instant. */
   agenda: (de: Date, ate: Date) =>
@@ -213,14 +227,35 @@ export const api = {
         `&ate=${encodeURIComponent(ate.toISOString())}`,
     ),
 
-  /** `motivo` só para `cancelar`, que o exige. */
-  transicionar: (id: number, acao: Acao, motivo?: string) =>
-    pedir<void>(`/api/v1/consultas/${id}/${acao}`, {
-      metodo: 'POST',
-      corpo: motivo === undefined ? undefined : { motivo },
-    }),
+  confirmar: (id: number) => pedir<void>(`/api/v1/consultas/${id}/confirmar`, { metodo: 'POST' }),
+  concluir: (id: number) => pedir<void>(`/api/v1/consultas/${id}/concluir`, { metodo: 'POST' }),
+  registrarFalta: (id: number) => pedir<void>(`/api/v1/consultas/${id}/falta`, { metodo: 'POST' }),
+  cancelar: (id: number, motivo: string) =>
+    pedir<void>(`/api/v1/consultas/${id}/cancelar`, { metodo: 'POST', corpo: { motivo } }),
+
+  /** IA-06: resumo de retorno, com os alertas que o app fala (IA-27). */
+  resumo: (idPaciente: number) => pedir<ResumoDoPaciente>(`/api/v1/pacientes/${idPaciente}/resumo`),
 
   /** Keyset: `apos` é o último idPaciente recebido, não um número de página. */
   pacientes: (apos = 0, limite = 50) =>
     pedir<Paciente[]>(`/api/v1/pacientes?limite=${limite}&apos=${apos}`),
+};
+
+// ─── Máquina de estados ──────────────────────────────────────────────────────
+
+export type Acao = 'confirmar' | 'concluir' | 'falta' | 'cancelar';
+
+/**
+ * Quais ações a UI oferece em cada status. Espelha `AgendaServico` — mas o
+ * backend é a autoridade: ele devolve 409 `transicao-invalida` se esta tabela
+ * divergir, e é isso que a tela mostra. Aqui só evitamos oferecer um botão que
+ * sabemos que vai falhar.
+ */
+export const ACOES_POR_STATUS: Record<StatusConsulta, readonly Acao[]> = {
+  agendada: ['confirmar', 'concluir', 'falta', 'cancelar'],
+  confirmada: ['concluir', 'falta', 'cancelar'],
+  em_atendimento: ['concluir'],
+  realizada: [],
+  cancelada: [],
+  faltou: [],
 };

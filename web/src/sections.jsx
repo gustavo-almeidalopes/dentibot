@@ -1,6 +1,7 @@
+import { useState } from 'react';
 import { Lines, Reveal } from './components/Reveal.jsx';
 import {
-  FEATURES, NAV_LINKS, PLANS, TESTIMONIALS,
+  FEATURES, NAV_LINKS, PLANS, SUBPROCESSADORES_URL, TESTIMONIALS,
   TICKER, TICKER_TAIL, WALL_METRICS, WHATSAPP_URL, WHO,
 } from './content.js';
 import { CRIAR, LOGIN, PRIVACIDADE, TERMOS } from './rotas.js';
@@ -43,14 +44,21 @@ export function Statement() {
   );
 }
 
+/* 2.2.2 pede como pausar o que se move por mais de 5s; o hover não serve a
+   quem usa teclado ou toque. O botão fica fora do aria-hidden, que é só do
+   texto duplicado. */
 export function Ticker() {
+  const [parado, setParado] = useState(false);
   const set = <>{TICKER}<b>Faltou</b>{TICKER_TAIL}</>;
   return (
-    <div className="ticker cap" aria-hidden="true">
-      <div className="ticker-track">
+    <div className="ticker cap" data-parado={parado || undefined}>
+      <div className="ticker-track" aria-hidden="true">
         <span className="ticker-set">{set}</span>
         <span className="ticker-set">{set}</span>
       </div>
+      <button type="button" className="btn btn-sm ticker-pausa" onClick={() => setParado(!parado)}>
+        {parado ? 'Retomar letreiro' : 'Pausar letreiro'}
+      </button>
     </div>
   );
 }
@@ -225,11 +233,12 @@ export function Footer() {
           {links.map((l) => (
             <a key={l.href} href={l.href} className="credit">{l.label}</a>
           ))}
+          <a href={SUBPROCESSADORES_URL} className="credit">Sub-processadores (LGPD)</a>
           <a href={PRIVACIDADE} className="credit">Privacidade</a>
           <a href={TERMOS} className="credit">Termos de uso</a>
           <a href={LOGIN} className="credit">Entrar</a>
         </div>
-        <p className="credit">v2.0.0 · React + FastAPI · LGPD</p>
+        <p className="credit">v2.0.0 · React + Spring Boot · LGPD</p>
       </div>
     </footer>
   );

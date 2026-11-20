@@ -1,3 +1,6 @@
+/* As rotas num lugar só. O ClerkProvider usa as de auth para redirecionar, o
+   widget monta o link "criar conta" a partir delas, e a navegação do app as usa
+   para montar href — três consumidores, uma definição. */
 export const LOGIN = '/login';
 export const CRIAR = '/login?criar=1';
 
@@ -6,12 +9,8 @@ export const CRIAR = '/login?criar=1';
    tudo — inclusive para quem entrou com Google, Microsoft ou Apple. */
 export const CADASTRO = '/cadastro';
 
-/* Onde o paciente aterrissa depois da ficha, e a cada entrada seguinte. Fora do
-   MENU: não é tela de clínica, e nenhum papel da matriz a alcança. */
-export const AREA_PACIENTE = '/area-do-paciente';
-
 /* Públicas: o aceite do cadastro aponta para elas, e o titular precisa lê-las
-   ANTES de consentir (LGPD art. 9º §1º) — por isso fora do Layout e sem login. */
+   ANTES de consentir (LGPD art. 9º §1º) — por isso fora do Clerk e sem login. */
 export const TERMOS = '/termos-de-uso';
 export const PRIVACIDADE = '/privacidade';
 
@@ -21,6 +20,12 @@ export const PACIENTES = '/pacientes';
 export const EQUIPE = '/equipe';
 export const AUDITORIA = '/auditoria';
 export const FINANCEIRO = '/financeiro';
+export const ACOMPANHAMENTO = '/acompanhamento';
+export const ESTOQUE = '/estoque';
+export const IA = '/ia';
+export const CONVERSAS = '/conversas';
+/* Público: o paciente, sem conta, pelo link que a clínica entregou. */
+export const TITULAR = '/titular';
 
 /** O prontuário é a única rota com parâmetro — e o motivo de haver um router. */
 export const PRONTUARIO = '/pacientes/:idPaciente/prontuario';
@@ -40,10 +45,37 @@ export const MENU = [
   { href: RECEPCAO, label: 'Recepção', recurso: 'AGENDA' },
   { href: AGENDA, label: 'Agenda', recurso: 'AGENDA' },
   { href: PACIENTES, label: 'Pacientes', recurso: 'PACIENTE' },
+  // AGENDA: responder paciente no WhatsApp é parte de cuidar da agenda.
+  { href: CONVERSAS, label: 'Conversas', recurso: 'AGENDA' },
+  // ORCAMENTO porque o radar é sobre plano aprovado; a parte clínica da tela
+  // (registro pendente) pergunta PRONTUARIO por conta própria.
+  { href: ACOMPANHAMENTO, label: 'Acompanhamento', recurso: 'ORCAMENTO' },
   { href: FINANCEIRO, label: 'Financeiro', recurso: 'FINANCEIRO' },
+  { href: ESTOQUE, label: 'Estoque', recurso: 'ESTOQUE' },
   { href: EQUIPE, label: 'Equipe', recurso: 'EQUIPE' },
   { href: AUDITORIA, label: 'Auditoria', recurso: 'AUDITORIA' },
+  // BILLING porque a tela é sobre o que a clínica paga; a configuração, que o
+  // back-end guarda em CONFIGURACAO, também é de quem paga.
+  { href: IA, label: 'IA', recurso: 'BILLING' },
 ];
+
+/**
+ * Os itens do menu para o estado da resposta do `/eu`.
+ *
+ * <p>Carregando, nenhum: montar todos e tirar os que o papel não alcança quando
+ * a resposta chegasse mostraria, por um instante, telas que a pessoa não
+ * alcança — e um clique é mais rápido que um instante.
+ *
+ * <p>Com erro, todos. Sem o `/eu` não se sabe o papel, e esconder o menu deixava
+ * quem acabou de entrar preso na /agenda: sem ir para outra tela e sem o botão de
+ * sair. O menu é cortesia — quem nega é o back-end —, e o Layout continua sem
+ * montar tela nenhuma até o papel ser conhecido.
+ */
+export function itensDoMenu(status, pode) {
+  if (status === 'erro') return MENU;
+  if (status !== 'ok') return [];
+  return MENU.filter((item) => pode(item.recurso));
+}
 
 /* Único caminho com parâmetro, então uma regex resolve — e ela é conferida
    ANTES da tabela porque `/pacientes/7/prontuario` é PRONTUARIO, não PACIENTE.

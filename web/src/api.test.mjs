@@ -1,8 +1,9 @@
 /**
  * A lista de rotas idempotentes do front é a do back-end.
  *
- * <p>Mesmo teste que o `app/src/contrato.test.mjs` faz para o mobile. O
- * back-end ganha um prefixo, o front continua mandando POST sem a chave, e o
+ * <p>Mesmo teste que o `app/src/contrato.test.mjs` já faz para o mobile, agora
+ * para a web — e pelo mesmo motivo: a duplicata silenciosa é a que apodrece.
+ * O back-end ganha um prefixo, o front continua mandando POST sem a chave, e o
  * usuário toma 400 numa tela que funcionava ontem.
  *
  *   cd web && npm test
@@ -12,19 +13,19 @@ import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
-import { EXIGEM_IDEMPOTENCIA, LIMITE_LISTA } from './api.js';
+import { ApiError, EXIGEM_IDEMPOTENCIA, api, apiInacessivel, semApi } from './api.js';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
-const PLATAFORMA = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com',
-  'dentibot', 'plataforma');
-const FILTRO = join(PLATAFORMA, 'idempotencia', 'FiltroIdempotencia.java');
+const FILTRO = join(AQUI, '..', '..', 'api', 'src', 'main', 'java', 'br', 'com',
+  'dentibot', 'plataforma', 'idempotencia', 'FiltroIdempotencia.java');
 
 test('a lista de rotas idempotentes do front é a do FiltroIdempotencia', () => {
   const java = readFileSync(FILTRO, 'utf8');
   const bloco = java.match(/PREFIXOS_OBRIGATORIOS\s*=\s*Set\.of\(([\s\S]*?)\);/);
   assert.ok(bloco, 'não achei PREFIXOS_OBRIGATORIOS — o Java mudou de forma');
 
-  // O Java guarda o caminho completo (/api/v1/consultas); o front, o sufixo.
+  // O Java guarda o caminho completo (/api/v1/consultas); o front guarda o
+  // sufixo, porque o prefixo já está no BASE. Comparar exige tirar a base.
   const doBackend = [...bloco[1].matchAll(/"\/api\/v1(\/[a-z0-9/_-]+)"/g)]
     .map((m) => m[1])
     .sort();
@@ -33,9 +34,32 @@ test('a lista de rotas idempotentes do front é a do FiltroIdempotencia', () => 
   assert.deepEqual([...EXIGEM_IDEMPOTENCIA].sort(), doBackend);
 });
 
-test('o teto de listagem do front é o do back-end', () => {
-  const java = readFileSync(join(PLATAFORMA, 'config', 'Listagem.java'), 'utf8');
-  const limite = java.match(/LIMITE_MAXIMO\s*=\s*(\d+);/);
-  assert.ok(limite, 'não achei LIMITE_MAXIMO em Listagem.java');
-  assert.equal(LIMITE_LISTA, Number(limite[1]));
+test('404 sem corpo é o host sem API, e 404 do back-end não é', () => {
+  // O back-end responde todo 404 em ProblemDetail. O 404 de texto é o da
+  // Vercel servindo só o web — que antes aparecia como "Erro 404" na /agenda.
+  assert.equal(semApi(new ApiError('Erro 404', 404, null)), true);
+  assert.equal(semApi(new ApiError('Recurso não encontrado.', 404,
+    { status: 404, detail: 'Recurso não encontrado.' })), false);
+  // Outros status seguem pelo erro comum, com o "Tentar de novo".
+  assert.equal(semApi(new ApiError('Erro 500', 500, null)), false);
+  assert.equal(semApi(new TypeError('Failed to fetch')), false);
+  assert.equal(semApi(undefined), false);
+});
+
+test('TypeError do fetch é API sem resposta, e resposta com status não é', () => {
+  // Com a API em outro domínio, fora do ar, CORS e CSP chegam todos assim: o
+  // navegador entrega só o TypeError, sem status nem corpo.
+  assert.equal(apiInacessivel(new TypeError('Failed to fetch')), true);
+  assert.equal(apiInacessivel(new ApiError('Erro 404', 404, null)), false);
+  assert.equal(apiInacessivel(new ApiError('Erro 500', 500, null)), false);
+  assert.equal(apiInacessivel(undefined), false);
+});
+
+test('falha de rede chega às telas em português, e ainda como API sem resposta', async (t) => {
+  // O que o navegador faz com API fora do ar, CORS ou CSP: rejeita sem resposta.
+  t.mock.method(globalThis, 'fetch', async () => { throw new TypeError('Failed to fetch'); });
+  const erro = await api.get('/eu').catch((e) => e);
+  assert.equal(apiInacessivel(erro), true);
+  assert.match(erro.message, /^A API \(.+\) não respondeu\./);
+  assert.equal(erro.cause?.message, 'Failed to fetch');
 });

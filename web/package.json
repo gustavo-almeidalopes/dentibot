@@ -7,17 +7,32 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "node --test src/*.test.mjs"
+    "test": "node --import ./src/fuso-dos-testes.mjs --test src/*.test.mjs",
+    "lint": "eslint .",
+    "e2e": "playwright test",
+    "a11y": "vite build && node a11y/peso.mjs && node a11y/auditar.mjs"
   },
   "dependencies": {
-    "@clerk/localizations": "^4.16.1",
-    "@clerk/react": "^6.15.2",
-    "react": "^19.3.0",
-    "react-dom": "^19.3.0",
-    "react-router-dom": "^7.18.3"
+    "@clerk/localizations": "^4.24.7",
+    "@clerk/react": "^6.18.7",
+    "@fontsource/antonio": "^5.3.0",
+    "@fontsource/cormorant-sc": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
+    "@sentry/browser": "^11.11.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^6.1.1",
-    "vite": "^8.2.2"
+    "@axe-core/playwright": "^4.13.0",
+    "@clerk/testing": "^2.2.56",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "@vitejs/plugin-react": "^6.1.2",
+    "eslint": "^10.15.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "playwright-core": "^1.65.1",
+    "vite": "^8.3.8"
   }
 }

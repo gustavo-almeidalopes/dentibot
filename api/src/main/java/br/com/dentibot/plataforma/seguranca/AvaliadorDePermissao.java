@@ -91,6 +91,8 @@ public class AvaliadorDePermissao {
     }
 
     public static class AcessoNegadoException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
         private final transient Recurso recurso;
         private final transient Acao acao;
 

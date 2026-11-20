@@ -1,7 +1,9 @@
 /**
  * O que as telas mostram, separado de como elas montam.
  *
- * <p>Função pura, fora do JSX, para o `node --test` alcançar.
+ * <p>Existe porque cada tela tinha o próprio `Intl`, o próprio mapa de status e
+ * a própria frase de contagem — e nenhum deles tinha teste, porque estavam
+ * dentro do JSX. Aqui em cima é função pura, e `node --test` alcança.
  */
 
 const HORA = new Intl.DateTimeFormat('pt-BR', { hour: '2-digit', minute: '2-digit' });
@@ -9,8 +11,8 @@ const EXTENSO = new Intl.DateTimeFormat('pt-BR', {
   weekday: 'long', day: 'numeric', month: 'long',
 });
 
-/* Valor do banco → rótulo e tom do selo. O tom é forma, não cor: `riscado` e
-   `contorno` continuam legíveis para quem não distingue vermelho de cinza. */
+/* Status → rótulo e tom do selo. O tom é forma, não cor: `riscado` e `contorno`
+   continuam legíveis para quem não distingue vermelho de cinza. */
 export const STATUS_CONSULTA = {
   agendada: { rotulo: 'Agendada', tom: 'contorno' },
   confirmada: { rotulo: 'Confirmada', tom: 'cheio' },
@@ -20,48 +22,14 @@ export const STATUS_CONSULTA = {
   faltou: { rotulo: 'Faltou', tom: 'alarme' },
 };
 
+/* As chaves são as do CHECK de financeiro.contas_receber.status — no feminino,
+   como o banco grava. Conferido em vocabulario.test.mjs. */
 export const STATUS_RECEBIVEL = {
   aberta: { rotulo: 'Em aberto', tom: 'contorno' },
   parcial: { rotulo: 'Parcial', tom: 'contorno' },
   paga: { rotulo: 'Paga', tom: 'fraco' },
   vencida: { rotulo: 'Vencida', tom: 'alarme' },
   cancelada: { rotulo: 'Cancelada', tom: 'riscado' },
-};
-
-export const STATUS_PACIENTE = {
-  ativo: { rotulo: 'Ativo', tom: 'cheio' },
-  inativo: { rotulo: 'Inativo', tom: 'fraco' },
-  obito: { rotulo: 'Óbito', tom: 'riscado' },
-};
-
-/* Exclusão, falha de login e exportação são as três que precisam saltar numa
-   trilha — o resto é o ruído normal de um dia de trabalho. */
-export const ACAO_AUDITORIA = {
-  leitura: { rotulo: 'Leitura', tom: 'fraco' },
-  criacao: { rotulo: 'Criação', tom: 'contorno' },
-  alteracao: { rotulo: 'Alteração', tom: 'contorno' },
-  exclusao: { rotulo: 'Exclusão', tom: 'alarme' },
-  login: { rotulo: 'Login', tom: 'fraco' },
-  logout: { rotulo: 'Logout', tom: 'fraco' },
-  falha_login: { rotulo: 'Falha de login', tom: 'alarme' },
-  exportacao: { rotulo: 'Exportação', tom: 'alarme' },
-};
-
-/* Condição de dente. `inteiro` é o lado do `ck_face_coerente` em que a face é
-   NULL; as demais exigem face. 'fratura' está no CHECK da coluna mas em nenhum
-   dos dois lados do ck_face_coerente, então o banco não aceita lançá-la — fica
-   fora até a migration decidir de que lado ela mora. */
-export const CONDICAO_DENTE = {
-  higido: { rotulo: 'Hígido', inteiro: false },
-  carie: { rotulo: 'Cárie', inteiro: false },
-  restauracao: { rotulo: 'Restauração', inteiro: false },
-  selante: { rotulo: 'Selante', inteiro: false },
-  ausente: { rotulo: 'Ausente', inteiro: true },
-  extraido: { rotulo: 'Extraído', inteiro: true },
-  implante: { rotulo: 'Implante', inteiro: true },
-  coroa: { rotulo: 'Coroa', inteiro: true },
-  canal: { rotulo: 'Canal', inteiro: true },
-  protese: { rotulo: 'Prótese', inteiro: true },
 };
 
 export const STATUS_MEMBRO = {
@@ -80,18 +48,6 @@ export const STATUS_MEMBRO = {
 export function descrever(mapa, valor) {
   if (valor == null || valor === '') return { rotulo: '—', tom: 'fraco' };
   return mapa[valor] ?? { rotulo: String(valor), tom: 'fraco' };
-}
-
-export const nomeDoPaciente = (c) => c.nomePaciente ?? `Paciente ${c.idPaciente}`;
-
-/**
- * `id → nome` sobre uma lista carregada, com um rótulo honesto para o id que
- * não está nela. As respostas trazem o id e não o nome (a fronteira entre
- * módulos do back-end), e é a tela que casa os dois lados.
- */
-export function nomesPorId(lista, chave, rotulo) {
-  const mapa = new Map((lista ?? []).map((item) => [item[chave], item.nomeCompleto]));
-  return (id) => mapa.get(id) ?? `${rotulo} ${id}`;
 }
 
 /** `14:00 – 14:45`, ou só o início quando não há término utilizável. */
@@ -161,8 +117,9 @@ export function porExtenso(dia) {
 /**
  * A frase de contagem, honesta quando bateu o teto.
  *
- * <p>Se vieram exatamente `limite`, há provavelmente mais, e a única frase
- * verdadeira é "os primeiros".
+ * <p>A tela pedia 200 — que é o `LIMITE_MAXIMO` do controller — recebia 200 e
+ * escrevia "200 no cadastro". Se vieram exatamente `limite`, há provavelmente
+ * mais, e a única frase verdadeira é "os primeiros".
  */
 export function contagem(n, limite, singular, plural) {
   if (n === 0) {
@@ -175,21 +132,80 @@ export function contagem(n, limite, singular, plural) {
   return `${n} ${n === 1 ? singular : plural}`;
 }
 
-/* ── BALCÃO ─────────────────────────────────────────────────────────────────
-   O que a Recepção calcula sobre a lista de consultas que já carregou. */
+const REAIS = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
+const QUANTIDADE = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 3 });
+const DATA_CURTA = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' });
 
-/* O mesmo WHERE da EXCLUDE `ex_dentista_sem_sobreposicao`: cancelada e faltou
-   liberam o horário, realizada não. Divergir daqui é oferecer um horário que o
-   banco recusa com 409. */
-const OCUPAM_HORARIO = new Set(['agendada', 'confirmada', 'em_atendimento', 'realizada']);
+/** Dinheiro que chega como número do back-end (BigDecimal serializado). */
+export const reais = (valor) => REAIS.format(Number(valor ?? 0));
 
-/* Quem ainda vai sentar, ou está sentado, na cadeira. */
-const VIVAS = new Set(['agendada', 'confirmada', 'em_atendimento']);
+/** Quantidade de estoque: até três casas, sem zero à direita. */
+export const quantidade = (valor) => QUANTIDADE.format(Number(valor ?? 0));
 
-/* ponytail: expediente fixo, 8h às 19h em passos de 30 min. O back-end não
-   guarda horário de funcionamento; quando `/clinica` ganhar, estes números
-   saem de lá. */
-export const EXPEDIENTE = { abre: 8, fecha: 19, passoMin: 30 };
+/** Instante ISO como data curta; ausente vira travessão, não "Invalid Date". */
+export const dataCurta = (instante) => (instante ? DATA_CURTA.format(new Date(instante)) : '—');
+
+export const STATUS_PACIENTE = {
+  ativo: { rotulo: 'Ativo', tom: 'cheio' },
+  inativo: { rotulo: 'Inativo', tom: 'fraco' },
+  obito: { rotulo: 'Óbito', tom: 'riscado' },
+};
+
+const semAcento = (s) => String(s ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '')
+  .toLowerCase();
+
+/**
+ * A busca da recepção: "joao" acha João, e "98765" acha o celular.
+ *
+ * <p>Telefone comparado em dígitos dos dois lados — o banco guarda só dígitos e
+ * quem digita põe parêntese e traço. Três dígitos no mínimo, senão "1" casaria
+ * com todo DDD 11.
+ */
+export function casaBusca(busca, nome, telefone) {
+  const termo = semAcento(busca).trim();
+  if (!termo) return true;
+  const digitos = termo.replace(/\D/g, '');
+  return semAcento(nome).includes(termo)
+    || (digitos.length >= 3 && String(telefone ?? '').replace(/\D/g, '').includes(digitos));
+}
+
+/**
+ * O relógio por cima das ações que o back-end já liberou: "Faltou" antes do
+ * horário é chute, confirmar ou cancelar depois que começou não faz sentido, e
+ * concluir espera o horário acabar.
+ */
+export function cabeAgora(acao, c, agora = new Date()) {
+  const comecou = new Date(c.inicioEm) <= agora;
+  if (acao === 'confirmar' || acao === 'cancelar') return !comecou;
+  if (acao === 'falta') return comecou;
+  if (acao === 'concluir') return new Date(c.terminoEm) <= agora;
+  return true;
+}
+
+/** '14:30', no fuso de quem está na clínica. */
+export const hora = (instante) => HORA.format(new Date(instante));
+
+/* O back-end recebe `de` e `ate` como instantes ISO. O <input type="date"> dá
+   'AAAA-MM-DD', que é dia civil — converter no fuso do browser é o certo: a
+   agenda de terça é a terça de quem está na clínica, não a de UTC. */
+export const inicioDoDia = (dia) => new Date(`${dia}T00:00:00`).toISOString();
+export const fimDoDia = (dia) => new Date(`${dia}T23:59:59.999`).toISOString();
+
+/** O dia civil local de um instante, em 'AAAA-MM-DD'. */
+export const diaDe = (instante) => new Date(instante).toLocaleDateString('sv-SE');
+
+/* Exclusão, falha de login e exportação são as três que precisam saltar numa
+   trilha — o resto é o ruído normal de um dia de trabalho. */
+export const ACAO_AUDITORIA = {
+  leitura: { rotulo: 'Leitura', tom: 'fraco' },
+  criacao: { rotulo: 'Criação', tom: 'contorno' },
+  alteracao: { rotulo: 'Alteração', tom: 'contorno' },
+  exclusao: { rotulo: 'Exclusão', tom: 'alarme' },
+  login: { rotulo: 'Login', tom: 'fraco' },
+  logout: { rotulo: 'Logout', tom: 'fraco' },
+  falha_login: { rotulo: 'Falha de login', tom: 'alarme' },
+  exportacao: { rotulo: 'Exportação', tom: 'alarme' },
+};
 
 /**
  * A grade do dia de UM dentista: cada início possível, e se cabe.
@@ -217,6 +233,10 @@ export function horarios(dia, consultas, duracaoMin, agora = new Date()) {
   return grade;
 }
 
+/** Saiu do dia: terminou de fato, ou o horário dela já acabou. */
+export const jaPassou = (c, agora = new Date()) =>
+  !VIVAS.has(c.status) || new Date(c.terminoEm) <= agora;
+
 /**
  * O que a recepção precisa saber sem ler a lista: quem está na cadeira agora
  * e quem é o próximo a chegar.
@@ -232,25 +252,17 @@ export function momento(consultas, agora = new Date()) {
   };
 }
 
+export const nomeDoPaciente = (c) => c.nomePaciente ?? `Paciente ${c.idPaciente}`;
+
 /**
- * O relógio por cima das ações que o back-end já liberou: "Faltou" antes do
- * horário é chute, confirmar ou cancelar depois que começou não faz sentido, e
- * concluir espera o horário acabar.
+ * `id → nome` sobre uma lista carregada, com um rótulo honesto para o id que
+ * não está nela. As respostas trazem o id e não o nome (a fronteira entre
+ * módulos do back-end), e é a tela que casa os dois lados.
  */
-export function cabeAgora(acao, c, agora = new Date()) {
-  const comecou = new Date(c.inicioEm) <= agora;
-  if (acao === 'confirmar' || acao === 'cancelar') return !comecou;
-  if (acao === 'falta') return comecou;
-  if (acao === 'concluir') return new Date(c.terminoEm) <= agora;
-  return true;
+export function nomesPorId(lista, chave, rotulo) {
+  const mapa = new Map((lista ?? []).map((item) => [item[chave], item.nomeCompleto]));
+  return (id) => mapa.get(id) ?? `${rotulo} ${id}`;
 }
-
-/** Ainda sem desfecho: nem realizada, nem cancelada, nem falta. */
-export const semDesfecho = (c) => VIVAS.has(c.status);
-
-/** Saiu do dia: terminou de fato, ou o horário dela já acabou. */
-export const jaPassou = (c, agora = new Date()) =>
-  !VIVAS.has(c.status) || new Date(c.terminoEm) <= agora;
 
 /** 'em 25 min', 'há 5 min', 'em 1 h 10 min'. */
 export function relativo(alvo, agora = new Date()) {
@@ -263,23 +275,8 @@ export function relativo(alvo, agora = new Date()) {
   return min > 0 ? `em ${texto}` : `há ${texto}`;
 }
 
-const semAcento = (s) => String(s ?? '').normalize('NFD').replace(/\p{Diacritic}/gu, '')
-  .toLowerCase();
-
-/**
- * A busca da recepção: "joao" acha João, e "98765" acha o celular.
- *
- * <p>Telefone comparado em dígitos dos dois lados — o banco guarda só dígitos e
- * quem digita põe parêntese e traço. Três dígitos no mínimo, senão "1" casaria
- * com todo DDD 11.
- */
-export function casaBusca(busca, nome, telefone) {
-  const termo = semAcento(busca).trim();
-  if (!termo) return true;
-  const digitos = termo.replace(/\D/g, '');
-  return semAcento(nome).includes(termo)
-    || (digitos.length >= 3 && String(telefone ?? '').replace(/\D/g, '').includes(digitos));
-}
+/** Ainda sem desfecho: nem realizada, nem cancelada, nem falta. */
+export const semDesfecho = (c) => VIVAS.has(c.status);
 
 /** Conversa no WhatsApp com a mensagem pronta, ou null se o número não disca. */
 export function whatsappHref(telefone, mensagem) {
@@ -289,14 +286,12 @@ export function whatsappHref(telefone, mensagem) {
     : null;
 }
 
-/** '14:30', no fuso de quem está na clínica. */
-export const hora = (instante) => HORA.format(new Date(instante));
+const OCUPAM_HORARIO = new Set(['agendada', 'confirmada', 'em_atendimento', 'realizada']);
 
-/* O back-end recebe `de` e `ate` como instantes ISO. O <input type="date"> dá
-   'AAAA-MM-DD', que é dia civil — converter no fuso do browser é o certo: a
-   agenda de terça é a terça de quem está na clínica, não a de UTC. */
-export const inicioDoDia = (dia) => new Date(`${dia}T00:00:00`).toISOString();
-export const fimDoDia = (dia) => new Date(`${dia}T23:59:59.999`).toISOString();
+/* Quem ainda vai sentar, ou está sentado, na cadeira. */
+const VIVAS = new Set(['agendada', 'confirmada', 'em_atendimento']);
 
-/** O dia civil local de um instante, em 'AAAA-MM-DD'. */
-export const diaDe = (instante) => new Date(instante).toLocaleDateString('sv-SE');
+/* ponytail: expediente fixo, 8h às 19h em passos de 30 min. O back-end não
+   guarda horário de funcionamento; quando `/clinica` ganhar, estes números
+   saem de lá. */
+export const EXPEDIENTE = { abre: 8, fecha: 19, passoMin: 30 };

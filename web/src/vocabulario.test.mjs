@@ -10,7 +10,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
-  ACAO_AUDITORIA, CONDICAO_DENTE, STATUS_CONSULTA, STATUS_MEMBRO, STATUS_PACIENTE,
+  ACAO_AUDITORIA, STATUS_CONSULTA, STATUS_MEMBRO, STATUS_PACIENTE,
   STATUS_RECEBIVEL,
 } from './apresentacao.js';
 
@@ -43,13 +43,3 @@ for (const [nome, mapa, arquivo, tabela, coluna] of [
     assert.deepEqual(chaves(mapa), check(arquivo, tabela, coluna));
   });
 }
-
-test('CONDICAO_DENTE segue os dois lados do ck_face_coerente', () => {
-  const sql = migration('V12__prontuario.sql');
-  const m = sql.match(/ck_face_coerente CHECK \(\s*\(condicao IN \(([^)]*)\) AND face IS NULL\)\s*OR \(condicao IN \(([^)]*)\) AND face IS NOT NULL\)/);
-  assert.ok(m, 'não achei o ck_face_coerente — a migration mudou de forma');
-  const doMapa = (inteiro) => Object.entries(CONDICAO_DENTE)
-    .filter(([, c]) => c.inteiro === inteiro).map(([v]) => v).sort();
-  assert.deepEqual(doMapa(true), valores(m[1]));
-  assert.deepEqual(doMapa(false), valores(m[2]));
-});

@@ -53,6 +53,40 @@ public class PessoaRepositorio {
                 .single();
     }
 
+    public java.util.Optional<DadosPessoais> dadosPessoais(long idPessoa) {
+        return jdbc.sql("""
+                        SELECT nome_completo, cpf, rg, data_nascimento, telefone_celular, email,
+                               profissao, responsavel_legal, cep, logradouro, numero,
+                               complemento, bairro, cidade, uf
+                        FROM identidade.pessoas WHERE id_pessoa = :id
+                        """)
+                .param("id", idPessoa)
+                .query((rs, n) -> new DadosPessoais(
+                        rs.getString("nome_completo"), rs.getString("cpf"), rs.getString("rg"),
+                        rs.getObject("data_nascimento", java.time.LocalDate.class),
+                        rs.getString("telefone_celular"), rs.getString("email"),
+                        rs.getString("profissao"), rs.getString("responsavel_legal"),
+                        rs.getString("cep"), rs.getString("logradouro"), rs.getString("numero"),
+                        rs.getString("complemento"), rs.getString("bairro"),
+                        rs.getString("cidade"), rs.getString("uf")))
+                .optional();
+    }
+
+    public List<PessoaResumo> porFinalDoCelular(String final8) {
+        return jdbc.sql("""
+                        SELECT id_pessoa, nome_completo, telefone_celular
+                        FROM identidade.pessoas
+                        WHERE right(regexp_replace(telefone_celular, '\\D', '', 'g'), 8) = :final
+                          AND deleted_at IS NULL
+                        """)
+                .param("final", final8)
+                .query((rs, n) -> new PessoaResumo(
+                        rs.getLong("id_pessoa"),
+                        rs.getString("nome_completo"),
+                        rs.getString("telefone_celular")))
+                .list();
+    }
+
     public List<PessoaResumo> buscarResumos(Collection<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();

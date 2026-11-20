@@ -9,6 +9,7 @@ import br.com.dentibot.estoque.NovaMovimentacao;
 import br.com.dentibot.estoque.NovoFornecedor;
 import br.com.dentibot.estoque.NovoProduto;
 import br.com.dentibot.estoque.PosicaoProduto;
+import br.com.dentibot.estoque.SugestaoCompra;
 import br.com.dentibot.estoque.ProdutoResumo;
 import br.com.dentibot.estoque.infrastructure.EstoqueRepositorio;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
@@ -47,6 +48,14 @@ public class EstoqueServico implements EstoqueApi {
     public List<PosicaoProduto> posicao(boolean somenteAbaixoDoPontoPedido) {
         permissoes.exigir(Recurso.ESTOQUE, Acao.LER);
         return estoque.posicao(somenteAbaixoDoPontoPedido);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<SugestaoCompra> sugestaoDeCompra(int coberturaDias) {
+        permissoes.exigir(Recurso.ESTOQUE, Acao.LER);
+        // Um dia a seis meses: fora disso a média de 90 dias não diz nada.
+        return estoque.sugestaoDeCompra(Math.clamp(coberturaDias, 1, 180));
     }
 
     @Override

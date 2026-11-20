@@ -56,6 +56,7 @@ Variável já definida no ambiente ganha da local.
 cd api && ./mvnw test         # inclui os testes de isolamento e de schema
 cd app && npm run typecheck && npm test
 cd web && npm run build
+cd web && npm run a11y        # axe-core, reflow e peso da landing — precisa do Chrome
 ```
 
 Os testes de `api` que mais importam não testam regra de negócio: eles
@@ -64,6 +65,39 @@ tem RLS com `FORCE`, que partição tem política própria, que staff da platafo
 não alcança dado clínico e que a aplicação não é dona das tabelas. A V1 deste
 projeto pretendia 31 políticas de RLS, criou zero, e vazava dados entre
 clínicas sem um único teste vermelho.
+
+O contrato da API mora em `api/openapi.json`, gerado do código (ST-20). Mudou um
+endpoint? O `ContratoOpenApiTest` falha até o arquivo ser regenerado —
+`./mvnw test -Dtest=ContratoOpenApiTest -Dcontrato.atualizar=true` — e a mudança
+aparece no diff do PR. Do outro lado, `contrato.test.mjs` no `web/` e no `app/`
+confere cada chamada dos clientes contra esse arquivo (ST-55).
+
+`cd web && npm run e2e` roda as jornadas no Chrome (ST-46). As públicas rodam
+sempre, inclusive no CI; as logadas — agenda, pacientes, financeiro e o
+cadastro de paciente até a evolução no prontuário — pedem a API de pé
+(`iniciar.bat`) e `E2E_EMAIL`, um usuário do Clerk de dev sem 2FA que já passou
+pelo `/cadastro`. `E2E_URL` aponta para um deploy e vira smoke: lá a jornada
+que grava dados não roda.
+
+Carga (ST-47) é `perf/agenda.js`, em k6 pelo Docker; o cabeçalho do script diz
+como rodar e o que a API precisa. Reprova com p95 da agenda acima de 400 ms ou
+qualquer endpoint 20% pior que `perf/linha-de-base.json` (`GRAVAR=1` a
+regrava).
+
+## Operar
+
+| Onde | O quê | Variável |
+| --- | --- | --- |
+| `GET /actuator/health/liveness` | O processo está vivo? Não toca em nada externo. | — |
+| `GET /actuator/health/readiness` | Pode receber tráfego? Inclui o banco; Redis não, porque o rate limit falha aberto. | — |
+| `GET /actuator/prometheus` | Métricas, com Basic `prometheus:<senha>`. Sem a variável, fechado para todos. | `DENTIBOT_METRICAS_SENHA` |
+| Sentry (API) | Só erro 500, depois do `ScrubberDePii`, com ids de clínica e usuário — nunca nome. | `SENTRY_DSN`, `DENTIBOT_AMBIENTE` |
+| Sentry (web) | O SDK só baixa se houver DSN. O host exato do projeto entra em `connect-src` nos dois `vercel.json`. | `VITE_SENTRY_DSN` |
+| `pg_stat_statements` | Consultas mais caras no total; `auto_explain` grava o plano das que passam de 500 ms. O `init.ps1` cria a extensão. | — |
+| Anexos (ST-41) | Bucket S3-compatível; o arquivo vai do navegador direto a ele, com SHA-256 amarrado na URL assinada. Sem as variáveis, anexo responde 503 e o resto sobe. O bucket precisa de CORS para PUT da origem do web. | `DENTIBOT_S3_ENDPOINT`, `DENTIBOT_S3_REGIAO`, `DENTIBOT_S3_BUCKET`, `DENTIBOT_S3_CHAVE`, `DENTIBOT_S3_SEGREDO` |
+| IA (Doc 03) | Claude pela API da Anthropic. Nome de paciente sai como `[PACIENTE]`; cada chamada fica em `ia.chamadas` com custo, e a clínica liga/desliga e põe cota em `/ia`. Sem a chave, os recursos de IA respondem 503 e o resto sobe. Os preços precisam acompanhar o modelo (Opus 5: 5/25; Sonnet 5: 2/10 US$ por MTok). Política: `docs/ia/politica.md`. | `DENTIBOT_IA_CHAVE`, `DENTIBOT_IA_MODELO`, `DENTIBOT_IA_PRECO_ENTRADA`, `DENTIBOT_IA_PRECO_SAIDA` |
+| WhatsApp (Doc 03-D) | WhatsApp Cloud API da Meta. Cada clínica cadastra o próprio *phone number ID* em Conversas → Canal; o webhook é `POST /api/v1/webhooks/whatsapp`, conferido por HMAC com o segredo do app. Fora da janela de 24 h só sai modelo aprovado: cadastre no Business Manager um modelo de utilidade com um único parâmetro de corpo (`{{1}}`) e o nome em `DENTIBOT_WHATSAPP_MODELO`. Sem token, as mensagens ficam programadas e nada sai; sem segredo, nenhum webhook entra. | `DENTIBOT_WHATSAPP_TOKEN`, `DENTIBOT_WHATSAPP_SEGREDO_DO_APP`, `DENTIBOT_WHATSAPP_TOKEN_DE_VERIFICACAO`, `DENTIBOT_WHATSAPP_MODELO` |
+| Titular (Doc 03-E) | O admin gera no prontuário (aba Mensagens → Privacidade) um link de 30 dias para o paciente: `/titular#<token>`. O token fica no fragmento e o banco guarda só o SHA-256. | — |
 
 ## Publicar o `web/` na Vercel
 
@@ -87,14 +121,34 @@ Vercel não tem como herdar entre os dois.
 
 ### Rewrites
 
-As duas telas fora da landing (`/login` e `/clientes`) são a mesma
-`index.html`: o `main.jsx` escolhe o componente por `window.location.pathname`,
-sem router. Em servidor estático isso só funciona com rewrite — abrir `/login`
-direto procuraria um arquivo `/login`, que não existe, e daria o mesmo 404.
+Toda tela é a mesma `index.html`: quem escolhe o componente é o React Router,
+em `web/src/main.jsx`. Em servidor estático isso só funciona com rewrite —
+abrir `/agenda` direto procuraria um arquivo `/agenda`, que não existe. Por
+isso os dois arquivos mandam para a `index.html` todo caminho que não começa
+com `/api/`, e rota nova no router não pede rewrite novo. Endereço inexistente
+cai na rota `*`, que responde "Não encontrado." — o 404 é da aplicação.
 
-Rota nova em `web/src/main.jsx` pede rewrite novo nos dois arquivos. O
-catch-all `/(.*)` ficou de fora de propósito: com ele, URL inexistente
-devolveria a landing com 200 em vez de um 404 de verdade.
+`/api/` fica de fora de propósito: com o rewrite, a chamada à API receberia
+HTML em vez de um 404. O efeito é que, na Vercel, `/api/v1/...` só responde se
+houver API em algum lugar — ver "A API não vai junto", abaixo.
+
+### Cabeçalhos de segurança
+
+Os dois arquivos declaram os mesmos `headers` (ST-32): CSP, HSTS,
+`nosniff`, `X-Frame-Options`, `Referrer-Policy` e `Permissions-Policy`. O
+`web/src/borda.test.mjs` reprova se os dois divergirem ou se o script inline do
+`index.html` mudar sem o `sha256` correspondente na CSP.
+
+CSP errada não dá erro na tela: fonte bloqueada vira Helvetica e o Clerk perde
+o estilo, e a página continua "funcionando". Toda origem nova entra nos **dois**
+arquivos:
+
+- **Clerk de produção** — `clerk.<domínio>` troca `subtle-tick-4973.clerk.accounts.dev`
+  em `script-src` e `connect-src`;
+- **API em outro domínio** — a origem entra em `connect-src`.
+- **Bucket de anexos (R2)** — o navegador faz PUT direto nele: a origem do
+  bucket (`https://<conta>.r2.cloudflarestorage.com`) entra em `connect-src`.
+  "Abrir" usa `window.open`, que é navegação, e não depende de `img-src`.
 
 ### Variáveis de ambiente
 
@@ -103,10 +157,57 @@ Em **Settings > Environment Variables** do projeto:
 | Variável | Quando | Para quê |
 | --- | --- | --- |
 | `VITE_CLERK_PUBLISHABLE_KEY` | sempre | Chave pública do Clerk. O `ClerkProvider` não recebe `publishableKey` por prop — o `@clerk/react` cai em `import.meta.env`. O Vite resolve isso **no build**, então quem precisa da variável é a Vercel, não o browser. Sem ela a landing sobe normal e `/login` aparece sem o widget: some o formulário, não a página. |
-| `VITE_API_BASE` | se a API estiver em outro domínio | Precisa incluir o `/api`. Vazio = `/api` do mesmo host, o que só serve se algo estiver fazendo proxy. |
+| `VITE_API_BASE` | só para trocar a API | Precisa incluir o `/api/v1`. Sem ela, o build da Vercel usa a API da Render (`https://dentibot-api.onrender.com/api/v1`, em `web/vite.config.js`) e qualquer outro build usa `/api/v1` do mesmo host. |
 
 `VITE_*` entra no bundle, que é público. Nenhum segredo aqui — a chave do
 Clerk é publicável por definição e a secret key é do back-end.
+
+### A API não vai junto
+
+A Vercel publica só o `web/`. O back-end roda de graça, como protótipo: a API
+(Spring Boot) no plano free da Render, pelo `render.yaml` da raiz, e o
+Postgres no plano free do Neon. Sem Redis: só o rate limit o usa, e ele falha
+aberto. Enquanto a API não existe, o login funciona, porque é do Clerk, mas
+nenhuma tela depois dele tem dado: o app mostra "API sem resposta.".
+
+| Recurso | Onde | O que é |
+| --- | --- | --- |
+| `dentibot-api` | Render, free | A imagem de `api/Dockerfile`. Dorme depois de 15 minutos sem uso, e a primeira requisição espera a JVM subir (~1 min). |
+| `dentibot` | Neon, free (0,5 GB) | Postgres 16. Não expira, ao contrário do free da Render, que apaga o banco em 30 dias. |
+
+Publicar é uma vez só:
+
+1. No Neon, crie o projeto com um banco `dentibot` e rode
+   `infrastructure/neon/roles.sql` no SQL Editor, trocando as duas senhas por
+   valores longos e aleatórios.
+2. Na Render, **New → Blueprint**, este repositório, **Deploy Blueprint**. Ela
+   pede três valores, que nunca entram no repositório:
+   - `DENTIBOT_DB_URL`: `jdbc:postgresql://<endpoint>/dentibot?sslmode=require`,
+     com o endpoint direto do Neon (sem `-pooler`: o PgBouncer em modo
+     transação perde o contexto de tenant do RLS);
+   - `DENTIBOT_DB_PASSWORD`: a senha de `dentibot_app`;
+   - `DENTIBOT_DB_MIGRADOR_PASSWORD`: a senha de `dentibot_migrador`.
+
+As migrations rodam com `dentibot_migrador` no start da API, e a aplicação
+conecta como `dentibot_app`, que não é dona de nada: o RLS vale. O deploy só
+fica verde quando `/actuator/health/readiness` responde, e ela inclui o banco.
+
+O site não precisa de nada: o build da Vercel já aponta para
+`https://dentibot-api.onrender.com`, que está no `connect-src` dos dois
+`vercel.json`, e a API aceita `https://dentibot.vercel.app` em
+`DENTIBOT_CORS_ORIGINS` e `DENTIBOT_CLERK_ORIGINS`. Se a Render der outro
+endereço (nome já usado), ele entra em `web/vite.config.js` e nos dois
+`vercel.json`. Domínio novo para o site entra nas duas variáveis do
+`render.yaml`.
+
+Se algo der errado, o que aparece:
+
+| Na tela ou no log | Causa |
+| --- | --- |
+| "API sem resposta." | A API está dormindo (tente de novo em um minuto), não foi publicada, ou a origem do site não está em `DENTIBOT_CORS_ORIGINS`. |
+| "API ausente." | O bundle chamou `/api/v1` no próprio site: o deploy da Vercel é anterior a esta configuração (publique de novo), ou `VITE_API_BASE` está definida lá com valor errado. |
+| O login volta para o cadastro | O site não está em `DENTIBOT_CLERK_ORIGINS`, ou a conta ainda não tem clínica. |
+| `permission denied to create role` no deploy | `dentibot_migrador` está sem CREATEROLE: crie-o pelo `roles.sql`, não pela aba Roles do console. |
 
 ## Arquitetura
 
@@ -115,6 +216,8 @@ Clerk é publicável por definição e a secret key é do back-end.
   dados: é possível desligar o isolamento sem ver erro nenhum.
 - **[app/README.md](app/README.md)** — escopo do mobile, sessão e o que as
   lojas exigem antes de publicar.
+- **[docs/acessibilidade.md](docs/acessibilidade.md)** — o que o gate de
+  acessibilidade prova, o que não prova, e o roteiro manual de cada release.
 
 Pontos fixos do desenho:
 
@@ -138,9 +241,8 @@ onboarding, auditoria, outbox, idempotência e rate limit, sobre 17 migrations.
 `app/` cobre login, agenda do dia com as transições de consulta, lista de
 pacientes e perfil. O que ficou fora e por quê está no README dele.
 
-`web/` é a landing page. As telas `/clientes` e `/login` existem em
-`web/src/`, mas `web/src/api.js` foi escrito para uma API que não é esta —
-rotas sem `/api/v1`, `password` em vez de `senha`, `access_token` em snake_case
-e token em `localStorage`, que é justamente o que o `AutenticacaoController`
-recusa fazer. Essas três telas não funcionam contra o backend atual até esse
-cliente ser reescrito.
+`web/` é a landing e o sistema da clínica sobre a API v1: agenda, pacientes e
+prontuário, conversas, acompanhamento, financeiro, estoque, equipe, auditoria
+e IA, ligados pelo menu do `Layout`, que mostra a cada papel só o que o `/eu`
+diz que ele alcança. Publicado sozinho, não tem dado — ver "A API não vai
+junto".

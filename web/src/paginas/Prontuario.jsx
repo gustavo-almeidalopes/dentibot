@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { api } from '../api.js';
-import { CONDICAO_DENTE, descrever } from '../apresentacao.js';
-import { Aviso, Cabecalho, Estado } from '../components/primitivos.jsx';
-import { useAcao, useDentistas, useRecurso } from '../dados.js';
+import { api, baixar } from '../api.js';
+import { enviarAnexo } from '../anexos.js';
+import { reais } from '../apresentacao.js';
+import { CONDICOES, rotuloDaCondicao } from '../odontograma.js';
+import Ditado from '../components/Ditado.jsx';
+import MensagensDoPaciente from '../components/MensagensDoPaciente.jsx';
+import ResumoPaciente from '../components/ResumoPaciente.jsx';
+import { Aviso, Celula, Tabela } from '../components/primitivos.jsx';
+import { useAcao, useRecurso } from '../dados.js';
 import { PACIENTES } from '../rotas.js';
+import { Cabecalho, Estado, usePode } from './Layout.jsx';
 
 const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'short',
@@ -14,8 +20,17 @@ const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
 const SUPERIOR = [18, 17, 16, 15, 14, 13, 12, 11, 21, 22, 23, 24, 25, 26, 27, 28];
 const INFERIOR = [48, 47, 46, 45, 44, 43, 42, 41, 31, 32, 33, 34, 35, 36, 37, 38];
 
+const ABAS = [
+  ['evolucoes', 'Evolução'], ['odontograma', 'Odontograma'], ['anexos', 'Anexos'], ['planos', 'Planos'],
+  ['mensagens', 'Mensagens'],
+];
+
+const TIPOS_DE_ANEXO = [
+  ['radiografia', 'Radiografia'], ['foto_intraoral', 'Foto intraoral'],
+  ['documento', 'Documento'], ['laudo', 'Laudo'], ['modelo_3d', 'Modelo 3D'],
+];
+
 const FACES = ['V', 'L', 'M', 'D', 'O', 'I', 'P'];
-const rotuloDaCondicao = (c) => descrever(CONDICAO_DENTE, c).rotulo;
 
 export default function Prontuario() {
   const { idPaciente } = useParams();
@@ -24,27 +39,39 @@ export default function Prontuario() {
 
   const evolucoes = useRecurso(`/pacientes/${idPaciente}/prontuario/evolucoes`);
   const odontograma = useRecurso(`/pacientes/${idPaciente}/prontuario/odontograma`);
+  const resumo = useRecurso(`/pacientes/${idPaciente}/resumo`);
 
-  /* Veio da tela de Pacientes, onde o nome já estava carregado. Quem entra pela
-     URL direta cai no id, que é honesto — e não custa uma chamada a mais. */
-  const nomePaciente = state?.nomePaciente ?? `Paciente ${idPaciente}`;
+  /* Quem chega por um link de paciente traz o nome no state e o vê na hora.
+     Quem entra pela URL direta — favorito, recarga, link colado — o lê no
+     resumo, que esta tela busca de qualquer jeito para o painel abaixo: antes
+     ficava "Paciente 7" para sempre. O id só aparece enquanto o resumo não
+     chega, ou se ele falhar. */
+  const nomePaciente = state?.nomePaciente ?? resumo.dados?.nomePaciente ?? `Paciente ${idPaciente}`;
 
   return (
     <>
       <Cabecalho
         titulo={nomePaciente}
         detalhe="Prontuário"
-        acao={<Link className="btn btn-sm" to={PACIENTES}>Voltar aos pacientes</Link>}
+        acao={(
+          <div className="acoes">
+            <Exportar idPaciente={idPaciente} />
+            <Link className="btn btn-sm" to={PACIENTES}>Voltar aos pacientes</Link>
+          </div>
+        )}
       />
 
       {/* Não é decoração: toda abertura desta tela grava uma linha de auditoria
-          de LEITURA, e quem abre precisa saber disso. */}
+          de LEITURA, e quem abre precisa saber disso. Em letra miúda na linha
+          de detalhe, ninguém lia. */}
       <p className="faixa-auditoria">
         Abrir este prontuário grava uma linha na trilha de auditoria, com o seu nome.
       </p>
 
+      <ResumoPaciente idPaciente={idPaciente} recurso={resumo} />
+
       <div className="abas" role="tablist" aria-label="Seções do prontuário">
-        {[['evolucoes', 'Evolução'], ['odontograma', 'Odontograma']].map(([id, rotulo]) => (
+        {ABAS.map(([id, rotulo]) => (
           <button
             key={id}
             type="button"
@@ -53,11 +80,16 @@ export default function Prontuario() {
             aria-controls={`painel-${id}`}
             aria-selected={aba === id}
             /* Aba não selecionada sai da ordem de Tab: no padrão ARIA o grupo
-               inteiro é UMA parada, e as setas andam dentro dele. */
+               inteiro é UMA parada, e as setas andam dentro dele. Sem isto o
+               leitor de tela anunciava "guia" e o teclado se comportava como
+               uma fileira de botões — ARIA pela metade mente sobre o que a
+               coisa é. */
             tabIndex={aba === id ? 0 : -1}
             onKeyDown={(e) => {
               if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-              const outra = aba === 'evolucoes' ? 'odontograma' : 'evolucoes';
+              const i = ABAS.findIndex(([a]) => a === aba);
+              const passo = e.key === 'ArrowRight' ? 1 : ABAS.length - 1;
+              const outra = ABAS[(i + passo) % ABAS.length][0];
               setAba(outra);
               document.getElementById(`aba-${outra}`)?.focus();
             }}
@@ -70,24 +102,60 @@ export default function Prontuario() {
       </div>
 
       <div role="tabpanel" id={`painel-${aba}`} aria-labelledby={`aba-${aba}`}>
-        {aba === 'evolucoes'
-          ? <Evolucoes idPaciente={idPaciente} recurso={evolucoes} />
-          : <Odontograma idPaciente={idPaciente} recurso={odontograma} />}
+        {aba === 'evolucoes' && (
+          <Evolucoes idPaciente={idPaciente} recurso={evolucoes}
+                     onOdontograma={odontograma.recarregar} />
+        )}
+        {aba === 'odontograma' && <Odontograma idPaciente={idPaciente} recurso={odontograma} />}
+        {aba === 'anexos' && <Anexos idPaciente={idPaciente} />}
+        {aba === 'planos' && <Planos idPaciente={idPaciente} />}
+        {aba === 'mensagens' && <MensagensDoPaciente idPaciente={idPaciente} />}
       </div>
     </>
   );
 }
 
-function Evolucoes({ idPaciente, recurso }) {
+function Evolucoes({ idPaciente, recurso, onOdontograma }) {
   const lista = recurso.dados ?? [];
   const [texto, setTexto] = useState('');
+  // IA-01: o rascunho vivo, até virar evolução (aceito) ou ser descartado.
+  const [rascunho, setRascunho] = useState(null);
   const { executar, enviando, erro, sucesso } = useAcao(() => {
     setTexto('');
+    setRascunho(null);
     recurso.recarregar();
   });
 
-  const dentistas = useDentistas();
-  const { nomeDoDentista } = dentistas;
+  /* A decisão humana sobre a sugestão fica na trilha de IA — aceita com o id
+     da evolução que ela virou, ou descartada. */
+  const registrar = () => executar(
+    api.post(`/pacientes/${idPaciente}/prontuario/evolucoes`, { descricao: texto.trim() })
+      .then(async (r) => {
+        if (rascunho) {
+          await api.post(`/ia/chamadas/${rascunho.idChamada}/confirmacao`,
+            { aceita: true, registro: `prontuario.evolucao:${r.idEvolucao}` });
+        }
+        return r;
+      }),
+    'Evolução registrada.',
+  );
+  const descartar = async () => {
+    if (rascunho) await api.post(`/ia/chamadas/${rascunho.idChamada}/confirmacao`, { aceita: false });
+    setRascunho(null);
+    setTexto('');
+  };
+
+  /* A evolução traz `idDentista` e não o nome, e "Dentista 3" assinando
+     registro clínico é o tipo de coisa que derruba uma demonstração. O nome sai
+     de /equipe/dentistas, como na Agenda, e casado por `idDentista`. Antes
+     vinha de /equipe casado por `idUsuario`, que é outro número: o dentista —
+     sem EQUIPE na matriz — tomava 403 e via "Dentista N" em toda evolução, e o
+     admin via o nome de quem tivesse o idUsuario igual ao idDentista. */
+  const dentistas = useRecurso('/equipe/dentistas');
+  const nomeDoDentista = useMemo(() => {
+    const mapa = new Map((dentistas.dados ?? []).map((d) => [d.idDentista, d.nomeCompleto]));
+    return (id) => mapa.get(id) ?? `Dentista ${id}`;
+  }, [dentistas.dados]);
 
   /* Uma entrada que retifica outra aponta para ela, e as DUAS continuam
      visíveis. Prontuário se corrige somando, nunca sobrescrevendo (CFO-226) —
@@ -100,10 +168,20 @@ function Evolucoes({ idPaciente, recurso }) {
         className="form-bloco"
         onSubmit={(e) => {
           e.preventDefault();
-          executar(api.post(`/pacientes/${idPaciente}/prontuario/evolucoes`,
-            { descricao: texto.trim() }), 'Evolução registrada.');
+          registrar();
         }}
       >
+        <Ditado
+          idPaciente={idPaciente}
+          rascunho={rascunho}
+          onRascunho={(r) => { setRascunho(r); setTexto(r.evolucao); }}
+          onLancado={(s) => {
+            setRascunho((atual) => ({
+              ...atual, lancamentos: atual.lancamentos.filter((x) => x !== s),
+            }));
+            onOdontograma?.();
+          }}
+        />
         <label className="campo-app">
           <span className="cap cap-ash">Nova evolução</span>
           <textarea required rows={4} maxLength={20000} value={texto}
@@ -115,9 +193,16 @@ function Evolucoes({ idPaciente, recurso }) {
           Uma correção entra como retificação, e as duas ficam visíveis.
         </p>
         {erro && <p className="erro-campo" role="alert">{erro.message}</p>}
-        <button type="submit" className="btn btn-fill" disabled={enviando || !texto.trim()}>
-          {enviando ? 'Registrando…' : 'Registrar evolução'}
-        </button>
+        <div className="acoes">
+          <button type="submit" className="btn btn-fill" disabled={enviando || !texto.trim()}>
+            {enviando ? 'Registrando…' : 'Registrar evolução'}
+          </button>
+          {rascunho && (
+            <button type="button" className="btn btn-sm" disabled={enviando} onClick={descartar}>
+              Descartar rascunho
+            </button>
+          )}
+        </div>
       </form>
 
       <Aviso texto={sucesso} />
@@ -134,8 +219,10 @@ function Evolucoes({ idPaciente, recurso }) {
                 <p className="cap cap-ash">{nomeDoDentista(e.idDentista)}</p>
               </div>
               <div>
+                {/* A retificação já tem a marca vermelha na margem da evolução;
+                    o texto dela é tinta, que se lê. */}
                 {e.retificaEvolucao && (
-                  <p className="cap" style={{ color: 'var(--alarm)' }}>
+                  <p className="cap">
                     Retifica a evolução #{e.retificaEvolucao} · {e.motivoRetificacao}
                   </p>
                 )}
@@ -170,16 +257,20 @@ function Odontograma({ idPaciente, recurso }) {
 
   return (
     <>
+      {/* Condições codificadas em borda e nenhuma legenda: ninguém sabia ler o
+          que a tela estava dizendo. */}
       <ul className="odonto-legenda">
-        {Object.entries(CONDICAO_DENTE).map(([c, { rotulo }]) => (
-          <li key={c}><span className="odonto-amostra" data-condicao={c} />{rotulo}</li>
+        {CONDICOES.map((c) => (
+          <li key={c.valor}>
+            <span className="odonto-amostra" data-condicao={c.valor} />{c.rotulo}
+          </li>
         ))}
       </ul>
 
       <Aviso texto={sucesso} />
 
       {/* Em tela de mesa o formulário do dente abre AO LADO da arcada: abrindo
-          abaixo, cada clique num dente rolaria a página. */}
+          abaixo, cada clique num dente rolava a página. */}
       <div className="odonto-area">
         <Estado status={recurso.status} erro={recurso.erro} onTentarDeNovo={recurso.recarregar}>
           <div className="odonto">
@@ -228,16 +319,13 @@ function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
   const [condicao, setCondicao] = useState('carie');
   const [face, setFace] = useState('');
   const [observacao, setObservacao] = useState('');
-  /* O `ck_face_coerente`: condição de dente inteiro não leva face, as outras
-     exigem uma. */
-  const inteiro = CONDICAO_DENTE[condicao].inteiro;
 
   return (
     <form
       className="form-bloco"
       onSubmit={(e) => {
         e.preventDefault();
-        onLancar({ face: inteiro ? null : face, condicao, observacao: observacao.trim() || null });
+        onLancar({ face: face || null, condicao, observacao: observacao.trim() || null });
       }}
     >
       <p className="sub">Dente {dente}</p>
@@ -252,20 +340,18 @@ function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
         <label className="campo-app">
           <span className="cap cap-ash">Condição</span>
           <select value={condicao} onChange={(e) => setCondicao(e.target.value)}>
-            {Object.entries(CONDICAO_DENTE).map(([c, { rotulo }]) => (
-              <option key={c} value={c}>{rotulo}</option>
-            ))}
+            {CONDICOES.map((c) => <option key={c.valor} value={c.valor}>{c.rotulo}</option>)}
           </select>
         </label>
-        {!inteiro && (
-          <label className="campo-app">
-            <span className="cap cap-ash">Face *</span>
-            <select required value={face} onChange={(e) => setFace(e.target.value)}>
-              <option value="" disabled>Escolha</option>
-              {FACES.map((f) => <option key={f} value={f}>{f}</option>)}
-            </select>
-          </label>
-        )}
+        <label className="campo-app">
+          <span className="cap cap-ash">Face</span>
+          <select value={face} onChange={(e) => setFace(e.target.value)}>
+            {/* Vazio é o dente inteiro, não "não informado": há condição que não
+                é de face nenhuma (ausente, implante). */}
+            <option value="">Dente inteiro</option>
+            {FACES.map((f) => <option key={f} value={f}>{f}</option>)}
+          </select>
+        </label>
       </div>
 
       <label className="campo-app">
@@ -278,5 +364,212 @@ function LancarCondicao({ dente, atual, onLancar, enviando, erro }) {
         {enviando ? 'Lançando…' : 'Lançar'}
       </button>
     </form>
+  );
+}
+
+/**
+ * Portabilidade (IA-47, LGPD art. 18): o arquivo com tudo o que a clínica tem
+ * sobre o paciente. Só aparece para quem o back-end deixa exportar — hoje, o
+ * admin —, e o hash que ele calculou fica na tela para ser passado ao paciente
+ * junto com o arquivo.
+ */
+function Exportar({ idPaciente }) {
+  const pode = usePode();
+  const [estado, setEstado] = useState({ enviando: false, sha256: null, erro: null });
+  if (!pode('LGPD', 'CRIAR')) return null;
+
+  const exportar = async () => {
+    setEstado({ enviando: true, sha256: null, erro: null });
+    try {
+      const { blob, nomeArquivo, sha256 } = await baixar(`/pacientes/${idPaciente}/exportacao`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = nomeArquivo;
+      a.click();
+      URL.revokeObjectURL(url);
+      setEstado({ enviando: false, sha256, erro: null });
+    } catch (e) {
+      setEstado({ enviando: false, sha256: null, erro: e.message });
+    }
+  };
+
+  return (
+    <>
+      <button type="button" className="btn btn-sm" disabled={estado.enviando} onClick={exportar}>
+        {estado.enviando ? 'Exportando…' : 'Exportar dados (LGPD)'}
+      </button>
+      <Aviso texto={estado.sha256 && `Arquivo exportado. SHA-256: ${estado.sha256}`} />
+      <Aviso texto={estado.erro} tom="erro" />
+    </>
+  );
+}
+
+/**
+ * Anexos clínicos (ST-41). O arquivo vai do navegador direto ao bucket; a tela
+ * só pede a URL assinada e depois a confirmação. "Abrir" pede uma URL de cinco
+ * minutos a cada clique — e cada clique fica na trilha de auditoria.
+ */
+function Anexos({ idPaciente }) {
+  const anexos = useRecurso(`/pacientes/${idPaciente}/prontuario/anexos`);
+  const [tipo, setTipo] = useState('radiografia');
+  const [arquivo, setArquivo] = useState(null);
+  const { executar, enviando, erro, sucesso } = useAcao(() => {
+    setArquivo(null);
+    anexos.recarregar();
+  });
+  const [erroAbrir, setErroAbrir] = useState(null);
+  const lista = anexos.dados ?? [];
+
+  const abrir = async (idAnexo) => {
+    setErroAbrir(null);
+    try {
+      const { url } = await api.get(`/pacientes/${idPaciente}/prontuario/anexos/${idAnexo}/url`);
+      window.open(url, '_blank', 'noopener');
+    } catch (e) {
+      setErroAbrir(e.message);
+    }
+  };
+
+  return (
+    <>
+      <form className="filtros" onSubmit={(e) => {
+        e.preventDefault();
+        if (arquivo) executar(enviarAnexo(idPaciente, tipo, arquivo), 'Anexo enviado e conferido.');
+      }}>
+        <label className="campo-app">
+          <span className="cap cap-ash">Tipo</span>
+          <select value={tipo} onChange={(e) => setTipo(e.target.value)}>
+            {TIPOS_DE_ANEXO.map(([v, r]) => <option key={v} value={v}>{r}</option>)}
+          </select>
+        </label>
+        <label className="campo-app">
+          <span className="cap cap-ash">Arquivo (até 50 MB)</span>
+          <input type="file" accept="image/jpeg,image/png,image/webp,application/pdf,.dcm,.stl,.obj"
+                 onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
+        </label>
+        <button type="submit" className="btn btn-sm" disabled={!arquivo || enviando}>
+          {enviando ? 'Enviando…' : 'Anexar'}
+        </button>
+      </form>
+      <Aviso texto={sucesso} />
+      <Aviso texto={erro?.message ?? erroAbrir} tom="erro" />
+
+      <Estado status={anexos.status} erro={anexos.erro} onTentarDeNovo={anexos.recarregar}
+              esqueleto={{ linhas: 3, colunas: 3 }}
+              vazio={lista.length === 0 ? 'Nenhum anexo neste prontuário.' : null}>
+        <Tabela colunas={[
+          { chave: 'quando', rotulo: 'Enviado' },
+          { chave: 'tipo', rotulo: 'Tipo' },
+          { chave: 'nome', rotulo: 'Arquivo' },
+          { chave: 'tamanho', rotulo: 'Tamanho', num: true },
+          { chave: 'acao', rotulo: '' },
+        ]}>
+          {lista.map((a) => (
+            <tr key={a.idAnexo}>
+              <Celula rotulo="Enviado">{DATA_HORA.format(new Date(a.enviadoEm))}</Celula>
+              <Celula rotulo="Tipo">
+                {TIPOS_DE_ANEXO.find(([v]) => v === a.tipo)?.[1] ?? a.tipo}
+              </Celula>
+              <Celula rotulo="Arquivo">{a.nomeArquivo}</Celula>
+              <Celula rotulo="Tamanho" num>{(a.tamanhoBytes / 1024).toFixed(0)} KB</Celula>
+              <Celula rotulo="">
+                <button type="button" className="btn btn-sm" onClick={() => abrir(a.idAnexo)}>
+                  Abrir
+                </button>
+              </Celula>
+            </tr>
+          ))}
+        </Tabela>
+      </Estado>
+    </>
+  );
+}
+
+/**
+ * Planos (IA-04): os orçamentos do paciente e, a pedido, o plano em duas
+ * linguagens — rascunho que o dentista lê antes de entregar. "Usar" copia a
+ * versão do paciente e registra o aceite; nada é enviado a ninguém daqui.
+ */
+function Planos({ idPaciente }) {
+  const orcamentos = useRecurso(`/orcamentos?idPaciente=${idPaciente}`);
+  const [explicado, setExplicado] = useState(null);
+  const [estado, setEstado] = useState({ enviando: false, erro: null, aviso: null });
+  const lista = orcamentos.dados ?? [];
+
+  const explicar = async (idOrcamento) => {
+    setEstado({ enviando: true, erro: null, aviso: null });
+    try {
+      const p = await api.post('/copiloto/plano-explicado', { idOrcamento });
+      setExplicado({ ...p, idOrcamento });
+      setEstado({ enviando: false, erro: null, aviso: null });
+    } catch (e) {
+      setEstado({ enviando: false, erro: e.message, aviso: null });
+    }
+  };
+
+  const decidir = async (aceita) => {
+    if (aceita) await navigator.clipboard.writeText(explicado.versaoPaciente);
+    await api.post(`/ia/chamadas/${explicado.idChamada}/confirmacao`,
+      { aceita, registro: aceita ? `orcamento:${explicado.idOrcamento}` : null });
+    setEstado({ enviando: false, erro: null,
+      aviso: aceita ? 'Versão do paciente copiada.' : 'Rascunho descartado.' });
+    setExplicado(null);
+  };
+
+  return (
+    <>
+      <Aviso texto={estado.aviso} />
+      <Aviso texto={estado.erro} tom="erro" />
+      <Estado status={orcamentos.status} erro={orcamentos.erro} onTentarDeNovo={orcamentos.recarregar}
+              esqueleto={{ linhas: 3, colunas: 3 }}
+              vazio={lista.length === 0 ? 'Nenhum orçamento para este paciente.' : null}>
+        <Tabela colunas={[
+          { chave: 'criado', rotulo: 'Criado' },
+          { chave: 'status', rotulo: 'Situação' },
+          { chave: 'valor', rotulo: 'Valor', num: true },
+          { chave: 'acao', rotulo: '' },
+        ]}>
+          {lista.map((o) => (
+            <tr key={o.idOrcamento}>
+              <Celula rotulo="Criado">{DATA_HORA.format(new Date(o.criadoEm))}</Celula>
+              <Celula rotulo="Situação">{o.status}</Celula>
+              <Celula rotulo="Valor" num>{reais(o.valorFinal)}</Celula>
+              <Celula rotulo="">
+                <button type="button" className="btn btn-sm" disabled={estado.enviando}
+                        onClick={() => explicar(o.idOrcamento)}>
+                  {estado.enviando ? 'Gerando…' : 'Explicar em duas linguagens'}
+                </button>
+              </Celula>
+            </tr>
+          ))}
+        </Tabela>
+      </Estado>
+
+      {explicado && (
+        <section className="plano-explicado" aria-label="Plano em duas linguagens">
+          <p className="cap">Rascunho gerado por IA — confira contra a lista antes de usar</p>
+          <p className="cap cap-ash">Procedimentos do orçamento: {explicado.procedimentos.join(' · ')}</p>
+          <div className="plano-colunas">
+            <div>
+              <p className="cap cap-ash">Versão técnica</p>
+              <p className="body plano-texto">{explicado.versaoTecnica}</p>
+            </div>
+            <div>
+              <p className="cap cap-ash">Versão do paciente</p>
+              <p className="body plano-texto">{explicado.versaoPaciente}</p>
+            </div>
+          </div>
+          <div className="acoes">
+            <button type="button" className="btn btn-sm" onClick={() => decidir(true)}>
+              Usar (copiar versão do paciente)
+            </button>
+            <button type="button" className="btn btn-sm" onClick={() => decidir(false)}>
+              Descartar
+            </button>
+          </div>
+        </section>
+      )}
+    </>
   );
 }

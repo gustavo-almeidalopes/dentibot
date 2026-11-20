@@ -150,7 +150,8 @@ export const LOWER_ARCH = [
 export const WHATSAPP_URL =
   'https://wa.me/5511941212737?text=Olá%2C+gostaria+de+saber+mais+sobre+o+DentiBot';
 
-/* Mesmo número, outra conversa: quem chega pela área do paciente quer falar da
-   própria ficha, não comprar o sistema. */
-export const WHATSAPP_PACIENTE =
-  'https://wa.me/5511941212737?text=Olá%2C+sou+paciente+e+quero+falar+sobre+a+minha+ficha+no+DentiBot';
+/* Quem trata dado em nome da clínica, e em que papel (LGPD art. 5). É o texto
+   público que existe sobre privacidade; o rodapé apontava para um
+   /politica-de-privacidade.pdf que nunca foi publicado e caía no 404. */
+export const SUBPROCESSADORES_URL =
+  'https://github.com/gustavo-almeidalopes/dentibot/blob/main/docs/security/subprocessadores.md';

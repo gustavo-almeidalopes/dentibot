@@ -1,24 +1,24 @@
 import { RedirectToSignIn, Show, useUser } from '@clerk/react';
 import { useState } from 'react';
-import { Lines, Reveal } from '../components/Reveal.jsx';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import FichaPaciente from '../components/FichaPaciente.jsx';
 import { useAcao } from '../dados.js';
 import { documentoValido, formatarCnpj, formatarCpf, somenteDigitos, tipoDeDocumento } from '../documento.js';
-import { AGENDA, AREA_PACIENTE } from '../rotas.js';
-import { ehPaciente, marcarPaciente } from './AreaPaciente.jsx';
+import { AGENDA } from '../rotas.js';
 import { Aceite, LinkPrivacidade, LinkTermos, VERSAO_TERMOS } from './Juridico.jsx';
 
 /**
  * O que acontece DEPOIS de criar a conta — inclusive pelo Google, Microsoft ou
  * Apple.
  *
- * <p>O Clerk cria a conta e devolve um `sub`, mas o back-end só conhece quem tem
- * linha em `identidade.usuarios`: sem `POST /auth/cadastro`, o
- * {@code ResolvedorDeAcessoClerk} devolve {@code Optional.empty()} e a conta
- * nova toma 401 em toda tela. Vale igual para OAuth e para e-mail e senha —
- * criar conta com o Google pula o formulário do Clerk, não este.
+ * <p>Existia um buraco aqui: o Clerk cria a conta e devolve um `sub`, mas o
+ * back-end só conhece quem tem linha em `identidade.usuarios`. Sem passar por
+ * `POST /auth/cadastro`, o {@code ResolvedorDeAcessoClerk} devolve
+ * {@code Optional.empty()} e a conta nova toma 401 em toda tela. O login "dava
+ * certo" e o sistema inteiro respondia não. Este é o passo que faltava, e ele
+ * vale igual para OAuth e para e-mail e senha — criar conta com o Google pula o
+ * formulário do Clerk, não este.
  *
  * <p>A bifurcação é a do documento:
  * <ul>
@@ -40,19 +40,8 @@ export default function Cadastro() {
         <RedirectToSignIn />
       </Show>
       <Show when="signed-in">
-        {/* Mesmo desenho do /login: título à esquerda, formulário à direita.
-            É o passo seguinte do mesmo fluxo, e não uma tela do sistema. */}
-        <main id="main" className="who edge">
-          <section className="who-half">
-            <Lines as="h1" className="display" lines={['Falta o', 'cadastro.']} />
-            <Reveal as="p" className="body body-ash" delay="90ms">
-              A conta existe. O cadastro é o que abre o sistema: com CNPJ, é clínica;
-              com CPF, dentista autônomo ou paciente.
-            </Reveal>
-          </section>
-          <section className="who-half area">
-            <Passos />
-          </section>
+        <main id="main" className="app-main edge">
+          <Passos />
         </main>
       </Show>
     </>
@@ -73,15 +62,17 @@ function Passos() {
   const nome = user?.fullName ?? '';
   const email = user?.primaryEmailAddress?.emailAddress ?? '';
 
-  /* Quem já mandou a ficha entra, toma 403 no /eu (não tem clínica) e o Layout
-     o manda para cá. Sem este desvio, perguntaríamos o CPF de novo a cada
-     login — o paciente tem a própria área. */
-  if (ehPaciente(user)) return <Navigate to={AREA_PACIENTE} replace />;
-
   return (
     <>
+      <div className="app-cabecalho">
+        <div>
+          <h1 className="display display-sm">Falta o cadastro.</h1>
+          <p className="credit">A conta existe. O cadastro é o que abre o sistema.</p>
+        </div>
+      </div>
+
       <div className="form-bloco">
-        <label className="campo-app">
+        <label className="campo-app" style={{ maxWidth: '22rem' }}>
           <span className="cap cap-ash">CPF ou CNPJ *</span>
           <input
             inputMode="numeric"
@@ -112,7 +103,7 @@ function Passos() {
         )}
 
         {valido && tipo === 'cpf' && (
-          <label className="campo-app">
+          <label className="campo-app" style={{ maxWidth: '22rem' }}>
             <span className="cap cap-ash">Com CPF, você é *</span>
             <select value={perfil} onChange={(e) => setPerfil(e.target.value)}>
               <option value="">—</option>
@@ -173,7 +164,7 @@ function FormularioClinica({ documento, tipo, nome, email }) {
       <h2 className="sub">{autonomo ? 'Dentista autônomo' : 'Dados da clínica'}</h2>
 
       <div className="form-linha">
-        <label className="campo-app">
+        <label className="campo-app" style={{ flex: '2 1 320px' }}>
           <span className="cap cap-ash">
             {autonomo ? 'Nome do profissional *' : 'Razão social *'}
           </span>
@@ -235,12 +226,21 @@ function FormularioClinica({ documento, tipo, nome, email }) {
 
 /** Paciente: a ficha inteira, guardada como pré-cadastro até uma clínica vincular. */
 function FormularioPaciente({ nome, email }) {
-  const { user } = useUser();
-  const navegar = useNavigate();
-  const { executar, enviando, erro } = useAcao(async () => {
-    await marcarPaciente(user);
-    navegar(AREA_PACIENTE, { replace: true });
-  });
+  const [pronto, setPronto] = useState(false);
+  const { executar, enviando, erro } = useAcao(() => setPronto(true));
+
+  if (pronto) {
+    return (
+      <div className="form-bloco">
+        <h2 className="sub">Ficha enviada.</h2>
+        <p className="body body-ash">
+          Ela fica guardada com o seu CPF. Quando a sua clínica te vincular, o histórico
+          já estará lá — e você não repete nada na recepção.
+        </p>
+        <p className="auth-swap"><a href="/" className="btn btn-lg">Voltar ao site</a></p>
+      </div>
+    );
+  }
 
   return (
     <FichaPaciente

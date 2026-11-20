@@ -15,6 +15,10 @@
 
 # Scripts POSIX: LF sempre, inclusive no Windows. É o executável, não o fonte.
 api/mvnw         text eol=lf
+Dockerfile       text eol=lf
+.dockerignore    text eol=lf
+# RFC 9116 aceita os dois, mas o arquivo é servido como está: sem CR perdido.
+web/public/.well-known/security.txt text eol=lf
 *.sh             text eol=lf
 
 # Scripts do Windows: CRLF sempre. cmd.exe e o PowerShell 5.1 são sensíveis.

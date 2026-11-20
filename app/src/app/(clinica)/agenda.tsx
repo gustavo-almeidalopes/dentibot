@@ -1,8 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ErroApi, api, type Acao, type Consulta } from '../../api';
+import {
+  ACOES_POR_STATUS,
+  ErroApi,
+  api,
+  type Acao,
+  type Consulta,
+} from '../../api';
 import { cor, corDoStatus, espaco, rotuloDoStatus, tipo } from '../../theme';
+import { ResumoPaciente } from '../../resumo';
 import { Botao, Campo, Carregando, Divisoria, Erro, Rotulo, Titulo, Vazio } from '../../ui';
 
 const ROTULO_DA_ACAO: Record<Acao, string> = {
@@ -22,7 +29,7 @@ function janelaDoDia(dia: Date): { de: Date; ate: Date } {
 
 /**
  * ponytail: renderiza no fuso do aparelho. A clínica tem `timezone` em
- * `clinicas.clinicas`, mas `/eu` não o devolve — quando devolver, formatar
+ * `clinicas.clinicas`, mas `/auth/me` não o devolve — quando devolver, formatar
  * com `timeZone` para que um dentista em viagem veja o horário da clínica.
  */
 function hora(iso: string): string {
@@ -89,11 +96,10 @@ export default function Agenda() {
     setOcupada(consulta.idConsulta);
     setErro(null);
     try {
-      await api.transicionar(
-        consulta.idConsulta,
-        acao,
-        acao === 'cancelar' ? motivo.trim() : undefined,
-      );
+      if (acao === 'confirmar') await api.confirmar(consulta.idConsulta);
+      else if (acao === 'concluir') await api.concluir(consulta.idConsulta);
+      else if (acao === 'falta') await api.registrarFalta(consulta.idConsulta);
+      else await api.cancelar(consulta.idConsulta, motivo.trim());
 
       setCancelando(null);
       setMotivo('');
@@ -218,11 +224,8 @@ function Linha({
   onCancelarCancelamento,
   onAgir,
 }: LinhaProps) {
-  // Quais ações valem é o backend quem diz (`acoes`, por status e alcance);
-  // a ordem dos botões é a desta tela.
-  const acoes = (Object.keys(ROTULO_DA_ACAO) as Acao[]).filter((a) =>
-    consulta.acoes.includes(a),
-  );
+  const acoes = ACOES_POR_STATUS[consulta.status];
+  const [resumoAberto, setResumoAberto] = useState(false);
 
   return (
     <View style={{ padding: espaco.lg, gap: espaco.md }}>
@@ -235,6 +238,17 @@ function Linha({
           <Text style={{ ...tipo.rotulo, color: corDoStatus[consulta.status] ?? cor.cinza }}>
             {rotuloDoStatus[consulta.status] ?? consulta.status.toUpperCase()}
           </Text>
+          {/* IA-15: contagem, não probabilidade. Aviso de operação: osso, não vermelho. */}
+          {consulta.faltasRecentes > 0 && (
+            <Text style={{ ...tipo.rotulo, color: cor.osso, fontWeight: '700' }}>
+              {`FALTOU ${consulta.faltasRecentes} DE ${consulta.consultasRecentes}`}
+            </Text>
+          )}
+          {consulta.faltasRecentes > 0 && (
+            <Text style={{ ...tipo.rotulo, color: cor.osso, fontWeight: '700' }}>
+              {}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -284,6 +298,13 @@ function Linha({
       )}
 
       {!cancelando && acoes.length === 0 && <Rotulo>Sem ações</Rotulo>}
+
+      <View style={{ alignSelf: 'flex-start' }}>
+        <Botao variante="contorno" onPress={() => setResumoAberto((a) => !a)}>
+          {resumoAberto ? 'Fechar resumo' : 'Resumo'}
+        </Botao>
+      </View>
+      {resumoAberto && <ResumoPaciente idPaciente={consulta.idPaciente} />}
     </View>
   );
 }

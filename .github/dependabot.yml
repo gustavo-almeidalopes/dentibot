@@ -51,3 +51,11 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+
+  # Digest das imagens base do api/Dockerfile (ST-37): base pinada que ninguém
+  # atualiza vira base com CVE conhecida.
+  - package-ecosystem: docker
+    directory: /api
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3

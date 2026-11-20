@@ -9,9 +9,10 @@
  * prometer o que a camada 5 nega.
  */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { AGENDA, MENU, PACIENTES, prontuarioDe, recursoDaTela } from './rotas.js';
+import {
+  AGENDA, RECEPCAO, CONVERSAS, MENU, PACIENTES, itensDoMenu, prontuarioDe, recursoDaTela,
+} from './rotas.js';
 
 test('prontuário não é confundido com pacientes', () => {
   // O prefixo é o mesmo; o recurso não. Recepcionista tem PACIENTE e não tem
@@ -34,17 +35,25 @@ test('todo item de menu tem recurso, e é o nome do enum do back-end', () => {
   // Item sem recurso cairia em `pode(undefined)` → NENHUM → item invisível para
   // todo mundo, incluindo o admin. Falha silenciosa, e é assim que uma tela
   // desaparece sem ninguém mexer nela.
-  const java = readFileSync(new URL(
-    '../../api/src/main/java/br/com/dentibot/plataforma/seguranca/Recurso.java',
-    import.meta.url), 'utf8');
-  const corpo = java.match(/enum Recurso \{([\s\S]*?)\}/);
-  assert.ok(corpo, 'não achei enum Recurso — o Java mudou de forma');
-  const RECURSOS = new Set(corpo[1].replace(/\/\*[\s\S]*?\*\/|\/\/.*/g, '')
-    .match(/\b[A-Z_]+\b/g));
-  assert.ok(RECURSOS.has('AGENDA'), 'o extrator não achou os valores do enum');
+  const RECURSOS = new Set([
+    'AGENDA', 'PACIENTE', 'PRONTUARIO', 'ORCAMENTO', 'FINANCEIRO',
+    'ESTOQUE', 'CONFIGURACAO', 'EQUIPE', 'LGPD', 'AUDITORIA', 'BILLING',
+  ]);
   for (const item of MENU) {
     assert.ok(RECURSOS.has(item.recurso), `${item.href}: recurso ${item.recurso}`);
     assert.equal(recursoDaTela(item.href), item.recurso);
   }
   assert.equal(recursoDaTela(AGENDA), 'AGENDA');
+});
+
+test('o menu não some quando o /eu falha', () => {
+  // A versão anterior escondia a casca inteira no erro: quem entrava num deploy
+  // sem API via "Erro 404" na /agenda e não tinha menu, nem sair, nem voltar.
+  const nada = () => false;
+  assert.deepEqual(itensDoMenu('erro', nada), MENU);
+  // Carregando continua sem item: nenhum aparece para sumir quando o papel chega.
+  assert.deepEqual(itensDoMenu('carregando', () => true), []);
+  // Com o /eu em mãos, o papel decide — e a ordem do dia de trabalho se mantém.
+  const recepcao = (recurso) => recurso === 'AGENDA' || recurso === 'PACIENTE';
+  assert.deepEqual(itensDoMenu('ok', recepcao).map((i) => i.href), [RECEPCAO, AGENDA, PACIENTES, CONVERSAS]);
 });

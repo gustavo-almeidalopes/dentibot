@@ -1,7 +1,6 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Provisionamento dos roles. Roda uma vez, na criação do volume do Postgres.
--- Em produção (Neon) o equivalente é feito uma vez no console, com senhas vindas
--- do gerenciador de segredos.
+-- Em produção (Neon) o equivalente é infrastructure/neon/roles.sql.
 --
 -- O ponto inteiro deste arquivo: `dentibot_app` NÃO é superusuária e NÃO é dona
 -- de nenhuma tabela. Qualquer uma das duas coisas faz o Postgres ignorar as

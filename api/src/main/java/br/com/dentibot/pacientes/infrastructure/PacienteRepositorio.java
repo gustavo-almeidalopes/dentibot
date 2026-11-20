@@ -4,6 +4,7 @@ import br.com.dentibot.pacientes.NovoPaciente;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import tools.jackson.databind.ObjectMapper;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.stereotype.Repository;
 
@@ -65,6 +66,20 @@ public class PacienteRepositorio {
                 .list();
     }
 
+    public List<Long> idsDasPessoas(List<Long> idsPessoa) {
+        if (idsPessoa.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.sql("""
+                        SELECT id_paciente FROM pacientes.pacientes
+                        WHERE id_pessoa IN (:ids) AND deleted_at IS NULL
+                        ORDER BY id_paciente
+                        """)
+                .param("ids", idsPessoa)
+                .query(Long.class)
+                .list();
+    }
+
     public List<LinhaPaciente> buscarPorIds(List<Long> ids) {
         if (ids.isEmpty()) {
             return List.of();
@@ -86,6 +101,17 @@ public class PacienteRepositorio {
         return jdbc.sql("SELECT count(*) FROM pacientes.pacientes WHERE deleted_at IS NULL")
                 .query(Integer.class)
                 .single();
+    }
+
+    public Optional<NovoPaciente.Anamnese> anamnese(long idPaciente) {
+        return jdbc.sql("""
+                        SELECT anamnese::text FROM pacientes.pacientes
+                        WHERE id_paciente = :id AND deleted_at IS NULL AND anamnese IS NOT NULL
+                        """)
+                .param("id", idPaciente)
+                .query(String.class)
+                .optional()
+                .map(texto -> json.readValue(texto, NovoPaciente.Anamnese.class));
     }
 
     public boolean existe(long idPaciente) {

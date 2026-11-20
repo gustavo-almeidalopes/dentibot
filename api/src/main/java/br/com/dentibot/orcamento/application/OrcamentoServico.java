@@ -4,6 +4,7 @@ import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.clinicas.ClinicasApi;
 import br.com.dentibot.clinicas.ProcedimentoResumo;
 import br.com.dentibot.identidade.IdentidadeApi;
+import br.com.dentibot.orcamento.ItemDePlano;
 import br.com.dentibot.orcamento.ItemResumo;
 import br.com.dentibot.orcamento.NovoItem;
 import br.com.dentibot.orcamento.NovoOrcamento;
@@ -22,6 +23,7 @@ import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao;
 import br.com.dentibot.plataforma.seguranca.AvaliadorDePermissao.AcessoNegadoException;
 import br.com.dentibot.plataforma.seguranca.Recurso;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -279,6 +281,44 @@ public class OrcamentoServico implements OrcamentoApi {
      * {@code id_dentista}, nunca por {@code id_usuario}: são números diferentes,
      * e trocá-los mostra o orçamento de outra pessoa sempre que coincidirem.
      */
+    @Override
+    @Transactional(readOnly = true)
+    public List<ItemDePlano> itensEmAberto(Long idPaciente) {
+        Long dentista = dentistaDoAlcance(permissoes.exigir(Recurso.ORCAMENTO, Acao.LER));
+        return comNomes(orcamentos.itensEmAberto(idPaciente, dentista));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ItemDePlano> itensConcluidos(Instant de, Instant ate) {
+        Long dentista = dentistaDoAlcance(permissoes.exigir(Recurso.ORCAMENTO, Acao.LER));
+        return comNomes(orcamentos.itensConcluidos(de, ate, dentista));
+    }
+
+    /** PROPRIOS vira filtro por dentista; sem dentista, -1 não casa com nada. */
+    private Long dentistaDoAlcance(Alcance alcance) {
+        if (alcance != Alcance.PROPRIOS) {
+            return null;
+        }
+        Long id = dentistaCorrente();
+        return id == null ? -1L : id;
+    }
+
+    private List<ItemDePlano> comNomes(List<OrcamentoRepositorio.LinhaDePlano> linhas) {
+        if (linhas.isEmpty()) {
+            return List.of();
+        }
+        Map<Long, String> nomes = clinicas.listarProcedimentos(false).stream()
+                .collect(Collectors.toMap(ProcedimentoResumo::idProcedimento,
+                        ProcedimentoResumo::nomeServico));
+        return linhas.stream()
+                .map(l -> new ItemDePlano(l.idOrcamento(), l.idPaciente(), l.idDentista(),
+                        l.idItem(), l.idProcedimento(), nomes.get(l.idProcedimento()), l.dente(),
+                        l.valorCobrado(), l.statusExecucao(), l.aprovadoEm(), l.executadoEm(),
+                        l.idConsulta()))
+                .toList();
+    }
+
     private List<OrcamentoResumo> filtrarPorAlcance(List<OrcamentoResumo> todos, Alcance alcance) {
         if (alcance != Alcance.PROPRIOS) {
             return todos;
@@ -297,6 +337,25 @@ public class OrcamentoServico implements OrcamentoApi {
                 // sobre um paciente de outra pessoa.
                 throw new RecursoNaoEncontradoException("orcamento", o.idOrcamento());
             }
+        }
+    }
+
+    /**
+     * O id_dentista de quem está falando, resolvido a partir do contexto.
+     *
+     * <p>Vem do contexto e não de parâmetro de propósito: quem decide "quem é
+     * você" é o token, e um id_dentista vindo da requisição seria exatamente a
+     * forma de ver a agenda alheia.
+     */
+    private Long dentistaCorrente() {
+        return identidade.dentistaCorrente().orElse(null);
+    }
+
+    public static class TransicaoInvalidaException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
+
+        public TransicaoInvalidaException(String mensagem) {
+            super(mensagem);
         }
     }
 }

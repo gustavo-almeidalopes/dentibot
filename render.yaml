@@ -1,0 +1,53 @@
+# Blueprint da Render: só a API (imagem de api/Dockerfile), no plano free.
+#
+# Protótipo a custo zero: o banco é o Postgres free do Neon (não expira, ao
+# contrário do free da Render) e não há Redis — o rate limit falha aberto sem
+# ele. Os roles do Neon saem de infrastructure/neon/roles.sql; as três
+# variáveis com `sync: false` a Render pede no primeiro deploy e nunca entram
+# no repositório.
+
+services:
+  - type: web
+    # O endereço público sai do nome: https://dentibot-api.onrender.com, que é
+    # o padrão do build da Vercel (web/vite.config.js) e está no connect-src
+    # dos dois vercel.json. Se a Render der outro, troque nos três lugares.
+    name: dentibot-api
+    runtime: docker
+    dockerfilePath: ./api/Dockerfile
+    dockerContext: ./api
+    region: virginia
+    # Dorme após 15 min sem tráfego; a primeira requisição espera a JVM (~1 min).
+    plan: free
+    # readiness inclui o banco: deploy novo só recebe tráfego quando conecta.
+    healthCheckPath: /actuator/health/readiness
+    autoDeployTrigger: commit
+    envVars:
+      # Endpoint direto (sem "-pooler"): o PgBouncer em modo transação perde o
+      # contexto de tenant que o RLS lê.
+      - key: DENTIBOT_DB_URL
+        sync: false
+      - key: DENTIBOT_DB_PASSWORD
+        sync: false
+      - key: DENTIBOT_DB_MIGRADOR_PASSWORD
+        sync: false
+      - key: DENTIBOT_DB_USER
+        value: dentibot_app
+      - key: DENTIBOT_DB_MIGRADOR_USER
+        value: dentibot_migrador
+      # 512 MB de RAM no free e poucas conexões no Neon free.
+      - key: DENTIBOT_DB_POOL
+        value: "3"
+      # Sem Redis, o health dele derrubaria a readiness.
+      - key: MANAGEMENT_HEALTH_REDIS_ENABLED
+        value: "false"
+      # O emissor do Clerk é público e já vai no bundle do web.
+      - key: DENTIBOT_CLERK_ISSUER
+        value: https://subtle-tick-4973.clerk.accounts.dev
+      # Sem a origem do site aqui, o token é recusado e o navegador bloqueia
+      # a resposta. Domínio novo entra nas duas, separado por vírgula.
+      - key: DENTIBOT_CLERK_ORIGINS
+        value: https://dentibot.vercel.app
+      - key: DENTIBOT_CORS_ORIGINS
+        value: https://dentibot.vercel.app
+      - key: DENTIBOT_AMBIENTE
+        value: producao
