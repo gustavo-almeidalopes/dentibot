@@ -10,7 +10,7 @@
 #   docker build -t dentibot-api api/
 #   docker run --read-only --tmpfs /tmp -p 8080:8080 --env-file .env dentibot-api
 
-FROM eclipse-temurin:25-jdk-alpine@sha256:1e20ead9eec7234db293f1913438090d533ed47c0b9e12dc8c7627a802a44ed6 AS build
+FROM eclipse-temurin:25-jdk-alpine@sha256:c7c3d0bdf7f2bbc5a05a6712ed334d198360105634ea9adf76fca94f381b1e3f AS build
 WORKDIR /src
 # Dependências numa camada própria: mudar código não baixa o Maven Central de novo.
 COPY .mvn .mvn
@@ -22,7 +22,7 @@ COPY src src
 RUN sh mvnw -B -q -DskipTests package \
  && java -Djarmode=tools -jar target/*.jar extract --layers --launcher --destination /camadas
 
-FROM eclipse-temurin:25-jre-alpine@sha256:b7528962e65d43064d8a8b67ba175367896bc948363ea2d3fcd7f10d34e1f048
+FROM eclipse-temurin:25-jre-alpine@sha256:e1898fd6a11fc965a994d8ace186fd3585aeb636cf8f05f47a723fcfee0b0918
 RUN addgroup -S dentibot && adduser -S -G dentibot -H -s /sbin/nologin dentibot
 WORKDIR /app
 # Da que muda menos para a que muda mais: um deploy de código troca só a última.
