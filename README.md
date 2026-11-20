@@ -164,42 +164,41 @@ Clerk é publicável por definição e a secret key é do back-end.
 
 ### A API não vai junto
 
-A Vercel publica só o `web/`. O back-end (Spring Boot, Postgres e Redis) roda
-na Render, pelo `render.yaml` da raiz. Enquanto ele não existe, o login
-funciona, porque é do Clerk, mas nenhuma tela depois dele tem dado: o app
-mostra "API sem resposta." com o menu no lugar, para ninguém ficar preso numa
-tela.
+A Vercel publica só o `web/`. O back-end roda de graça, como protótipo: a API
+(Spring Boot) no plano free da Render, pelo `render.yaml` da raiz, e o
+Postgres no plano free do Neon. Sem Redis: só o rate limit o usa, e ele falha
+aberto. Enquanto a API não existe, o login funciona, porque é do Clerk, mas
+nenhuma tela depois dele tem dado: o app mostra "API sem resposta.".
 
-Publicar é uma vez só: na Render, **New → Blueprint**, escolha este
-repositório e clique em **Deploy Blueprint** (ou abra
-`https://render.com/deploy?repo=https://github.com/gustavo-almeidalopes/dentibot`).
-Não há variável a preencher; a Render só pede um cartão se a conta ainda não
-tiver, porque o banco é pago. Ela cria três coisas, todas em Virginia, perto
-uma da outra porque cada requisição faz várias consultas:
-
-| Recurso | Plano | O que é |
+| Recurso | Onde | O que é |
 | --- | --- | --- |
-| `dentibot-api` | free | A imagem de `api/Dockerfile`. Dorme depois de 15 minutos sem uso, e a primeira requisição espera a JVM subir (~1 min); para clínica de verdade, `starter`. |
-| `dentibot-db` | basic-256mb, 5 GB (~US$ 7,50/mês) | Postgres 16, sem acesso de fora da Render. Pago de propósito: o free expira em 30 dias e, 14 dias depois, é apagado. O disco é fixado em 5 GB porque o padrão é 15 e disco na Render não diminui. |
-| `dentibot-redis` | free | Só o rate limit, que falha aberto sem ele. |
+| `dentibot-api` | Render, free | A imagem de `api/Dockerfile`. Dorme depois de 15 minutos sem uso, e a primeira requisição espera a JVM subir (~1 min). |
+| `dentibot` | Neon, free (0,5 GB) | Postgres 16. Não expira, ao contrário do free da Render, que apaga o banco em 30 dias. |
 
-O dono do banco se chama `dentibot_migrador`, como no compose local, e as
-migrations rodam com ele no start da API. O perfil `render`
-(`api/src/main/resources/application-render.yml`) monta a URL a partir das
-peças que a Render entrega e, depois de cada migrate, dá a `dentibot_app` a
-senha que a Render gerou (`DENTIBOT_DB_PASSWORD`). A aplicação conecta como
-`dentibot_app`, que não é dona de nada, e o RLS vale. O deploy só fica verde
-quando `/actuator/health/readiness` responde, e ela inclui o banco.
+Publicar é uma vez só:
+
+1. No Neon, crie o projeto com um banco `dentibot` e rode
+   `infrastructure/neon/roles.sql` no SQL Editor, trocando as duas senhas por
+   valores longos e aleatórios.
+2. Na Render, **New → Blueprint**, este repositório, **Deploy Blueprint**. Ela
+   pede três valores, que nunca entram no repositório:
+   - `DENTIBOT_DB_URL`: `jdbc:postgresql://<endpoint>/dentibot?sslmode=require`,
+     com o endpoint direto do Neon (sem `-pooler`: o PgBouncer em modo
+     transação perde o contexto de tenant do RLS);
+   - `DENTIBOT_DB_PASSWORD`: a senha de `dentibot_app`;
+   - `DENTIBOT_DB_MIGRADOR_PASSWORD`: a senha de `dentibot_migrador`.
+
+As migrations rodam com `dentibot_migrador` no start da API, e a aplicação
+conecta como `dentibot_app`, que não é dona de nada: o RLS vale. O deploy só
+fica verde quando `/actuator/health/readiness` responde, e ela inclui o banco.
 
 O site não precisa de nada: o build da Vercel já aponta para
 `https://dentibot-api.onrender.com`, que está no `connect-src` dos dois
 `vercel.json`, e a API aceita `https://dentibot.vercel.app` em
-`DENTIBOT_CORS_ORIGINS` e `DENTIBOT_CLERK_ORIGINS`. Depois do deploy, confira
-no painel da Render que o endereço do `dentibot-api` é exatamente esse: se o
-nome já era de alguém, a Render acrescenta um sufixo, e aí o endereço novo
-entra em `web/vite.config.js` e nos dois `vercel.json` antes de alguém usar o
-site. Domínio novo para o site entra nas duas variáveis do `render.yaml` — no
-arquivo, e não no painel, que o Blueprint sobrescreve.
+`DENTIBOT_CORS_ORIGINS` e `DENTIBOT_CLERK_ORIGINS`. Se a Render der outro
+endereço (nome já usado), ele entra em `web/vite.config.js` e nos dois
+`vercel.json`. Domínio novo para o site entra nas duas variáveis do
+`render.yaml`.
 
 Se algo der errado, o que aparece:
 
@@ -208,8 +207,7 @@ Se algo der errado, o que aparece:
 | "API sem resposta." | A API está dormindo (tente de novo em um minuto), não foi publicada, ou a origem do site não está em `DENTIBOT_CORS_ORIGINS`. |
 | "API ausente." | O bundle chamou `/api/v1` no próprio site: o deploy da Vercel é anterior a esta configuração (publique de novo), ou `VITE_API_BASE` está definida lá com valor errado. |
 | O login volta para o cadastro | O site não está em `DENTIBOT_CLERK_ORIGINS`, ou a conta ainda não tem clínica. |
-| `permission denied to create role` no deploy | O dono do banco ficou sem CREATEROLE. A saída é um Postgres em que ele tenha, como o Neon com `infrastructure/neon/roles.sql`, e isso muda o `render.yaml`, não o painel: sai o bloco `databases`, o `SPRING_PROFILES_ACTIVE` e as variáveis do banco, e entram `DENTIBOT_DB_URL`, `DENTIBOT_DB_PASSWORD` e `DENTIBOT_DB_MIGRADOR_PASSWORD` com `sync: false` (é o `render.yaml` do commit 21424c7). |
-| `DENTIBOT_DB_PASSWORD ausente ou curta` no deploy | A variável foi apagada no painel. Ela vem do `generateValue` do Blueprint: crie de novo com um valor aleatório de 32 caracteres ou mais, e o próximo start aplica a senha. |
+| `permission denied to create role` no deploy | `dentibot_migrador` está sem CREATEROLE: crie-o pelo `roles.sql`, não pela aba Roles do console. |
 
 ## Arquitetura
 

@@ -1,7 +1,6 @@
 -- ─────────────────────────────────────────────────────────────────────────────
 -- Provisionamento dos roles. Roda uma vez, na criação do volume do Postgres.
--- Na Render, o banco já nasce com dentibot_migrador como dono (render.yaml), e
--- o perfil render da API dá a senha de dentibot_app (application-render.yml).
+-- Em produção (Neon) o equivalente é infrastructure/neon/roles.sql.
 --
 -- O ponto inteiro deste arquivo: `dentibot_app` NÃO é superusuária e NÃO é dona
 -- de nenhuma tabela. Qualquer uma das duas coisas faz o Postgres ignorar as
