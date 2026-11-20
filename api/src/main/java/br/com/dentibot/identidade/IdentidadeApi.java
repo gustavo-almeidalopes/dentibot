@@ -40,15 +40,14 @@ public interface IdentidadeApi {
     long criarUsuario(String nomeCompleto, String email, Papel papel, String clerkUserId);
 
     /**
-     * O dentista correspondente a um usuário, quando houver.
+     * O dentista de quem está fazendo a requisição, quando ele for um.
      *
-     * <p>Necessário porque {@code id_usuario} e {@code id_dentista} são coisas
-     * diferentes: nem todo usuário é dentista (recepcionista não é) e nem todo
-     * dentista tem login. Quem filtra agenda por "a própria" precisa do
-     * id_dentista, não do id_usuario — confundir os dois mostra a agenda de
-     * outra pessoa, silenciosamente, sempre que os números coincidirem.
+     * <p>Vem do usuário do contexto, nunca de parâmetro: quem decide "quem é
+     * você" é o token. E {@code id_usuario} não é {@code id_dentista} (nem todo
+     * usuário é dentista, nem todo dentista tem login) — confundir os dois
+     * mostra o registro de outra pessoa sempre que os números coincidirem.
      */
-    java.util.Optional<Long> dentistaDoUsuario(long idUsuario);
+    java.util.Optional<Long> dentistaCorrente();
 
     /** Quantos profissionais contam para o limite do plano (camada 12). */
     int contarProfissionaisAtivos();

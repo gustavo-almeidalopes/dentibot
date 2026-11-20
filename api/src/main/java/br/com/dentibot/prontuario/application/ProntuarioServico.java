@@ -4,7 +4,6 @@ import br.com.dentibot.agenda.AgendaApi;
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.pacientes.PacientesApi;
-import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
 import br.com.dentibot.plataforma.outbox.Outbox;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
@@ -181,11 +180,7 @@ public class ProntuarioServico implements ProntuarioApi {
     }
 
     private long dentistaAutenticado() {
-        Long idUsuario = ContextoAtual.obter().usuarioId();
-        if (idUsuario == null) {
-            throw new AcessoNegadoException(Recurso.PRONTUARIO, Acao.CRIAR);
-        }
-        return identidade.dentistaDoUsuario(idUsuario)
+        return identidade.dentistaCorrente()
                 // Ato clínico exige profissional inscrito no CRO. Um admin que
                 // não seja dentista administra a clínica, não assina evolução.
                 .orElseThrow(() -> new AcessoNegadoException(Recurso.PRONTUARIO, Acao.CRIAR));

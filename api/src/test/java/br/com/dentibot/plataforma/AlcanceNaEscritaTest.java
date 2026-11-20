@@ -79,8 +79,10 @@ class AlcanceNaEscritaTest extends TesteIntegracao {
                 "Dra. A", "dra.a" + n + "@teste.local", Papel.DENTISTA, "A" + n, "SP", null));
         usuarioDentistaB = identidade.admitirMembro(new NovoMembro(
                 "Dr. B", "dr.b" + n + "@teste.local", Papel.DENTISTA, "B" + n, "SP", null));
-        dentistaA = identidade.dentistaDoUsuario(usuarioDentistaA).orElseThrow();
-        dentistaB = identidade.dentistaDoUsuario(usuarioDentistaB).orElseThrow();
+        como(Papel.DENTISTA, usuarioDentistaA);
+        dentistaA = identidade.dentistaCorrente().orElseThrow();
+        como(Papel.DENTISTA, usuarioDentistaB);
+        dentistaB = identidade.dentistaCorrente().orElseThrow();
     }
 
     @AfterEach

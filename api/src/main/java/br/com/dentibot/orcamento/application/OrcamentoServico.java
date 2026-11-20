@@ -12,7 +12,6 @@ import br.com.dentibot.orcamento.OrcamentoDetalhado;
 import br.com.dentibot.orcamento.OrcamentoResumo;
 import br.com.dentibot.orcamento.infrastructure.OrcamentoRepositorio;
 import br.com.dentibot.orcamento.infrastructure.OrcamentoRepositorio.LinhaItem;
-import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
 import br.com.dentibot.plataforma.erro.TransicaoInvalidaException;
 import br.com.dentibot.plataforma.outbox.Outbox;
@@ -256,7 +255,7 @@ public class OrcamentoServico implements OrcamentoApi {
         if (alcance != Alcance.PROPRIOS) {
             return idDentistaPedido;
         }
-        Long proprio = dentistaCorrente();
+        Long proprio = identidade.dentistaCorrente().orElse(null);
         if (proprio == null) {
             throw new AcessoNegadoException(Recurso.ORCAMENTO, Acao.CRIAR);
         }
@@ -284,7 +283,7 @@ public class OrcamentoServico implements OrcamentoApi {
         if (alcance != Alcance.PROPRIOS) {
             return todos;
         }
-        Long idDentista = dentistaCorrente();
+        Long idDentista = identidade.dentistaCorrente().orElse(null);
         return idDentista == null
                 ? List.of()
                 : todos.stream().filter(o -> o.idDentista() == idDentista).toList();
@@ -292,22 +291,12 @@ public class OrcamentoServico implements OrcamentoApi {
 
     private void exigirAlcance(OrcamentoResumo o, Alcance alcance) {
         if (alcance == Alcance.PROPRIOS) {
-            Long idDentista = dentistaCorrente();
+            Long idDentista = identidade.dentistaCorrente().orElse(null);
             if (idDentista == null || o.idDentista() != idDentista) {
                 // 404 e não 403: confirmar que o orçamento existe já é informação
                 // sobre um paciente de outra pessoa.
                 throw new RecursoNaoEncontradoException("orcamento", o.idOrcamento());
             }
         }
-    }
-
-    /**
-     * Vem do contexto e não de parâmetro de propósito: quem decide "quem é
-     * você" é o token, e um id_dentista vindo da requisição seria exatamente a
-     * forma de ver o orçamento alheio.
-     */
-    private Long dentistaCorrente() {
-        Long idUsuario = ContextoAtual.obter().usuarioId();
-        return idUsuario == null ? null : identidade.dentistaDoUsuario(idUsuario).orElse(null);
     }
 }

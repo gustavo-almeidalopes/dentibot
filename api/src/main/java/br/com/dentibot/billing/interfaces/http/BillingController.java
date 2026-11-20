@@ -1,6 +1,5 @@
 package br.com.dentibot.billing.interfaces.http;
 
-import br.com.dentibot.billing.Assinatura;
 import br.com.dentibot.billing.BillingApi;
 import br.com.dentibot.billing.Fatura;
 import br.com.dentibot.billing.LimiteDoPlano;

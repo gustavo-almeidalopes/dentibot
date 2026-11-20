@@ -8,7 +8,6 @@ import br.com.dentibot.agenda.infrastructure.ConsultaRepositorio.LinhaConsulta;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.pacientes.PacienteResumo;
 import br.com.dentibot.pacientes.PacientesApi;
-import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
 import br.com.dentibot.plataforma.erro.TransicaoInvalidaException;
 import br.com.dentibot.plataforma.outbox.Outbox;
@@ -91,8 +90,7 @@ public class AgendaServico implements AgendaApi {
      * inteira.
      */
     private long dentistaCorrente() {
-        Long idUsuario = ContextoAtual.obter().usuarioId();
-        return idUsuario == null ? -1L : identidade.dentistaDoUsuario(idUsuario).orElse(-1L);
+        return identidade.dentistaCorrente().orElse(-1L);
     }
 
     /**
