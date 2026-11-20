@@ -9,6 +9,7 @@ import br.com.dentibot.estoque.NovoFornecedor;
 import br.com.dentibot.estoque.NovoProduto;
 import br.com.dentibot.estoque.PosicaoProduto;
 import br.com.dentibot.estoque.ProdutoResumo;
+import br.com.dentibot.plataforma.config.Listagem;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -66,7 +67,7 @@ public class EstoqueController {
     @GetMapping("/produtos/{idProduto}/movimentacoes")
     public List<MovimentacaoResumo> extrato(@PathVariable long idProduto,
                                             @RequestParam(defaultValue = "100") int limite) {
-        return estoque.extrato(idProduto, Math.min(Math.max(limite, 1), 200));
+        return estoque.extrato(idProduto, Listagem.limite(limite));
     }
 
     @GetMapping("/vencimentos")
