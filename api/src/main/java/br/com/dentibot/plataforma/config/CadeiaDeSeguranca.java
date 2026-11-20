@@ -15,6 +15,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -130,6 +131,11 @@ public class CadeiaDeSeguranca {
                         // autenticação, inclusive rota que ainda não existe.
                         .anyRequest().authenticated())
                 .addFilterBefore(filtroAutenticacao, UsernamePasswordAuthenticationFilter.class)
+                // Sem token (ou token inválido) é 401, não 403: o padrão do Spring sem
+                // httpBasic/formLogin é o Http403ForbiddenEntryPoint, que confunde
+                // "não sei quem é você" com "você não pode".
+                .exceptionHandling(e -> e.authenticationEntryPoint(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .httpBasic(b -> b.disable())
                 .formLogin(f -> f.disable())
                 .logout(l -> l.disable())
