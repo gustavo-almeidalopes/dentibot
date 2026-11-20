@@ -83,11 +83,8 @@ function Autenticado() {
      `identidade.usuarios`. Sem este desvio a pessoa que entra com Google cai
      numa tela de erro em vez do formulário que resolve o problema dela.
 
-     403 e não só 401 porque a CadeiaDeSeguranca não configura
-     authenticationEntryPoint: com httpBasic e formLogin desligados, o
-     ExceptionTranslationFilter do Spring cai no Http403ForbiddenEntryPoint e
-     responde 403 para quem não tem Authentication no contexto. Medido, não
-     suposto — a primeira versão disto testava 401 e nunca desviava.
+     Sem Authentication no contexto a CadeiaDeSeguranca responde 401. O 403
+     continua aceito porque a API publicada antes desse ajuste respondia 403.
 
      Só vale para o /eu, e só porque este componente monta apenas quando o Clerk
      diz que há sessão: aqui 403 significa "sem conta nesta base", nunca "sem

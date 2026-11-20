@@ -1,6 +1,7 @@
 package br.com.dentibot.plataforma.config;
 
 import br.com.dentibot.plataforma.seguranca.FiltroAutenticacao;
+import jakarta.servlet.DispatcherType;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -15,6 +16,7 @@ import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -107,6 +109,10 @@ public class CadeiaDeSeguranca {
                         .ignoringRequestMatchers("/api/v1/webhooks/whatsapp", "/api/v1/titular/**"))
                 .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // O despacho de erro carrega o status que a recusa já decidiu
+                        // (403 do CSRF, 404...). Protegido, ele passaria pelo entry point
+                        // e todo erro de anônimo viraria 401.
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Cadastro de clínica: sem tenant (é ele que o cria), mas
                         // não anônimo — o controller exige token do Clerk válido,
@@ -130,6 +136,11 @@ public class CadeiaDeSeguranca {
                         // autenticação, inclusive rota que ainda não existe.
                         .anyRequest().authenticated())
                 .addFilterBefore(filtroAutenticacao, UsernamePasswordAuthenticationFilter.class)
+                // Sem token (ou token inválido) é 401, não 403: o padrão do Spring sem
+                // httpBasic/formLogin é o Http403ForbiddenEntryPoint, que confunde
+                // "não sei quem é você" com "você não pode".
+                .exceptionHandling(e -> e.authenticationEntryPoint(
+                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
                 .httpBasic(b -> b.disable())
                 .formLogin(f -> f.disable())
                 .logout(l -> l.disable())

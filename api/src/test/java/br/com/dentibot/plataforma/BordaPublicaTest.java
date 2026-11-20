@@ -152,7 +152,7 @@ class BordaPublicaTest extends TesteIntegracao {
     void webhookNaoEhPublico() throws Exception {
         HttpResponse<String> r = enviar(HttpRequest.newBuilder(url("/api/v1/webhooks/psp")));
 
-        assertThat(r.statusCode()).isIn(401, 403);
+        assertThat(r.statusCode()).as("sem token é 401, não 403").isEqualTo(401);
     }
 
     @Test
