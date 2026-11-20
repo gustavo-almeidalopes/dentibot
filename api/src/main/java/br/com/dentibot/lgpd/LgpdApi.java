@@ -39,6 +39,17 @@ public interface LgpdApi {
 
     void revogarConsentimento(long idConsentimento);
 
+    /**
+     * Prova do aceite no cadastro, que roda sem tenant e por isso sem a matriz
+     * de permissão: quem aceita é o próprio titular, identificado pelo {@code
+     * sub} do Clerk. Mesma regra de IP e user-agent de {@link
+     * #registrarConsentimento}.
+     *
+     * @param origem {@code "clinica"} ou {@code "paciente"}.
+     */
+    void registrarAceiteDeCadastro(String clerkUserId, String origem, AceiteDeCadastro aceite,
+                                   String ipOrigem, String userAgent);
+
     List<SolicitacaoTitular> listarSolicitacoes(String status);
 
     long abrirSolicitacao(NovaSolicitacao nova);

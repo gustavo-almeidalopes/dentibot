@@ -4,9 +4,13 @@ import br.com.dentibot.clinicas.application.OnboardingServico;
 import br.com.dentibot.clinicas.application.OnboardingServico.ClinicaCriada;
 import br.com.dentibot.clinicas.application.OnboardingServico.NovaClinica;
 import br.com.dentibot.clinicas.domain.Plano;
+import br.com.dentibot.lgpd.AceiteDeCadastro;
+import br.com.dentibot.lgpd.LgpdApi;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import java.time.ZoneId;
@@ -32,9 +36,11 @@ import org.springframework.web.bind.annotation.RestController;
 public class OnboardingController {
 
     private final OnboardingServico onboarding;
+    private final LgpdApi lgpd;
 
-    public OnboardingController(OnboardingServico onboarding) {
+    public OnboardingController(OnboardingServico onboarding, LgpdApi lgpd) {
         this.onboarding = onboarding;
+        this.lgpd = lgpd;
     }
 
     public record PedidoCadastro(
@@ -49,7 +55,10 @@ public class OnboardingController {
             @NotBlank @Size(max = 60) String nomeFantasia,
             String timezone,
             String plano,
-            @NotBlank @Size(max = 150) String nomeAdmin) {
+            @NotBlank @Size(max = 150) String nomeAdmin,
+            /* Sem aceite não há contrato — e sem a linha gravada não há como
+               provar o aceite (LGPD art. 8º §2º). */
+            @NotNull @Valid AceiteDeCadastro aceites) {
         // Sem emailAdmin: o e-mail do admin é o que o Clerk verificou, lido do
         // token. Vindo do corpo, qualquer conta ocupava o endereço de outra
         // pessoa — identidade.usuarios.email é UNIQUE global, e a dona de
@@ -68,7 +77,8 @@ public class OnboardingController {
      */
     @PostMapping("/cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public Map<String, Long> cadastrar(@Valid @RequestBody PedidoCadastro pedido) {
+    public Map<String, Long> cadastrar(@Valid @RequestBody PedidoCadastro pedido,
+                                       HttpServletRequest req) {
         String subDoClerk = ContextoAtual.sujeitoExternoObrigatorio();
         String email = ContextoAtual.obter().emailVerificado();
         if (email == null) {
@@ -77,6 +87,13 @@ public class OnboardingController {
             throw new IllegalArgumentException(
                     "Confirme o e-mail da sua conta antes de cadastrar a clínica.");
         }
+
+        // ANTES de provisionar, e em transação própria: se o provisionamento
+        // falhar (CNPJ repetido), sobra um aceite sem clínica — que continua
+        // sendo prova verdadeira do que a pessoa aceitou. O contrário, clínica
+        // sem aceite, é o que não pode existir.
+        lgpd.registrarAceiteDeCadastro(subDoClerk, "clinica", pedido.aceites(),
+                req.getRemoteAddr(), req.getHeader("User-Agent"));
 
         ClinicaCriada criada = onboarding.provisionar(new NovaClinica(
                 pedido.cnpj(),

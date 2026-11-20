@@ -1,6 +1,7 @@
 package br.com.dentibot.lgpd.application;
 
 import br.com.dentibot.auditoria.AuditoriaApi;
+import br.com.dentibot.lgpd.AceiteDeCadastro;
 import br.com.dentibot.lgpd.Consentimento;
 import br.com.dentibot.lgpd.LgpdApi;
 import br.com.dentibot.lgpd.NovaSolicitacao;
@@ -154,6 +155,21 @@ public class LgpdServico implements LgpdApi {
                         "idTermo", novo.idTermo(),
                         "finalidades", novo.finalidadesAceitas()));
         return id;
+    }
+
+    @Override
+    @Transactional
+    public void registrarAceiteDeCadastro(String clerkUserId, String origem,
+                                          AceiteDeCadastro aceite, String ipOrigem,
+                                          String userAgent) {
+        // Sem permissoes.exigir: não há tenant nem papel ainda — quem aceita é
+        // o próprio titular, e o sub vem do token, não do corpo.
+        if ("clinica".equals(origem) && !Boolean.TRUE.equals(aceite.representacao())) {
+            throw new IllegalArgumentException(
+                    "Confirme que pode contratar em nome da clínica.");
+        }
+        lgpd.inserirAceiteDeCadastro(clerkUserId, origem, aceite, ipOrigem,
+                userAgent == null ? "" : userAgent.substring(0, Math.min(userAgent.length(), 500)));
     }
 
     @Override

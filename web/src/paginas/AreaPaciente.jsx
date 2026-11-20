@@ -7,7 +7,7 @@ import { Lines, Reveal } from '../components/Reveal.jsx';
 import { Aviso } from '../components/primitivos.jsx';
 import { WHATSAPP_PACIENTE } from '../content.js';
 import { useAcao } from '../dados.js';
-import { AGENDA } from '../rotas.js';
+import { AGENDA, PRIVACIDADE, TERMOS } from '../rotas.js';
 
 const DATA = new Intl.DateTimeFormat('pt-BR', { dateStyle: 'long' });
 
@@ -168,7 +168,8 @@ function Conteudo() {
               enviando={enviando}
               erro={erro}
               rotuloEnviar="Enviar ficha atualizada"
-              onEnviar={(corpo) => executar(api.post('/auth/pre-cadastro', corpo), 'Ficha atualizada.')}
+              consentimento
+              onEnviar={({ aceites, ...ficha }) => executar(api.post('/auth/pre-cadastro', { ficha, aceites }), 'Ficha atualizada.')}
             >
               <button type="button" className="btn" onClick={() => setAtualizando(false)}>
                 Cancelar
@@ -218,7 +219,8 @@ function Conteudo() {
         <footer className="foot">
           <p className="credit">DentiBot · Área do paciente</p>
           <div className="foot-links">
-            <a href="/politica-de-privacidade.pdf" className="credit">Privacidade</a>
+            <a href={PRIVACIDADE} className="credit">Privacidade</a>
+            <a href={TERMOS} className="credit">Termos de uso</a>
             <a href="/" className="credit">Voltar ao site</a>
           </div>
         </footer>

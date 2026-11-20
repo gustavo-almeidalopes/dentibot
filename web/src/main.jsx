@@ -10,6 +10,7 @@ import AreaPaciente from './paginas/AreaPaciente.jsx';
 import Auditoria from './paginas/Auditoria.jsx';
 import Cadastro from './paginas/Cadastro.jsx';
 import Equipe from './paginas/Equipe.jsx';
+import { Privacidade, TermosDeUso } from './paginas/Juridico.jsx';
 import Financeiro from './paginas/Financeiro.jsx';
 import Layout from './paginas/Layout.jsx';
 import NaoEncontrada from './paginas/NaoEncontrada.jsx';
@@ -23,7 +24,7 @@ import './app.css';
 import { APARENCIA } from './tema.js';
 import {
   AGENDA, AREA_PACIENTE, AUDITORIA, CADASTRO, CRIAR, EQUIPE, FINANCEIRO, LOGIN, PACIENTES,
-  PRONTUARIO, RECEPCAO,
+  PRIVACIDADE, PRONTUARIO, RECEPCAO, TERMOS,
 } from './rotas.js';
 
 /* Sem a chave o ClerkProvider não carrega NADA e não reclama: todo <Show>
@@ -60,6 +61,8 @@ createRoot(document.getElementById('root')).render(
           <Route path={CADASTRO} element={<Cadastro />} />
           {/* Também fora: paciente não tem clínica, e o /eu responderia 403. */}
           <Route path={AREA_PACIENTE} element={<AreaPaciente />} />
+          <Route path={TERMOS} element={<TermosDeUso />} />
+          <Route path={PRIVACIDADE} element={<Privacidade />} />
 
           {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
           <Route element={<Layout />}>

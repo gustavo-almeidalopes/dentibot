@@ -1,5 +1,6 @@
 package br.com.dentibot.lgpd.infrastructure;
 
+import br.com.dentibot.lgpd.AceiteDeCadastro;
 import br.com.dentibot.lgpd.SolicitacaoTitular;
 import br.com.dentibot.lgpd.Termo;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
@@ -115,6 +116,34 @@ public class LgpdRepositorio {
                 .param("paciente", idPaciente)
                 .query(LgpdRepositorio::mapearConsentimento)
                 .list();
+    }
+
+    /**
+     * Sem {@code RETURNING} e sem tenant: a V23 só concede INSERT nesta tabela,
+     * e o cadastro roda antes de existir clínica.
+     */
+    public void inserirAceiteDeCadastro(String clerkUserId, String origem, AceiteDeCadastro a,
+                                        String ipOrigem, String userAgent) {
+        jdbc.sql("""
+                        INSERT INTO lgpd.aceites_cadastro
+                            (clerk_user_id, origem, versao_termos, termos_e_privacidade,
+                             dados_de_saude, responsavel_legal, representacao, novidades,
+                             ip_origem, user_agent)
+                        VALUES (:sub, :origem, :versao, :termos,
+                                :saude, :responsavel, :representacao, :novidades,
+                                CAST(:ip AS INET), :ua)
+                        """)
+                .param("sub", clerkUserId)
+                .param("origem", origem)
+                .param("versao", a.versao())
+                .param("termos", a.termosEPrivacidade())
+                .param("saude", a.dadosDeSaude())
+                .param("responsavel", a.responsavelLegal())
+                .param("representacao", a.representacao())
+                .param("novidades", Boolean.TRUE.equals(a.novidades()))
+                .param("ip", ipOrigem)
+                .param("ua", userAgent)
+                .update();
     }
 
     public long inserirConsentimento(long idPaciente, long idTermo, String finalidadesJson,

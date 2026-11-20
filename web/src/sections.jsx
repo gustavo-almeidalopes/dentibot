@@ -3,7 +3,7 @@ import {
   FEATURES, NAV_LINKS, PLANS, TESTIMONIALS,
   TICKER, TICKER_TAIL, WALL_METRICS, WHATSAPP_URL, WHO,
 } from './content.js';
-import { CRIAR, LOGIN } from './rotas.js';
+import { CRIAR, LOGIN, PRIVACIDADE, TERMOS } from './rotas.js';
 
 /* ══ HERO — the wordmark is the architecture ══════════════════════════ */
 export function Hero() {
@@ -225,7 +225,8 @@ export function Footer() {
           {links.map((l) => (
             <a key={l.href} href={l.href} className="credit">{l.label}</a>
           ))}
-          <a href="/politica-de-privacidade.pdf" className="credit">Privacidade</a>
+          <a href={PRIVACIDADE} className="credit">Privacidade</a>
+          <a href={TERMOS} className="credit">Termos de uso</a>
           <a href={LOGIN} className="credit">Entrar</a>
         </div>
         <p className="credit">v2.0.0 · React + FastAPI · LGPD</p>

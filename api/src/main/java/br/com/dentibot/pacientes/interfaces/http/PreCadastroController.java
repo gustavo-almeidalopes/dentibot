@@ -1,9 +1,12 @@
 package br.com.dentibot.pacientes.interfaces.http;
 
+import br.com.dentibot.lgpd.AceiteDeCadastro;
 import br.com.dentibot.pacientes.NovoPaciente;
 import br.com.dentibot.pacientes.application.PreCadastroServico;
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -36,9 +39,19 @@ public class PreCadastroController {
         this.preCadastro = preCadastro;
     }
 
+    /**
+     * A ficha e o aceite separados no corpo: {@link NovoPaciente} é o mesmo
+     * record da recepção, onde não há aceite de cadastro — a base lá é a tutela
+     * da saúde (LGPD art. 11 II f), e o termo vai pelo módulo LGPD da clínica.
+     */
+    public record PedidoPreCadastro(@NotNull @Valid NovoPaciente ficha,
+                                    @NotNull @Valid AceiteDeCadastro aceites) {
+    }
+
     @PostMapping("/pre-cadastro")
     @ResponseStatus(HttpStatus.CREATED)
-    public void registrar(@Valid @RequestBody NovoPaciente ficha) {
-        preCadastro.registrar(ContextoAtual.sujeitoExternoObrigatorio(), ficha);
+    public void registrar(@Valid @RequestBody PedidoPreCadastro pedido, HttpServletRequest req) {
+        preCadastro.registrar(ContextoAtual.sujeitoExternoObrigatorio(), pedido.ficha(),
+                pedido.aceites(), req.getRemoteAddr(), req.getHeader("User-Agent"));
     }
 }

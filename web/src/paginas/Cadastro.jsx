@@ -8,6 +8,7 @@ import { useAcao } from '../dados.js';
 import { documentoValido, formatarCnpj, formatarCpf, somenteDigitos, tipoDeDocumento } from '../documento.js';
 import { AGENDA, AREA_PACIENTE } from '../rotas.js';
 import { ehPaciente, marcarPaciente } from './AreaPaciente.jsx';
+import { Aceite, LinkPrivacidade, LinkTermos, VERSAO_TERMOS } from './Juridico.jsx';
 
 /**
  * O que acontece DEPOIS de criar a conta — inclusive pelo Google, Microsoft ou
@@ -143,6 +144,8 @@ function FormularioClinica({ documento, tipo, nome, email }) {
     nomeAdmin: nome,
     emailAdmin: email,
   });
+  const [aceite, setAceite] = useState({ termos: false, representa: false, novidades: false });
+  const marcar = (campo) => (v) => setAceite((a) => ({ ...a, [campo]: v }));
   const { executar, enviando, erro } = useAcao(() => navegar(AGENDA));
   const mudar = (campo) => (e) => setF((a) => ({ ...a, [campo]: e.target.value }));
 
@@ -158,6 +161,12 @@ function FormularioClinica({ documento, tipo, nome, email }) {
           plano: f.plano,
           nomeAdmin: f.nomeAdmin.trim(),
           emailAdmin: f.emailAdmin.trim(),
+          aceites: {
+            versao: VERSAO_TERMOS,
+            termosEPrivacidade: aceite.termos,
+            representacao: aceite.representa,
+            novidades: aceite.novidades,
+          },
         }));
       }}
     >
@@ -195,7 +204,25 @@ function FormularioClinica({ documento, tipo, nome, email }) {
         </label>
       </div>
 
-      <p className="cap cap-ash">Trinta dias de teste. Sem cartão.</p>
+      <fieldset className="aceites">
+        <legend className="sub">Contrato</legend>
+        <Aceite obrigatorio marcado={aceite.termos} aoMudar={marcar('termos')}>
+          Li e aceito os <LinkTermos /> e a <LinkPrivacidade />, incluindo que a clínica é a
+          controladora dos dados dos pacientes e o DentiBot, o operador (LGPD, art. 39).
+        </Aceite>
+        <Aceite obrigatorio marcado={aceite.representa} aoMudar={marcar('representa')}>
+          {autonomo
+            ? 'Sou o cirurgião-dentista titular deste CPF e contrato em meu nome.'
+            : 'Tenho poderes para representar esta clínica e contratar em nome dela.'}
+        </Aceite>
+        <Aceite marcado={aceite.novidades} aoMudar={marcar('novidades')}>
+          Quero receber novidades do DentiBot por e-mail.
+        </Aceite>
+      </fieldset>
+
+      <p className="cap cap-ash">
+        Trinta dias de teste. Sem cartão. Contratou depois? Sete dias para desistir.
+      </p>
 
       {erro && <p className="erro-campo" role="alert">{erro.message}</p>}
 
@@ -221,7 +248,8 @@ function FormularioPaciente({ nome, email }) {
       enviando={enviando}
       erro={erro}
       rotuloEnviar="Enviar ficha"
-      onEnviar={(corpo) => executar(api.post('/auth/pre-cadastro', corpo))}
+      consentimento
+      onEnviar={({ aceites, ...ficha }) => executar(api.post('/auth/pre-cadastro', { ficha, aceites }))}
     />
   );
 }

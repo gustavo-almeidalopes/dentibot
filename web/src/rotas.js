@@ -10,6 +10,11 @@ export const CADASTRO = '/cadastro';
    MENU: não é tela de clínica, e nenhum papel da matriz a alcança. */
 export const AREA_PACIENTE = '/area-do-paciente';
 
+/* Públicas: o aceite do cadastro aponta para elas, e o titular precisa lê-las
+   ANTES de consentir (LGPD art. 9º §1º) — por isso fora do Layout e sem login. */
+export const TERMOS = '/termos-de-uso';
+export const PRIVACIDADE = '/privacidade';
+
 export const RECEPCAO = '/recepcao';
 export const AGENDA = '/agenda';
 export const PACIENTES = '/pacientes';

@@ -873,3 +873,52 @@
 @media (max-width: 620px) {
   .area-acoes .btn { flex: 1 1 100%; justify-content: center; }
 }
+
+/* ── Aceites: consentimento como cláusula destacada (LGPD art. 8º §1º) ── */
+.aceites {
+  margin: 0; padding: var(--spacing-20) 0 0; min-width: 0;
+  border: 0; border-top: 1px solid var(--tinta);
+  display: flex; flex-direction: column; gap: 14px;
+}
+.aceites > legend { padding: 0 0 14px; font-size: 18px; float: left; width: 100%; }
+.area .aceites > legend { font-size: var(--t-sub); }
+.aceite {
+  display: grid; grid-template-columns: 22px 1fr; gap: 14px; align-items: start;
+  padding: 14px 0; border-bottom: 1px solid var(--hair-fraca); cursor: pointer;
+}
+.aceite .body { font-size: 15px; max-width: 68ch; text-transform: none; }
+.aceite a { color: var(--tinta); text-decoration: underline; text-underline-offset: 3px; }
+.aceite input {
+  appearance: none; margin: 2px 0 0; width: 22px; height: 22px; border-radius: 0;
+  border: 1px solid var(--tinta); background: transparent; cursor: pointer;
+  display: grid; place-content: center;
+}
+.aceite input::after {
+  content: ''; width: 12px; height: 6px; margin-top: -3px;
+  border: solid var(--fundo); border-width: 0 0 2px 2px; transform: rotate(-45deg) scale(0);
+  transition: transform 120ms cubic-bezier(.2, .9, .3, 1);
+}
+.aceite input:checked { background: var(--tinta); }
+.aceite input:checked::after { transform: rotate(-45deg) scale(1); }
+.aceite input:focus-visible { outline: 2px solid var(--foco); outline-offset: 3px; }
+.aceite input:user-invalid { border-color: var(--alarm); }
+@media (prefers-reduced-motion: reduce) { .aceite input::after { transition: none; } }
+
+/* ── Termos e privacidade: página de leitura ── */
+.lei { padding-block: var(--spacing-30) 0; border-top: 1px solid var(--tinta); }
+.lei > .display { margin-top: var(--spacing-30); }
+.lei-linha { display: block; }
+.lei-versao { margin-top: 24px; color: var(--tinta-fraca); }
+.lei-corpo { margin-top: var(--spacing-50, 50px); max-width: 76ch; }
+.lei-secao { padding-block: 36px; border-top: 1px solid var(--hair); }
+.lei-secao .sub { font-size: clamp(1.25rem, 2vw, 1.6rem); margin: 0 0 18px; }
+.lei-secao .body { max-width: 68ch; text-transform: none; }
+.lei-secao .body + .body { margin-top: 14px; }
+.lei-secao a { color: var(--tinta); text-decoration: underline; text-underline-offset: 3px; }
+.lei-lista { margin: 0; padding-left: 1.1em; display: grid; gap: 10px; }
+.lei-lista li::marker { color: var(--alarm); }
+.lei-rolagem { overflow-x: auto; margin-bottom: 18px; }
+.lei-tabela { width: 100%; min-width: 560px; border-collapse: collapse; font-size: 14px; line-height: 1.4; }
+.lei-tabela th { text-align: left; font-weight: 700; text-transform: uppercase; font-size: 12px; color: var(--tinta-fraca); }
+.lei-tabela th, .lei-tabela td { padding: 12px 14px 12px 0; border-bottom: 1px solid var(--hair); vertical-align: top; }
+.lei .foot { margin-top: var(--spacing-30); }

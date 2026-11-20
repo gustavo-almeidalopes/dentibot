@@ -160,7 +160,8 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
                                 ('prontuario','evolucoes'),
                                 ('prontuario','odontograma_lancamentos'),
                                 ('financeiro','lancamentos'),
-                                ('estoque','movimentacoes'))
+                                ('estoque','movimentacoes'),
+                                ('lgpd','aceites_cadastro'))
                         ORDER BY 1
                         """)
                 .query(String.class)

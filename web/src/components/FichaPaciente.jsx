@@ -2,6 +2,7 @@ import { useState } from 'react';
 import {
   cpfValido, formatarCep, formatarCpf, formatarTelefone, menorDeIdade, somenteDigitos,
 } from '../documento.js';
+import { Aceite, LinkPrivacidade, LinkTermos, VERSAO_TERMOS } from '../paginas/Juridico.jsx';
 
 /**
  * Ficha do paciente: identificação, endereço e a triagem de saúde.
@@ -52,8 +53,13 @@ function SimNao({ rotulo, valor, aoMudar, obrigatorio = false, extra = null }) {
 
 export default function FichaPaciente({
   onEnviar, enviando, erro, inicial, rotuloEnviar = 'Cadastrar', children,
+  consentimento = false,
 }) {
   const [f, setF] = useState({ ...VAZIO, ...inicial });
+  /* Só no auto-cadastro. No balcão a base do dado de saúde é a tutela da saúde
+     (art. 11 II f) e o termo assinado vai pelo módulo LGPD da clínica. */
+  const [aceite, setAceite] = useState({ termos: false, saude: false, responsavel: false, novidades: false });
+  const marcar = (campo) => (v) => setAceite((a) => ({ ...a, [campo]: v }));
 
   const mudar = (campo, formatar) => (e) =>
     setF((atual) => ({ ...atual, [campo]: formatar ? formatar(e.target.value) : e.target.value }));
@@ -87,7 +93,9 @@ export default function FichaPaciente({
       bairro: texto(f.bairro),
       cidade: texto(f.cidade),
       uf: texto(f.uf),
-      anamnese: {
+      /* Sem a autorização específica do art. 11 I, a triagem não sai do
+         navegador: negar o consentimento custa só fazê-la na consulta. */
+      anamnese: consentimento && !aceite.saude ? null : {
         emTratamentoMedico: booleano(f.emTratamentoMedico),
         medicamentoContinuo: texto(f.medicamentoContinuo),
         alergia: texto(f.alergia),
@@ -97,6 +105,15 @@ export default function FichaPaciente({
         sensibilidade: booleano(f.sensibilidade),
         sangramentoGengival: booleano(f.sangramentoGengival),
       },
+      ...(consentimento && {
+        aceites: {
+          versao: VERSAO_TERMOS,
+          termosEPrivacidade: aceite.termos,
+          dadosDeSaude: aceite.saude,
+          responsavelLegal: exigeResponsavel ? aceite.responsavel : null,
+          novidades: aceite.novidades,
+        },
+      }),
     });
   }
 
@@ -274,9 +291,34 @@ export default function FichaPaciente({
         />
       </div>
 
+      {consentimento && (
+        <fieldset className="aceites">
+          <legend className="sub">4 · Consentimento</legend>
+          <Aceite obrigatorio marcado={aceite.termos} aoMudar={marcar('termos')}>
+            Li e aceito os <LinkTermos /> e a <LinkPrivacidade />.
+          </Aceite>
+          <Aceite marcado={aceite.saude} aoMudar={marcar('saude')}>
+            <b>Dados de saúde.</b> Autorizo guardar a triagem da seção 3 para uma finalidade só:
+            o meu atendimento odontológico, lido apenas pela equipe clínica da clínica que eu
+            vincular (LGPD, art. 11 I). Sem esta autorização a triagem não é enviada — você a
+            responde na consulta. Dá para revogar quando quiser.
+          </Aceite>
+          {exigeResponsavel && (
+            <Aceite obrigatorio marcado={aceite.responsavel} aoMudar={marcar('responsavel')}>
+              Sou pai, mãe ou responsável legal pelo paciente e dou este consentimento em nome
+              dele (LGPD, art. 14 §1º).
+            </Aceite>
+          )}
+          <Aceite marcado={aceite.novidades} aoMudar={marcar('novidades')}>
+            Quero receber novidades e campanhas por WhatsApp ou e-mail. Lembrete de consulta
+            vem de qualquer jeito.
+          </Aceite>
+        </fieldset>
+      )}
+
       {children}
 
-      {erro && <p className="erro-campo" role="alert">{erro.message}</p>}
+      {erro &&<p className="erro-campo" role="alert">{erro.message}</p>}
 
       <button type="submit" className="btn btn-fill btn-lg" disabled={enviando}>
         {enviando ? 'Enviando…' : rotuloEnviar}
