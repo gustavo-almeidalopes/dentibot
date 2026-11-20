@@ -26,15 +26,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 /**
  * Resolução de acesso a partir do {@code sub} do Clerk.
  *
- * <p>Substitui o antigo {@code AutenticacaoTest}, que exercitava o login por
- * senha e o refresh rotativo — ambos saíram na V18 junto com o emissor próprio.
- * O que aquele teste cobria e continua valendo está preservado aqui: a
- * travessia de RLS e a ordem dos eixos do contexto. O resto (senha errada,
- * e-mail inexistente indistinguível, rotação de refresh) virou responsabilidade
- * do Clerk e não tem mais código nosso para testar.
- *
- * <p>O primeiro teste existe por um bug concreto, documentado na V3 e repetido
- * na V18: SECURITY DEFINER <b>não</b> contorna RLS, só troca quem a função é.
+ * <p>O primeiro teste guarda isto: SECURITY DEFINER <b>não</b> contorna RLS,
+ * só troca quem a função é.
  * Com {@code FORCE ROW LEVEL SECURITY}, um role que nenhuma política nomeia
  * enxerga zero linhas. A função "funciona", devolve vazio, e a API responde 401
  * para um token perfeitamente válido — sem nada em log, em lugar nenhum.

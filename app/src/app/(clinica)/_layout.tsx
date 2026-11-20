@@ -1,5 +1,6 @@
 import { useAuth } from '@clerk/expo';
 import { Redirect, Tabs } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { cor, espaco, tipo } from '../../theme';
 import { Carregando } from '../../ui';
 
@@ -14,6 +15,7 @@ import { Carregando } from '../../ui';
  */
 export default function LayoutClinica() {
   const { isLoaded, isSignedIn } = useAuth();
+  const inset = useSafeAreaInsets();
 
   if (!isLoaded) return <Carregando />;
   if (!isSignedIn) return <Redirect href="/login" />;
@@ -28,8 +30,11 @@ export default function LayoutClinica() {
           backgroundColor: cor.obsidiana,
           borderTopWidth: 1,
           borderTopColor: cor.fio,
-          // Altura padrão do RN não acomoda o rótulo sem ícone.
-          height: 64,
+          // Altura padrão do RN não acomoda o rótulo sem ícone. Altura fixa é
+          // usada como está, e o paddingBottom do inset fica DENTRO dela: sem
+          // somar o inset, a navegação de 3 botões do Android (48dp, e o
+          // edge-to-edge é obrigatório no SDK 57) deixa 9dp para o rótulo.
+          height: 64 + inset.bottom,
           paddingTop: espaco.sm,
         },
         tabBarLabelStyle: {

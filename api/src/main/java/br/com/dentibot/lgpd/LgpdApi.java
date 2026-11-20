@@ -3,9 +3,7 @@ package br.com.dentibot.lgpd;
 import java.util.List;
 
 /**
- * Porta pública do módulo LGPD.
- *
- * <p>Três coisas moram aqui, e as três existem porque a lei pede prova, não
+ * Três coisas moram aqui, e as três existem porque a lei pede prova, não
  * intenção:
  *
  * <ul>
@@ -40,6 +38,17 @@ public interface LgpdApi {
     long registrarConsentimento(NovoConsentimento novo, String ipOrigem, String userAgent);
 
     void revogarConsentimento(long idConsentimento);
+
+    /**
+     * Prova do aceite no cadastro, que roda sem tenant e por isso sem a matriz
+     * de permissão: quem aceita é o próprio titular, identificado pelo {@code
+     * sub} do Clerk. Mesma regra de IP e user-agent de {@link
+     * #registrarConsentimento}.
+     *
+     * @param origem {@code "clinica"} ou {@code "paciente"}.
+     */
+    void registrarAceiteDeCadastro(String clerkUserId, String origem, AceiteDeCadastro aceite,
+                                   String ipOrigem, String userAgent);
 
     List<SolicitacaoTitular> listarSolicitacoes(String status);
 

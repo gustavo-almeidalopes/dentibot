@@ -62,10 +62,9 @@ public class PreCadastroRepositorio {
                 .update();
     }
 
-    /* Jackson 3 não declara exceção checada aqui, então não há try/catch a
-       escrever. O null explícito é que importa: sem ele o mapper devolveria a
-       string "null", que o JSONB aceita como valor JSON válido — uma anamnese
-       que existe e diz nada, em vez de coluna vazia. */
+    /* O null explícito importa: sem ele o mapper devolveria a string "null",
+       que o JSONB aceita como valor JSON válido — uma anamnese que existe e
+       diz nada, em vez de coluna vazia. */
     private String comoJson(Object valor) {
         return valor == null ? null : json.writeValueAsString(valor);
     }

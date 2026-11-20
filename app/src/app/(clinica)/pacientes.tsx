@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErroApi, api, type Paciente } from '../../api';
 import { cor, espaco, tipo } from '../../theme';
@@ -20,6 +20,7 @@ export default function Pacientes() {
   const [lista, setLista] = useState<Paciente[] | null>(null);
   const [erro, setErro] = useState<string | null>(null);
   const [buscandoMais, setBuscandoMais] = useState(false);
+  const [recarregando, setRecarregando] = useState(false);
   const [fim, setFim] = useState(false);
 
   const primeiraPagina = useCallback(async () => {
@@ -77,7 +78,19 @@ export default function Pacientes() {
           keyExtractor={(p) => String(p.idPaciente)}
           ItemSeparatorComponent={Divisoria}
           contentContainerStyle={{ paddingBottom: espaco.xxl }}
-          ListEmptyComponent={<Vazio>Nenhum paciente cadastrado.</Vazio>}
+          ListEmptyComponent={erro ? null : <Vazio>Nenhum paciente cadastrado.</Vazio>}
+          // A aba fica montada: sem isto, um erro offline só sumia reabrindo o app.
+          refreshControl={
+            <RefreshControl
+              refreshing={recarregando}
+              tintColor={cor.osso}
+              onRefresh={async () => {
+                setRecarregando(true);
+                await primeiraPagina();
+                setRecarregando(false);
+              }}
+            />
+          }
           onEndReached={() => void proximaPagina()}
           onEndReachedThreshold={0.4}
           ListFooterComponent={

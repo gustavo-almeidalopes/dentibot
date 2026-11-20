@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.time.Duration;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -20,15 +21,22 @@ import org.springframework.web.filter.OncePerRequestFilter;
  * colocaria a clínica inteira atrás de um NAT no mesmo balde.
  *
  * <p>{@code /api/v1/auth/*} é a exceção: ali ainda não há identidade, o limite é
- * por IP, e é bem mais apertado — é o endpoint onde se tenta senha.
+ * por IP, e é bem mais apertado.
  *
  * <p>Os limites são configuração, não constante: em desenvolvimento roda-se o
  * fluxo de cadastro e login dezenas de vezes seguidas, e um número fixo no
  * código forçaria ou a recompilar ou a desligar o filtro — e filtro de segurança
  * desligado em dev tem a mania de continuar desligado.
  */
+/* A ordem da borda (ver CadeiaDeSeguranca) é explícita: sem @Order, este filtro
+   e o de idempotência dividiriam a mesma precedência e a ordem entre os dois
+   ficaria por conta do registro dos beans. Ambos depois da cadeia do Spring
+   Security, que roda em -100. */
 @Component
+@Order(FiltroRateLimit.ORDEM)
 public class FiltroRateLimit extends OncePerRequestFilter {
+
+    public static final int ORDEM = 0;
 
     private final Limitador limitador;
     private final int limiteAuth;

@@ -1,5 +1,5 @@
 /**
- * As regras do cadastro que não são óbvias. Mesmo estilo de cartao.test.mjs.
+ * As regras do cadastro que não são óbvias.
  *
  *   cd web && npm test
  *

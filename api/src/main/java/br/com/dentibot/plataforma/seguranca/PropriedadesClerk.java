@@ -23,9 +23,6 @@ public record PropriedadesClerk(String emissor, List<String> partesAutorizadas) 
         partesAutorizadas = partesAutorizadas == null ? List.of()
                 : partesAutorizadas.stream().filter(p -> !p.isBlank()).toList();
         if (partesAutorizadas.isEmpty()) {
-            // DENTIBOT_CLERK_ORIGINS="" desligava a checagem do azp em silêncio:
-            // o validador aceita qualquer origem quando a lista vem vazia, e um
-            // token emitido para outro site da mesma instância passava.
             throw new IllegalStateException(
                     "DENTIBOT_CLERK_ORIGINS vazia: sem origens autorizadas, a checagem do azp "
                             + "aceitaria token emitido para qualquer site.");

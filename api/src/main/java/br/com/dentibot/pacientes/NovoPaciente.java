@@ -1,5 +1,6 @@
 package br.com.dentibot.pacientes;
 
+import br.com.dentibot.identidade.DadosPessoais;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -16,10 +17,8 @@ import java.time.LocalDate;
  * cadastrar paciente na clínica de outro — e o RLS recusaria, mas o desenho já
  * estaria errado antes do banco precisar salvar a situação.
  *
- * <p>Os campos cresceram junto com o formulário: antes eram quatro (nome, CPF,
- * telefone, e-mail) e a triagem de saúde não tinha onde cair. Data de
- * nascimento, alergia e condição sistêmica não são "campos extras" — são o que
- * decide dose de anestésico e necessidade de profilaxia antibiótica.
+ * <p>Data de nascimento, alergia e condição sistêmica não são "campos extras" —
+ * são o que decide dose de anestésico e necessidade de profilaxia antibiótica.
  */
 public record NovoPaciente(
         @NotBlank @Size(max = 150) String nomeCompleto,
@@ -45,6 +44,17 @@ public record NovoPaciente(
 
         Long idPlanoConvenio,
         @Size(max = 60) String numeroCarteirinha) {
+
+    /**
+     * A parte da ficha que é da pessoa, e não do paciente. Os nomes dos campos
+     * são os mesmos dos dois lados; {@code NovoPacienteTest} confere que cada
+     * um cai no campo de mesmo nome.
+     */
+    public DadosPessoais dadosPessoais() {
+        return new DadosPessoais(nomeCompleto, cpf, rg, dataNascimento, telefoneCelular, email,
+                profissao, responsavelLegal, cep, logradouro, numero, complemento, bairro,
+                cidade, uf);
+    }
 
     /**
      * O mínimo que a recepção consegue salvar com o paciente ainda no balcão:

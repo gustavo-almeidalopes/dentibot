@@ -5,10 +5,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-/** Porta pública do módulo pacientes. */
 public interface PacientesApi {
 
-    /** Resumo para listagem em outros módulos (agenda, financeiro). */
     Map<Long, PacienteResumo> mapaDeResumos(Collection<Long> idsPaciente);
 
     /** Pacientes da clínica com este celular (qualquer formato). Sem permissão: é busca de sistema. */

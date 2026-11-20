@@ -13,6 +13,10 @@ import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.contexto.ContextoRequisicao;
 import br.com.dentibot.plataforma.contexto.Papel;
 import java.net.URI;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
@@ -241,15 +245,126 @@ class BordaPublicaTest extends TesteIntegracao {
         assertThat(r.statusCode()).isEqualTo(400);
     }
 
-    private HttpResponse<String> cadastrar(String token, long n, String emailNoCorpo) throws Exception {
-        String corpo = """
+    // ─── Aceite do cadastro: prova do consentimento (LGPD art. 8º §2º) ──────
+
+    private static final String ACEITE_CLINICA = """
+            {"versao":"2026-11-20","termosEPrivacidade":true,"representacao":true,"novidades":false}""";
+
+    @Test
+    @DisplayName("cadastro de clínica sem aceite dos termos não passa")
+    void cadastroExigeAceite() throws Exception {
+        long n = SEQ.incrementAndGet();
+        String sub = "user_sem_aceite_" + n;
+        String token = tokenVerificado(sub);
+
+        assertThat(postar("/api/v1/auth/cadastro", token, corpoClinica(n, "x@x.local", null)).statusCode())
+                .as("sem a linha do aceite não há como provar que a clínica aceitou os termos")
+                .isEqualTo(400);
+        assertThat(postar("/api/v1/auth/cadastro", token, corpoClinica(n, "x@x.local", """
+                {"versao":"2026-11-20","termosEPrivacidade":false,"representacao":true}""")).statusCode())
+                .isEqualTo(400);
+        assertThat(aceitesDe(sub)).isZero();
+    }
+
+    @Test
+    @DisplayName("cadastro de clínica grava o aceite com o IP da requisição")
+    void cadastroGravaAceite() throws Exception {
+        long n = SEQ.incrementAndGet();
+        String sub = "user_com_aceite_" + n;
+
+        HttpResponse<String> r = postar("/api/v1/auth/cadastro", tokenVerificado(sub),
+                corpoClinica(n, "x@x.local", ACEITE_CLINICA));
+
+        assertThat(r.statusCode()).isEqualTo(201);
+        assertThat(comoSuperusuario("""
+                SELECT origem || '|' || versao_termos || '|' || representacao || '|' || host(ip_origem)
+                FROM lgpd.aceites_cadastro WHERE clerk_user_id = ?""", sub))
+                .isEqualTo("clinica|2026-11-20|true|127.0.0.1");
+    }
+
+    @Test
+    @DisplayName("pré-cadastro com triagem de saúde exige o consentimento específico")
+    void triagemExigeConsentimentoDeSaude() throws Exception {
+        long n = SEQ.incrementAndGet();
+        String sub = "user_paciente_" + n;
+        String token = tokenVerificado(sub);
+        String ficha = """
+                {"nomeCompleto":"Paciente Teste","dataNascimento":"1990-01-01",
+                 "anamnese":{"alergia":"penicilina"}}""";
+
+        HttpResponse<String> sem = postar("/api/v1/auth/pre-cadastro", token, """
+                {"ficha":%s,"aceites":{"versao":"2026-11-20","termosEPrivacidade":true,
+                 "dadosDeSaude":false}}""".formatted(ficha));
+        assertThat(sem.statusCode()).as("dado de saúde sem consentimento específico: art. 11 I").isEqualTo(400);
+        assertThat(aceitesDe(sub)).as("a recusa não deixa meio cadastro para trás").isZero();
+
+        HttpResponse<String> com = postar("/api/v1/auth/pre-cadastro", token, """
+                {"ficha":%s,"aceites":{"versao":"2026-11-20","termosEPrivacidade":true,
+                 "dadosDeSaude":true}}""".formatted(ficha));
+        assertThat(com.statusCode()).isEqualTo(201);
+        assertThat(comoSuperusuario("""
+                SELECT origem || '|' || dados_de_saude FROM lgpd.aceites_cadastro
+                WHERE clerk_user_id = ?""", sub)).isEqualTo("paciente|true");
+    }
+
+    @Test
+    @DisplayName("pré-cadastro de menor exige o consentimento do responsável")
+    void menorExigeResponsavel() throws Exception {
+        long n = SEQ.incrementAndGet();
+        String nascimento = LocalDate.now().minusYears(10).toString();
+
+        HttpResponse<String> r = postar("/api/v1/auth/pre-cadastro", tokenVerificado("user_menor_" + n), """
+                {"ficha":{"nomeCompleto":"Crianca Teste","dataNascimento":"%s",
+                 "responsavelLegal":"Mae Teste"},
+                 "aceites":{"versao":"2026-11-20","termosEPrivacidade":true}}""".formatted(nascimento));
+
+        assertThat(r.statusCode()).as("art. 14 §1º").isEqualTo(400);
+    }
+
+    private String tokenVerificado(String sub) {
+        String token = "token-" + sub;
+        willReturn(Jwt.withTokenValue(token).header("alg", "RS256")
+                .subject(sub)
+                .claim("email", sub + "@clinica.local")
+                .claim("email_verified", true)
+                .build()).given(decoder).decode(token);
+        return token;
+    }
+
+    private static String corpoClinica(long n, String emailNoCorpo, String aceites) {
+        return """
                 {"cnpj":"%014d","razaoSocial":"Clinica Nova LTDA","nomeFantasia":"Clinica Nova",
-                 "nomeAdmin":"Dona","emailAdmin":"%s"}""".formatted(n, emailNoCorpo);
-        return http.send(HttpRequest.newBuilder(url("/api/v1/auth/cadastro"))
+                 "nomeAdmin":"Dona","emailAdmin":"%s"%s}""".formatted(
+                n, emailNoCorpo, aceites == null ? "" : ",\"aceites\":" + aceites);
+    }
+
+    /* A aplicação só tem INSERT em lgpd.aceites_cadastro (V26); conferir o que
+       foi gravado exige outro papel — e é bom que exija. */
+    private static String comoSuperusuario(String sql, String parametro) throws Exception {
+        try (Connection c = DriverManager.getConnection(POSTGRES.getJdbcUrl(), "postgres", "postgres");
+             var ps = c.prepareStatement(sql)) {
+            ps.setString(1, parametro);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getString(1) : null;
+            }
+        }
+    }
+
+    private static long aceitesDe(String sub) throws Exception {
+        return Long.parseLong(comoSuperusuario(
+                "SELECT count(*) FROM lgpd.aceites_cadastro WHERE clerk_user_id = ?", sub));
+    }
+
+    private HttpResponse<String> postar(String caminho, String token, String corpo) throws Exception {
+        return http.send(HttpRequest.newBuilder(url(caminho))
                         .header("Authorization", "Bearer " + token)
                         .header("Content-Type", "application/json")
                         .POST(HttpRequest.BodyPublishers.ofString(corpo)).build(),
                 HttpResponse.BodyHandlers.ofString());
+    }
+
+    private HttpResponse<String> cadastrar(String token, long n, String emailNoCorpo) throws Exception {
+        return postar("/api/v1/auth/cadastro", token, corpoClinica(n, emailNoCorpo, ACEITE_CLINICA));
     }
 
     private String emailDoAdmin(String respostaDoCadastro) {

@@ -9,8 +9,8 @@ import br.com.dentibot.agenda.infrastructure.ConsultaRepositorio.LinhaConsulta;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.pacientes.PacienteResumo;
 import br.com.dentibot.pacientes.PacientesApi;
-import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
+import br.com.dentibot.plataforma.erro.TransicaoInvalidaException;
 import br.com.dentibot.plataforma.outbox.Outbox;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
 import br.com.dentibot.plataforma.seguranca.Acao;
@@ -55,12 +55,8 @@ public class AgendaServico implements AgendaApi {
 
     /**
      * Agenda e emite {@code consulta.agendada} na MESMA transação (invariante 8).
-     *
-     * <p>A ordem errada — publicar o evento fora da transação — falha de duas
-     * formas, ambas invisíveis em desenvolvimento e certas em produção: se a
-     * transação der rollback depois do publish, o paciente recebe confirmação de
-     * um horário que ninguém marcou; se o publish falhar depois do commit, a
-     * consulta existe e ninguém é avisado.
+     * Fora dela, um rollback após o publish confirma ao paciente um horário que
+     * não existe, e um publish que falha após o commit deixa a consulta sem aviso.
      */
     @Override
     @Transactional
@@ -113,17 +109,13 @@ public class AgendaServico implements AgendaApi {
      * inteira.
      */
     private long dentistaCorrente() {
-        Long idUsuario = ContextoAtual.obter().usuarioId();
-        return idUsuario == null ? -1L : identidade.dentistaDoUsuario(idUsuario).orElse(-1L);
+        return identidade.dentistaCorrente().orElse(-1L);
     }
 
     /**
-     * Toda transição passa por aqui antes de mudar status. {@code exigir()}
-     * devolve PROPRIOS para o dentista e PROPRIOS satisfaz {@code permite()} —
-     * descartar o retorno deixava um dentista cancelar ou marcar falta na
-     * consulta de um colega da mesma clínica, e o RLS não pega: os dois estão
-     * no mesmo tenant. Mesmo defeito que o orçamento teve; ver
-     * {@code OrcamentoServico.carregar}.
+     * {@code exigir()} devolve PROPRIOS para o dentista, e PROPRIOS satisfaz
+     * {@code permite()}: sem conferir o dono, um dentista cancelaria a consulta
+     * de um colega da mesma clínica — e o RLS não pega, é o mesmo tenant.
      */
     private void exigirAlcance(long idConsulta, Alcance alcance) {
         if (alcance == Alcance.PROPRIOS
@@ -136,12 +128,9 @@ public class AgendaServico implements AgendaApi {
     }
 
     /**
-     * Duas consultas, não um JOIN.
-     *
-     * <p>{@code agenda.consultas} e {@code identidade.pessoas} são de módulos
-     * diferentes. O JOIN funcionaria hoje, seria mais rápido, e é exatamente o
-     * que impediria extrair a agenda depois — a fronteira some em silêncio,
-     * porque na revisão parece só uma consulta eficiente.
+     * Duas consultas, não um JOIN: {@code agenda.consultas} e
+     * {@code identidade.pessoas} são de módulos diferentes, e o JOIN é o que
+     * impediria extrair a agenda depois.
      */
     private List<ConsultaResumo> montar(List<LinhaConsulta> linhas) {
         if (linhas.isEmpty()) {
@@ -151,15 +140,23 @@ public class AgendaServico implements AgendaApi {
         Map<Long, PacienteResumo> resumos = pacientes.mapaDeResumos(ids);
         Map<Long, int[]> faltas = consultas.historicoDeFaltas(ids);
 
+        // `acoes` diz o que ESTE usuário pode fazer com cada consulta, pelo mesmo
+        // critério que transicionar() aplica: status e alcance de AGENDA/ALTERAR.
+        Alcance alterar = permissao.alcance(Recurso.AGENDA, Acao.ALTERAR);
+        long dentista = alterar == Alcance.PROPRIOS ? dentistaCorrente() : -1L;
+
         return linhas.stream()
                 .map(l -> {
                     PacienteResumo p = resumos.get(l.idPaciente());
                     int[] f = faltas.getOrDefault(l.idPaciente(), new int[] {0, 0});
+                    boolean podeAlterar = alterar == Alcance.TODOS
+                            || (alterar == Alcance.PROPRIOS && l.idDentista() == dentista);
                     return new ConsultaResumo(
                             l.idConsulta(), l.idPaciente(),
                             p == null ? null : p.nomeCompleto(),
                             p == null ? null : p.telefoneCelular(),
                             l.idDentista(), l.inicioEm(), l.terminoEm(), l.status(),
+                            podeAlterar ? TransicaoConsulta.disponiveis(l.status()) : List.of(),
                             f[0], f[1]);
                 })
                 .toList();
@@ -193,64 +190,23 @@ public class AgendaServico implements AgendaApi {
 
     @Override
     @Transactional
-    public void confirmar(long idConsulta) {
-        transicionar(idConsulta, "agendada", "confirmada", null,
-                TiposDeEvento.CONSULTA_CONFIRMADA);
-    }
-
-    @Override
-    @Transactional
-    public void cancelar(long idConsulta, String motivo) {
-        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionarDeQualquerUm(
-                idConsulta, List.of("agendada", "confirmada"), "cancelada", motivo);
-        if (linhas == 0) {
-            throw new TransicaoInvalidaException(
-                    "Só é possível cancelar consulta agendada ou confirmada.");
+    public void transicionar(long idConsulta, String acao, String motivo) {
+        TransicaoConsulta t = TransicaoConsulta.doCaminho(acao);
+        if (t.exigeMotivo() && (motivo == null || motivo.isBlank())) {
+            throw new IllegalArgumentException("Informe o motivo.");
         }
-        outbox.gravar(TiposDeEvento.CONSULTA_CANCELADA,
-                Map.of("consulta_id", idConsulta, "motivo", motivo == null ? "" : motivo));
-    }
-
-    @Override
-    @Transactional
-    public void registrarFalta(long idConsulta) {
         exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionarDeQualquerUm(
-                idConsulta, List.of("agendada", "confirmada"), "faltou", null);
-        if (linhas == 0) {
-            throw new TransicaoInvalidaException(
-                    "Só é possível registrar falta em consulta agendada ou confirmada.");
-        }
-        // Alimenta o score de falta do svc-python (Fase 5).
-        outbox.gravar(TiposDeEvento.CONSULTA_FALTOU, Map.of("consulta_id", idConsulta));
-    }
 
-    @Override
-    @Transactional
-    public void concluir(long idConsulta) {
-        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionarDeQualquerUm(
-                idConsulta, List.of("confirmada", "em_atendimento", "agendada"),
-                "realizada", null);
-        if (linhas == 0) {
-            throw new TransicaoInvalidaException("Consulta não está em estado que permita concluir.");
+        String guardado = t.exigeMotivo() ? motivo.trim() : null;
+        // Zero linhas é ambíguo entre "não existe" e "está noutro estado". O RLS
+        // já garante que não é de outro tenant; responder 409 evita confirmar a
+        // existência de um id que o usuário não deveria conhecer.
+        if (consultas.transicionar(idConsulta, t.origens, t.destino, guardado) == 0) {
+            throw new TransicaoInvalidaException(t.recusa);
         }
-        outbox.gravar(TiposDeEvento.CONSULTA_REALIZADA, Map.of("consulta_id", idConsulta));
-    }
-
-    private void transicionar(long idConsulta, String de, String para, String motivo,
-                              String evento) {
-        exigirAlcance(idConsulta, permissao.exigir(Recurso.AGENDA, Acao.ALTERAR));
-        int linhas = consultas.transicionar(idConsulta, de, para, motivo);
-        if (linhas == 0) {
-            // Zero linhas é ambíguo entre "não existe" e "está noutro estado".
-            // O RLS já garante que não é de outro tenant; responder 409 evita
-            // confirmar existência de id que o usuário não deveria conhecer.
-            throw new TransicaoInvalidaException(
-                    "Transição de '%s' para '%s' não é válida no estado atual.".formatted(de, para));
-        }
-        outbox.gravar(evento, Map.of("consulta_id", idConsulta));
+        outbox.gravar(t.evento, guardado == null
+                ? Map.of("consulta_id", idConsulta)
+                : Map.of("consulta_id", idConsulta, "motivo", guardado));
     }
 
     @Override

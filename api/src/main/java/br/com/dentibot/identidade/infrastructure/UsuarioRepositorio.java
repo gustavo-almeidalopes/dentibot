@@ -10,12 +10,7 @@ import org.springframework.stereotype.Repository;
 /**
  * Usuários da clínica (eixo A).
  *
- * <p>Saiu daqui, na V18: tudo que atendia senha. {@code senha_hash},
- * {@code bloqueio_login}, contagem de falha e desbloqueio por decurso de prazo
- * eram a implementação de um login que este serviço não faz mais — o Clerk faz,
- * junto com 2FA, proteção contra força bruta e recuperação de conta. Código de
- * autenticação que continua existindo sem ser chamado é pior que código
- * ausente: parece uma defesa ativa numa revisão.
+ * <p>Sem senha: login, 2FA, força bruta e recuperação de conta são do Clerk.
  */
 @Repository
 public class UsuarioRepositorio {
@@ -163,9 +158,8 @@ public class UsuarioRepositorio {
     }
 
     /**
-     * Muda papel e status. Os dois num UPDATE só porque é uma tela só — e porque
-     * separar em dois abriria a janela em que o usuário está com o papel novo e
-     * o status velho.
+     * Papel e status num UPDATE só: separar abriria a janela em que o usuário
+     * está com o papel novo e o status velho.
      */
     public int atualizar(long idUsuario, Papel papel, String status) {
         return jdbc.sql("""
@@ -197,7 +191,6 @@ public class UsuarioRepositorio {
                 .single();
     }
 
-    /** Quantos admins ativos restam. Guarda contra a clínica ficar sem dono. */
     public int contarAdminsAtivos() {
         return jdbc.sql("""
                         SELECT count(*) FROM identidade.usuarios

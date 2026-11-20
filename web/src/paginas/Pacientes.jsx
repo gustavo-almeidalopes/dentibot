@@ -1,17 +1,14 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { api } from '../api.js';
-import { contagem, telHref } from '../apresentacao.js';
+import { LIMITE_LISTA, api } from '../api.js';
+import { STATUS_PACIENTE, casaBusca, contagem } from '../apresentacao.js';
 import FichaPaciente from '../components/FichaPaciente.jsx';
-import { Aviso, Celula, Selo, Tabela } from '../components/primitivos.jsx';
+import {
+  Aviso, Cabecalho, Celula, Estado, Selo, Tabela, Telefone,
+} from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
-import { prontuarioDe } from '../rotas.js';
-import { Cabecalho, Estado, usePode } from './Layout.jsx';
-
-/* O `LIMITE_MAXIMO` do PacienteController é 200, e pedir mais não traz mais.
-   A constante existe para a frase de contagem saber quando a lista bateu o
-   teto — sem isso a tela escrevia "200 no cadastro" para uma clínica de 900. */
-const LIMITE = 200;
+import { usePode } from '../permissoes.js';
+import { RECEPCAO, prontuarioDe } from '../rotas.js';
 
 /**
  * Lista de pacientes.
@@ -25,20 +22,17 @@ export default function Pacientes() {
   const [criando, setCriando] = useState(false);
   const [busca, setBusca] = useState('');
   const pode = usePode();
-  const pacientes = useRecurso(`/pacientes?limite=${LIMITE}`);
+  const pacientes = useRecurso(`/pacientes?limite=${LIMITE_LISTA}`);
   const lista = pacientes.dados ?? [];
 
-  const filtrada = busca.trim()
-    ? lista.filter((p) => `${p.nomeCompleto ?? ''} ${p.telefoneCelular ?? ''}`
-      .toLowerCase().includes(busca.trim().toLowerCase()))
-    : lista;
+  const filtrada = lista.filter((p) => casaBusca(busca, p.nomeCompleto, p.telefoneCelular));
 
   return (
     <>
       <Cabecalho
         titulo="Pacientes."
         detalhe={pacientes.status === 'ok'
-          ? contagem(lista.length, LIMITE, 'paciente', 'pacientes')
+          ? contagem(lista.length, LIMITE_LISTA, 'paciente', 'pacientes')
           : 'Cadastro da clínica'}
         /* Financeiro e auxiliar leem o cadastro e não criam. Mostrar o botão
            para eles seria oferecer um formulário que termina em 403. */
@@ -73,8 +67,8 @@ export default function Pacientes() {
         esqueleto={{ linhas: 8, colunas: 4 }}
         vazio={filtrada.length === 0
           ? (busca
-            ? 'Nenhum paciente carregado corresponde a esta busca.'
-            : 'Nenhum paciente cadastrado ainda.')
+            ? { titulo: 'Ninguém com esse nome.', texto: 'Nenhum paciente carregado corresponde a esta busca.' }
+            : { titulo: 'Cadastro vazio.', texto: 'Nenhum paciente cadastrado ainda. O primeiro entra por Novo paciente.' })
           : null}
       >
         <Tabela colunas={[
@@ -85,30 +79,33 @@ export default function Pacientes() {
         ]}>
           {filtrada.map((p) => (
             <tr key={p.idPaciente}>
-              <Celula rotulo="Nome">{p.nomeCompleto ?? '—'}</Celula>
+              <Celula rotulo="Nome" className="celula-nome">{p.nomeCompleto ?? '—'}</Celula>
               <Celula rotulo="Telefone" num>
-                {telHref(p.telefoneCelular)
-                  ? <a href={telHref(p.telefoneCelular)}>{p.telefoneCelular}</a>
-                  : '—'}
+                <Telefone numero={p.telefoneCelular} vazio="—" />
               </Celula>
-              {/* Mapa vazio de propósito: os valores do CHECK de
-                  `pacientes.status` não foram conferidos contra o banco, e um
-                  rótulo inventado esconderia um estado real atrás de um
-                  travessão. `descrever` mostra o valor como veio. */}
-              <Celula rotulo="Status"><Selo mapa={{}} valor={p.status} /></Celula>
+              <Celula rotulo="Status"><Selo mapa={STATUS_PACIENTE} valor={p.status} /></Celula>
               <Celula rotulo="">
-                {/* Recepção e financeiro não alcançam prontuário — dado de
-                    saúde, LGPD art. 11. Sem o link a tela não convida ao 403. */}
-                {pode('PRONTUARIO') && (
-                  <Link className="btn btn-sm"
-                        to={prontuarioDe(p.idPaciente)}
-                        /* O nome já está aqui. Passar por state evita o
-                           "Paciente 7" no cabeçalho do prontuário sem custar
-                           uma requisição. */
-                        state={{ nomePaciente: p.nomeCompleto }}>
-                    Prontuário
-                  </Link>
-                )}
+                <div className="acoes">
+                  {/* Do cadastro direto para o horário, com o paciente já escolhido
+                      no painel de agendar da Recepção. */}
+                  {pode('AGENDA', 'CRIAR') && (
+                    <Link className="btn btn-sm" to={RECEPCAO} state={{ paciente: p }}>
+                      Agendar
+                    </Link>
+                  )}
+                  {/* Recepção e financeiro não alcançam prontuário — dado de
+                      saúde, LGPD art. 11. Sem o link a tela não convida ao 403. */}
+                  {pode('PRONTUARIO') && (
+                    <Link className="btn btn-sm"
+                          to={prontuarioDe(p.idPaciente)}
+                          /* O nome já está aqui. Passar por state evita o
+                             "Paciente 7" no cabeçalho do prontuário sem custar
+                             uma requisição. */
+                          state={{ nomePaciente: p.nomeCompleto }}>
+                      Prontuário
+                    </Link>
+                  )}
+                </div>
               </Celula>
             </tr>
           ))}
@@ -118,13 +115,7 @@ export default function Pacientes() {
   );
 }
 
-/**
- * O mesmo componente do auto-cadastro em /cadastro.
- *
- * <p>Antes eram quatro campos aqui — nome, CPF, celular, e-mail — e a ficha
- * completa em lugar nenhum. Faltava tudo o que muda conduta: data de
- * nascimento (dose de anestésico), alergia, condição sistêmica, gravidez.
- */
+/** O mesmo componente do auto-cadastro em /cadastro. */
 function NovoPaciente({ onCriado }) {
   const { executar, enviando, erro, sucesso } = useAcao(onCriado);
 

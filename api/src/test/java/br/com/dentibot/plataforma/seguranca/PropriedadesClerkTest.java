@@ -12,8 +12,7 @@ import org.junit.jupiter.api.Test;
  *
  * <p>Com a lista de partes autorizadas vazia, o validador aceita token emitido
  * para qualquer origem — um token do Clerk obtido em outro site da mesma
- * instância seria replayado contra esta API. {@code DENTIBOT_CLERK_ORIGINS=""}
- * em produção fazia isso sem erro nenhum.
+ * instância seria replayado contra esta API.
  */
 @DisplayName("Configuração do Clerk")
 class PropriedadesClerkTest {

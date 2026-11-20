@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api } from './api.js';
+import { nomesPorId } from './apresentacao.js';
 
 /**
  * Carrega um recurso da API com os três estados que toda tela precisa.
@@ -69,4 +70,17 @@ export function useAcao(aoConcluir) {
   }, [aoConcluir]);
 
   return { executar, enviando, erro, sucesso, limparSucesso: () => setSucesso(null) };
+}
+
+/**
+ * Os dentistas da clínica e o nome de cada um por `idDentista` — o id que
+ * consulta e evolução trazem (não é o `idUsuario` de /equipe).
+ */
+export function useDentistas() {
+  const dentistas = useRecurso('/equipe/dentistas');
+  const nomeDoDentista = useMemo(
+    () => nomesPorId(dentistas.dados, 'idDentista', 'Dentista'),
+    [dentistas.dados],
+  );
+  return { ...dentistas, nomeDoDentista };
 }

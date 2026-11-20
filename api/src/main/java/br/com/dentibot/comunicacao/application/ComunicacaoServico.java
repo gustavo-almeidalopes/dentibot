@@ -184,9 +184,7 @@ public class ComunicacaoServico {
     public long enviarOrientacao(long idPaciente, String tema) {
         Alcance alcance = permissoes.exigir(Recurso.PRONTUARIO, Acao.CRIAR);
         if (alcance == Alcance.PROPRIOS) {
-            Long idUsuario = ContextoAtual.obter().usuarioId();
-            long dentista = idUsuario == null ? -1L
-                    : identidade.dentistaDoUsuario(idUsuario).orElse(-1L);
+            long dentista = identidade.dentistaCorrente().orElse(-1L);
             if (!agenda.pacienteAtendidoPor(idPaciente, dentista)) {
                 throw new AcessoNegadoException(Recurso.PRONTUARIO, Acao.CRIAR);
             }

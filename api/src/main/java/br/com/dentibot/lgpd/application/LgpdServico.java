@@ -1,6 +1,7 @@
 package br.com.dentibot.lgpd.application;
 
 import br.com.dentibot.auditoria.AuditoriaApi;
+import br.com.dentibot.lgpd.AceiteDeCadastro;
 import br.com.dentibot.lgpd.Consentimento;
 import br.com.dentibot.lgpd.Finalidade;
 import br.com.dentibot.lgpd.LgpdApi;
@@ -168,6 +169,21 @@ public class LgpdServico implements LgpdApi {
 
     @Override
     @Transactional
+    public void registrarAceiteDeCadastro(String clerkUserId, String origem,
+                                          AceiteDeCadastro aceite, String ipOrigem,
+                                          String userAgent) {
+        // Sem permissoes.exigir: não há tenant nem papel ainda — quem aceita é
+        // o próprio titular, e o sub vem do token, não do corpo.
+        if ("clinica".equals(origem) && !Boolean.TRUE.equals(aceite.representacao())) {
+            throw new IllegalArgumentException(
+                    "Confirme que pode contratar em nome da clínica.");
+        }
+        lgpd.inserirAceiteDeCadastro(clerkUserId, origem, aceite, ipOrigem,
+                userAgent == null ? "" : userAgent.substring(0, Math.min(userAgent.length(), 500)));
+    }
+
+    @Override
+    @Transactional
     public void revogarConsentimento(long idConsentimento) {
         permissoes.exigir(Recurso.LGPD, Acao.ALTERAR);
         if (lgpd.revogarConsentimento(idConsentimento) == 0) {
@@ -312,14 +328,10 @@ public class LgpdServico implements LgpdApi {
     }
 
     private Consentimento montar(LinhaConsentimento l) {
-        List<String> finalidades;
-        try {
-            finalidades = List.of(json.readValue(l.finalidadesJson(), String[].class));
-        } catch (RuntimeException e) {
-            // JSONB ilegível é dado corrompido, não motivo para derrubar a tela
-            // que investiga justamente isso.
-            finalidades = List.of();
-        }
+        // Sem try/catch: JSONB ilegível num registro de consentimento é dado
+        // corrompido, e uma lista vazia no lugar dele afirmaria que o paciente
+        // não consentiu com nada.
+        List<String> finalidades = List.of(json.readValue(l.finalidadesJson(), String[].class));
         return new Consentimento(
                 l.idConsentimento(), l.idPaciente(), l.idTermo(),
                 l.tipoDoTermo(), l.versaoDoTermo(), finalidades,

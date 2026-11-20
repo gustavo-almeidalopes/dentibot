@@ -3,17 +3,19 @@
  *
  * <p>Sobre o `<dialog>` nativo, e não sobre uma div com `role="dialog"`: foco
  * preso, `Esc`, fundo inerte e devolução do foco ao elemento anterior vêm da
- * plataforma. A versão em div precisaria de todas as quatro coisas escritas à
- * mão, e é sempre a devolução do foco que fica faltando.
+ * plataforma.
  *
  * <p>`showModal()` e não o atributo `open`: só a chamada dá o modo modal — com
  * `open` o resto da página continua alcançável por Tab.
  */
 import { useEffect, useRef } from 'react';
 
+/* `rotuloVoltar` existe por causa de "Cancelar consulta?": com o rótulo fixo,
+   seriam dois botões chamados Cancelar, um de cada lado da decisão.
+   `podeConfirmar` segura o botão enquanto falta o que o ato exige (o motivo). */
 export default function Confirmar({
-  aberto, titulo, corpo, rotuloConfirmar = 'Confirmar', perigo = false,
-  onConfirmar, onCancelar,
+  aberto, titulo, corpo, rotuloConfirmar = 'Confirmar', rotuloVoltar = 'Cancelar',
+  podeConfirmar = true, perigo = false, onConfirmar, onCancelar,
 }) {
   const ref = useRef(null);
 
@@ -39,10 +41,11 @@ export default function Confirmar({
       <div className="dialogo-acoes">
         {/* O foco começa no cancelar, que é o botão seguro: `autofocus` no
             destrutivo transforma Enter distraído em ato irreversível. */}
-        <button type="button" className="btn btn-sm" onClick={onCancelar}>Cancelar</button>
+        <button type="button" className="btn btn-sm" onClick={onCancelar}>{rotuloVoltar}</button>
         <button
           type="button"
           className={`btn btn-sm ${perigo ? 'btn-perigo' : 'btn-fill'}`}
+          disabled={!podeConfirmar}
           onClick={onConfirmar}
         >
           {rotuloConfirmar}

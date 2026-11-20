@@ -4,7 +4,7 @@ import {
   FEATURES, NAV_LINKS, PLANS, SUBPROCESSADORES_URL, TESTIMONIALS,
   TICKER, TICKER_TAIL, WALL_METRICS, WHATSAPP_URL, WHO,
 } from './content.js';
-import { CRIAR, LOGIN } from './rotas.js';
+import { CRIAR, LOGIN, PRIVACIDADE, TERMOS } from './rotas.js';
 
 /* ══ HERO — the wordmark is the architecture ══════════════════════════ */
 export function Hero() {
@@ -234,6 +234,8 @@ export function Footer() {
             <a key={l.href} href={l.href} className="credit">{l.label}</a>
           ))}
           <a href={SUBPROCESSADORES_URL} className="credit">Sub-processadores (LGPD)</a>
+          <a href={PRIVACIDADE} className="credit">Privacidade</a>
+          <a href={TERMOS} className="credit">Termos de uso</a>
           <a href={LOGIN} className="credit">Entrar</a>
         </div>
         <p className="credit">v2.0.0 · React + Spring Boot · LGPD</p>

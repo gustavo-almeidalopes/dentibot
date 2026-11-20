@@ -12,7 +12,6 @@ public record Assinatura(
         boolean cancelarNoFim,
         String idAssinaturaExterna) {
 
-    /** Trial e inadimplente ainda dão acesso; cancelada e encerrada, não. */
     public boolean daAcesso() {
         return "trial".equals(status) || "ativa".equals(status) || "inadimplente".equals(status);
     }

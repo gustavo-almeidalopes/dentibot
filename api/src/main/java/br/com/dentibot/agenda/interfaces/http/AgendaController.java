@@ -3,19 +3,14 @@ package br.com.dentibot.agenda.interfaces.http;
 import br.com.dentibot.agenda.AgendaApi;
 import br.com.dentibot.agenda.ConsultaResumo;
 import br.com.dentibot.agenda.NovaConsulta;
-import br.com.dentibot.agenda.application.AgendaServico.TransicaoInvalidaException;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -25,9 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Agenda.
- *
- * <p>{@code POST /consultas} exige {@code Idempotency-Key} — está na lista do
+ * {@code POST /consultas} exige {@code Idempotency-Key} — está na lista do
  * {@code FiltroIdempotencia}. Dois toques no botão de agendar não podem virar
  * duas consultas.
  */
@@ -60,42 +53,15 @@ public class AgendaController {
         return agenda.listar(de, ate, idDentista);
     }
 
-    @PostMapping("/{id}/confirmar")
-    public ResponseEntity<Void> confirmar(@PathVariable long id) {
-        agenda.confirmar(id);
+    public record PedidoTransicao(@Size(max = 255) String motivo) {
+    }
+
+    /** {@code acao} é uma das palavras de {@code ConsultaResumo.acoes}. */
+    @PostMapping("/{id}/{acao}")
+    public ResponseEntity<Void> transicionar(@PathVariable long id, @PathVariable String acao,
+                                             @Valid @RequestBody(required = false)
+                                             PedidoTransicao pedido) {
+        agenda.transicionar(id, acao, pedido == null ? null : pedido.motivo());
         return ResponseEntity.noContent().build();
-    }
-
-    public record PedidoCancelamento(@NotBlank @Size(max = 255) String motivo) {
-    }
-
-    @PostMapping("/{id}/cancelar")
-    public ResponseEntity<Void> cancelar(@PathVariable long id,
-                                         @Valid @RequestBody PedidoCancelamento pedido) {
-        agenda.cancelar(id, pedido.motivo());
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/falta")
-    public ResponseEntity<Void> falta(@PathVariable long id) {
-        agenda.registrarFalta(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping("/{id}/concluir")
-    public ResponseEntity<Void> concluir(@PathVariable long id) {
-        agenda.concluir(id);
-        return ResponseEntity.noContent().build();
-    }
-
-    /**
-     * 409 e não 404: a consulta existe, o estado é que não permite a transição.
-     * Um 404 aqui mandaria o cliente procurar um recurso que ele já tem.
-     */
-    @ExceptionHandler(TransicaoInvalidaException.class)
-    public ProblemDetail transicaoInvalida(TransicaoInvalidaException e) {
-        ProblemDetail p = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, e.getMessage());
-        p.setType(URI.create("https://dentibot.com.br/erros/transicao-invalida"));
-        return p;
     }
 }

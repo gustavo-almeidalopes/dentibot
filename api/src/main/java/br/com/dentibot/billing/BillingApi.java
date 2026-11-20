@@ -3,7 +3,7 @@ package br.com.dentibot.billing;
 import java.util.List;
 
 /**
- * Porta pública do módulo billing — a assinatura da clínica no DentiBot.
+ * A assinatura da clínica no DentiBot.
  *
  * <p>Não confundir com {@code financeiro}: lá o paciente paga a clínica, aqui a
  * clínica paga a nós. São dinheiros, provedores e obrigações fiscais diferentes,
@@ -24,7 +24,6 @@ public interface BillingApi {
 
     List<Fatura> listarFaturas();
 
-    /** Consumo do mês corrente contra os limites do plano. */
     UsoDoPlano usoAtual();
 
     /**
@@ -48,7 +47,6 @@ public interface BillingApi {
      */
     void fotografarProfissionais(int profissionaisAtivos);
 
-    /** Cria a assinatura em trial no cadastro da clínica. */
     long iniciarTrial(String plano);
 
     /**

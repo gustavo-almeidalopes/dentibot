@@ -79,9 +79,7 @@ public class BillingServico implements BillingApi {
         int[] uso = billing.usoDoMes(competencia);
         Plano plano = planoVigente();
 
-        // Os dois números vêm do contador. O de profissionais é fotografia,
-        // reescrita pela tela de equipe a cada mudança — que é exatamente
-        // quando ele muda.
+        // O de profissionais é fotografia, reescrita pela tela de equipe a cada mudança.
         return new UsoDoPlano(
                 competencia, plano.codigo(),
                 uso[0], plano.maxMensagensMes(),
@@ -132,9 +130,8 @@ public class BillingServico implements BillingApi {
     @Override
     @Transactional
     public void sincronizarAssinatura(SincronizacaoDeAssinatura s) {
-        // Se a clínica ainda estava no trial local, ele sai de cena antes: o
-        // índice parcial só admite uma assinatura viva por clínica, e a segunda
-        // estouraria unicidade dentro do webhook.
+        // O índice parcial só admite uma assinatura viva por clínica: o trial
+        // local sai antes, ou a nova estouraria unicidade dentro do webhook.
         billing.encerrarTrialSemProvedor(s.idClinica());
         billing.sincronizarAssinatura(s);
 
@@ -184,17 +181,6 @@ public class BillingServico implements BillingApi {
                 .orElse(planos.get(0));
     }
 
-    /**
-     * Contabiliza mensagens enviadas. Chamado pelo módulo de comunicação quando
-     * ele existir; por ora o método já está aqui porque o limite de plano
-     * depende dele e o contador não pode nascer depois do uso.
-     */
-    @Transactional
-    public void contabilizarMensagens(long idClinica, int quantas) {
-        billing.somarMensagens(idClinica, competenciaDe(LocalDate.now()), quantas);
-    }
-
-    /** Fotografa o número de profissionais na competência corrente. */
     @Override
     @Transactional
     public void fotografarProfissionais(int ativos) {

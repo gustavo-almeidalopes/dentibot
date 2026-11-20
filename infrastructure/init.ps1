@@ -122,14 +122,9 @@ try {
     $env:DENTIBOT_DB_USER = 'dentibot_app'
     $env:DENTIBOT_DB_PASSWORD = 'app_local_apenas'
 
-    & ./mvnw.cmd -q -B flyway:migrate `
-        "-Dflyway.url=$env:DENTIBOT_DB_URL" `
-        "-Dflyway.user=$env:DENTIBOT_DB_MIGRADOR_USER" `
-        "-Dflyway.password=$env:DENTIBOT_DB_MIGRADOR_PASSWORD" `
-        "-Dflyway.schemas=plataforma" `
-        "-Dflyway.defaultSchema=plataforma" `
-        "-Dflyway.createSchemas=true" `
-        "-Dflyway.locations=filesystem:src/main/resources/db/migration"
+    # O resto da configuração do Flyway (schemas, locations) está no pom.xml,
+    # que lê as variáveis acima.
+    & ./mvnw.cmd -q -B flyway:migrate
     if ($LASTEXITCODE -ne 0) { Falha 'flyway:migrate falhou'; exit 1 }
     Ok 'migrations aplicadas'
 } finally {
@@ -137,9 +132,7 @@ try {
 }
 
 Etapa 'Conferindo o invariante de RLS'
-# Toda tabela com id_clinica precisa de ENABLE + FORCE + política. Um banco com
-# migration aplicada e RLS incompleto parece saudável por fora — foi assim que a
-# V1 rodou com vazamento entre clínicas.
+# Toda tabela com id_clinica precisa de ENABLE + FORCE + política.
 $consulta = @'
 WITH t AS (
   SELECT c.oid, n.nspname s, c.relname r, c.relrowsecurity, c.relforcerowsecurity

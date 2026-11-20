@@ -41,20 +41,9 @@ test('a lista de rotas idempotentes do app é a do FiltroIdempotencia', () => {
   );
 });
 
-test('ACOES_POR_STATUS deriva das transições de AgendaServico', () => {
-  const java = ler(JAVA, 'agenda', 'application', 'AgendaServico.java');
+test('ACOES_POR_STATUS deriva das transições de TransicaoConsulta', () => {
+  const java = ler(JAVA, 'agenda', 'application', 'TransicaoConsulta.java');
 
-  // Destino → ação da UI.
-  const ACAO_DO_DESTINO = {
-    confirmada: 'confirmar',
-    cancelada: 'cancelar',
-    faltou: 'falta',
-    realizada: 'concluir',
-  };
-
-  // Em cada chamada a transicionar(...), o destino é o último status citado e
-  // as origens são os anteriores. Vale para as duas formas usadas no serviço:
-  // um status solto e um List.of(...).
   const esperado = {
     agendada: [],
     confirmada: [],
@@ -64,28 +53,20 @@ test('ACOES_POR_STATUS deriva das transições de AgendaServico', () => {
     faltou: [],
   };
 
-  // Duas formas no serviço: `transicionar(...)` com origem única (só o
-  // confirmar) e `transicionarDeQualquerUm(...)` com List.of de origens.
-  const chamadas = [...java.matchAll(/transicionar(?:DeQualquerUm)?\(([\s\S]*?)\);/g)];
-  let encontradas = 0;
-
-  for (const [, argumentos] of chamadas) {
-    const status = citadas(argumentos);
-    // Declaração do método e a chamada ao repositório não citam status.
-    if (status.length < 2) continue;
-    encontradas += 1;
-    const destino = status[status.length - 1];
-    const acao = ACAO_DO_DESTINO[destino];
-    assert.ok(acao, `destino "${destino}" não tem ação mapeada no app`);
-    for (const origem of status.slice(0, -1)) {
+  // Cada constante do enum: CONFIRMAR("confirmar", List.of(origens...), "destino", ...).
+  // O primeiro argumento é o caminho da ação — o mesmo nome que a UI usa.
+  const transicoes = [...java.matchAll(/^\s*[A-Z_]+\(\s*"(\w+)",\s*List\.of\(([^)]*)\),\s*"(\w+)"/gm)];
+  for (const [, acao, origens, destino] of transicoes) {
+    assert.ok(destino in esperado, `destino "${destino}" não é um status conhecido`);
+    for (const origem of citadas(origens)) {
       assert.ok(origem in esperado, `origem "${origem}" não é um status conhecido`);
       if (!esperado[origem].includes(acao)) esperado[origem].push(acao);
     }
   }
 
-  // As quatro do serviço: confirmar, cancelar, falta, concluir. Se virarem
-  // três, alguém removeu uma transição e o app ainda oferece o botão.
-  assert.equal(encontradas, 4, `esperava 4 transições no AgendaServico, achei ${encontradas}`);
+  // Quatro: confirmar, cancelar, falta, concluir. Se virarem três, alguém
+  // removeu uma transição e o app ainda oferece o botão.
+  assert.equal(transicoes.length, 4, `esperava 4 transições em TransicaoConsulta, achei ${transicoes.length}`);
 
   const ts = ler(AQUI, 'api.ts');
   const bloco = ts.match(/ACOES_POR_STATUS[^=]*=\s*\{([\s\S]*?)\n\};/);
@@ -141,8 +122,11 @@ test('o app só chama o que existe no contrato da API (ST-55)', () => {
   assert.ok(chamadas.length >= 6, `achei só ${chamadas.length} chamadas em api.ts`);
 
   const fora = chamadas.filter(({ caminho, metodo }) => {
-    const re = new RegExp(`^${forma(caminho).replace(/\{\}/g, '[^/]+')}$`);
-    return !rotas.some(([c, ops]) => re.test(c) && ops.has(metodo));
+    // Parâmetro casa com qualquer segmento dos DOIS lados: `/consultas/${id}/confirmar`
+    // no app é atendido por `/consultas/{id}/{acao}` no contrato, como o Spring roteia.
+    const casa = (molde, alvo) => new RegExp(`^${molde.replace(/\{\}/g, '[^/]+')}$`).test(alvo);
+    const meu = forma(caminho);
+    return !rotas.some(([c, ops]) => (casa(meu, c) || casa(c, meu)) && ops.has(metodo));
   }).map((c) => `${c.metodo.toUpperCase()} ${c.caminho}`);
   assert.deepEqual(fora, [], 'chamadas do app sem endpoint no contrato');
 });

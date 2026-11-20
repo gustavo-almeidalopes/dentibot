@@ -4,9 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 /**
- * Porta pública do módulo financeiro.
- *
- * <p>Dois princípios atravessam a interface inteira:
+ * Dois princípios atravessam a interface inteira:
  *
  * <ol>
  *   <li><b>Não existe "marcar como pago".</b> Recebimento é uma linha no ledger
@@ -24,10 +22,9 @@ public interface FinanceiroApi {
 
     RecebivelDetalhado detalharRecebivel(long idRecebivel);
 
-    /** Gera as parcelas de um valor. Usado pela aprovação de orçamento e à mão. */
     List<Long> abrirRecebiveis(NovoRecebivel novo);
 
-    /** Registra recebimento, juros, multa, desconto ou taxa. */
+    /** Só tipos manuais: recebimento, desconto, juros, multa, glosa. */
     long registrarLancamento(NovoLancamento novo);
 
     /** Estorna um lançamento, criando o espelho negativo dele. */
@@ -51,6 +48,5 @@ public interface FinanceiroApi {
 
     void liberarComissao(long idComissao);
 
-    /** O painel do financeiro num período. */
     ResumoFinanceiro resumo(LocalDate de, LocalDate ate);
 }

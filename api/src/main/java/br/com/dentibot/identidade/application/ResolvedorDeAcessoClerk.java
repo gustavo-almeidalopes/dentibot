@@ -48,10 +48,9 @@ public class ResolvedorDeAcessoClerk implements ProvedorDeIdentidade {
     public Optional<ContextoRequisicao> resolver(String sujeito, String emailVerificado,
                                                  UUID correlacao) {
         Optional<AcessoDeStaff> staff = usuarios.resolverStaffPorClerk(sujeito);
-        // A linkagem NÃO pode rodar quando o sub já resolveu no eixo staff. O
-        // sub de um staff nunca está em identidade.usuarios, então sem esta
-        // condição ela tentava vincular a cada requisição dele — e bastava um
-        // admin qualquer cadastrar o e-mail de um staff na tela de equipe para
+        // A linkagem NÃO pode rodar quando o sub já resolveu no eixo staff: o
+        // sub de um staff nunca está em identidade.usuarios, e bastaria um
+        // admin qualquer cadastrar o e-mail do staff na tela de equipe para
         // capturar aquele sub, travando a conta nos dois eixos para sempre.
         Optional<AcessoDeClinica> clinica = usuarios.resolverAcessoPorClerk(sujeito)
                 .or(() -> staff.isPresent()

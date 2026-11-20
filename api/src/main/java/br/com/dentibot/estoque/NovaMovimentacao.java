@@ -7,12 +7,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 /**
- * Comando de movimentação.
- *
- * <p>{@code quantidade} vem sempre POSITIVA e o sinal é derivado do tipo pelo
- * serviço. Deixar o cliente mandar o sinal convidaria a uma "saída" com
- * quantidade positiva, que o CHECK {@code ck_sinal_coerente} recusaria com uma
- * mensagem de constraint — erro de banco no lugar de uma regra explicada.
+ * O sinal de {@code quantidade} é derivado do tipo pelo serviço; só
+ * {@code ajuste} usa o sinal enviado. Deixar o cliente mandar o sinal
+ * convidaria a uma "saída" positiva, que o CHECK {@code ck_sinal_coerente}
+ * recusaria com erro de banco no lugar de uma regra explicada.
  */
 public record NovaMovimentacao(
         @NotNull Long idProduto,

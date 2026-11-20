@@ -3,6 +3,7 @@ package br.com.dentibot.auditoria.interfaces.http;
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.auditoria.EventoAuditoria;
 import br.com.dentibot.auditoria.FiltroDeTrilha;
+import br.com.dentibot.plataforma.config.Listagem;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
@@ -15,10 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 /**
  * Trilha de auditoria da própria clínica.
  *
- * <p>O módulo escrevia desde a V5 e não tinha por onde ser lido: a LGPD e a
- * CFO-226 exigem a trilha, e uma trilha que ninguém consegue consultar cumpre a
- * letra da norma e nada do propósito dela.
- *
  * <p>Só ADMIN alcança, e só para LER — nem o admin altera a trilha. Isso está na
  * matriz do {@code AvaliadorDePermissao} e é imposto no serviço; aqui não há
  * segunda checagem, que a invariante 3 proíbe.
@@ -27,7 +24,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/v1/auditoria")
 public class AuditoriaController {
 
-    private static final int LIMITE_MAXIMO = 200;
     private static final Duration JANELA_PADRAO = Duration.ofDays(30);
 
     private final AuditoriaApi auditoria;
@@ -37,9 +33,8 @@ public class AuditoriaController {
     }
 
     /**
-     * A faixa de datas tem default em vez de ser obrigatória na assinatura, mas
-     * nunca fica ausente: a tabela é particionada por {@code ocorrido_em} e uma
-     * consulta sem intervalo varre todas as partições.
+     * A faixa de datas tem default, mas nunca fica ausente: a tabela é
+     * particionada por {@code ocorrido_em} e sem intervalo varre todas as partições.
      */
     @GetMapping
     public List<EventoAuditoria> consultar(
@@ -57,12 +52,7 @@ public class AuditoriaController {
         Instant inicio = de == null ? fim.minus(JANELA_PADRAO) : de;
 
         return auditoria.consultar(new FiltroDeTrilha(
-                inicio, fim, vazioViraNulo(acao), vazioViraNulo(recurso), idUsuario,
-                apos, Math.min(Math.max(limite, 1), LIMITE_MAXIMO)));
-    }
-
-    /** Um filtro em branco vindo do formulário é "sem filtro", não "igual a ''". */
-    private static String vazioViraNulo(String valor) {
-        return valor == null || valor.isBlank() ? null : valor;
+                inicio, fim, Listagem.vazioViraNulo(acao), Listagem.vazioViraNulo(recurso), idUsuario,
+                apos, Listagem.limite(limite)));
     }
 }

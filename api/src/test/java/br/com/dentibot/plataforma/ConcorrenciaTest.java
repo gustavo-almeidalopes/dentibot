@@ -120,7 +120,10 @@ class ConcorrenciaTest extends TesteIntegracao {
      *
      * <p>Sem proteção, a segunda termina dentro dessa janela — não enxerga a
      * escrita da primeira — e as duas commitam. Com índice único ou trava, ela
-     * espera o commit da primeira e é recusada.
+     * fica parada esperando a trava da primeira, que só então commita, e é
+     * recusada. A primeira espera por um desses dois fatos, e não por um tempo
+     * fixo: com um sleep, uma segunda thread lenta chegaria depois do commit e
+     * seria recusada mesmo sem proteção nenhuma.
      *
      * @return o que a segunda lançou, ou {@code null} se passou
      */
@@ -145,13 +148,22 @@ class ConcorrenciaTest extends TesteIntegracao {
         transacao.executeWithoutResult(s -> {
             primeira.run();
             primeiraEscreveu.countDown();
-            try {
-                Thread.sleep(800);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
+            long limite = System.nanoTime() + TimeUnit.SECONDS.toNanos(10);
+            while (!outra.isDone() && !alguemEsperaTrava() && System.nanoTime() < limite) {
+                Thread.onSpinWait();
             }
         });
         return outra.get(15, TimeUnit.SECONDS);
+    }
+
+    /** pg_stat_activity é fotografado uma vez por transação; o clear refaz a foto. */
+    private boolean alguemEsperaTrava() {
+        jdbc.sql("SELECT pg_stat_clear_snapshot()").query().listOfRows();
+        return jdbc.sql("""
+                        SELECT count(*) FROM pg_stat_activity
+                        WHERE wait_event_type = 'Lock' AND pid <> pg_backend_pid()
+                        """)
+                .query(Integer.class).single() > 0;
     }
 
     private Integer contar(String sql) {

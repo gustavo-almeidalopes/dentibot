@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { api } from '../api.js';
 import { STATUS_MEMBRO } from '../apresentacao.js';
 import Confirmar from '../components/Confirmar.jsx';
-import { Aviso, Celula, Selo, Tabela } from '../components/primitivos.jsx';
+import {
+  Aviso, Cabecalho, Celula, Estado, Selo, Tabela,
+} from '../components/primitivos.jsx';
 import { useAcao, useRecurso } from '../dados.js';
-import { Cabecalho, Estado } from './Layout.jsx';
 
 const PAPEIS = [
   { valor: 'ADMIN', rotulo: 'Administrador' },
@@ -12,12 +13,6 @@ const PAPEIS = [
   { valor: 'RECEPCIONISTA', rotulo: 'Recepcionista' },
   { valor: 'FINANCEIRO', rotulo: 'Financeiro' },
   { valor: 'AUXILIAR', rotulo: 'Auxiliar' },
-];
-
-const STATUS = [
-  { valor: 'ativo', rotulo: 'Ativo' },
-  { valor: 'bloqueado', rotulo: 'Bloqueado' },
-  { valor: 'desativado', rotulo: 'Desativado' },
 ];
 
 /* Vínculo não é status: "ainda não entrou" é diferente de "está com problema
@@ -47,8 +42,8 @@ export default function Equipe() {
           : 'Quem tem acesso a esta clínica'}
         acao={(
           <div>
-            {/* O motivo gruda no botão desabilitado: num parágrafo separado ele
-                não explicava por que o botão não clica. */}
+            {/* O motivo gruda no botão desabilitado (aria-describedby): solto
+                num parágrafo, não explica por que o botão não clica. */}
             <button type="button" className="btn btn-fill"
                     disabled={!cabe}
                     aria-describedby={!cabe ? 'limite-plano' : undefined}
@@ -113,8 +108,8 @@ function Membro({ membro, onMudou }) {
 
   return (
     <tr>
-      <Celula rotulo="Nome">
-        <p className="sub" style={{ fontSize: '15px' }}>{membro.nomeCompleto ?? '—'}</p>
+      <Celula rotulo="Nome" className="celula-nome">
+        {membro.nomeCompleto ?? '—'}
         <p className="cap cap-ash">{membro.email}</p>
       </Celula>
 
@@ -139,7 +134,9 @@ function Membro({ membro, onMudou }) {
       <Celula rotulo="Status">
         <select aria-label={`Status de ${membro.nomeCompleto}`}
                 value={status} onChange={(e) => setStatus(e.target.value)}>
-          {STATUS.map((s) => <option key={s.valor} value={s.valor}>{s.rotulo}</option>)}
+          {Object.entries(STATUS_MEMBRO).map(([valor, { rotulo }]) => (
+            <option key={valor} value={valor}>{rotulo}</option>
+          ))}
         </select>
       </Celula>
 
@@ -151,8 +148,6 @@ function Membro({ membro, onMudou }) {
                       onClick={pedirSalvar}>
                 Salvar
               </button>
-              {/* Sem isto, o que você mexeu nos selects só se desfazia
-                  recarregando a página inteira. */}
               <button type="button" className="btn btn-sm" disabled={enviando}
                       onClick={descartar}>
                 Descartar

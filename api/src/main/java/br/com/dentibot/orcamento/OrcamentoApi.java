@@ -4,9 +4,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * Porta pública do módulo orçamento.
- *
- * <p>O orçamento é o documento que vira dinheiro: aprovar um gera o recebível no
+ * O orçamento é o documento que vira dinheiro: aprovar um gera o recebível no
  * financeiro. Por isso a aprovação é um método próprio e não um
  * {@code atualizar(status)} genérico — a transição tem efeito colateral em outro
  * módulo, e esconder isso atrás de um setter é como ele passa despercebido.

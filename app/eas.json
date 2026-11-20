@@ -1,0 +1,27 @@
+{
+  "cli": {
+    "version": ">= 27.10.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "node": "24.17.0",
+      "autoIncrement": true
+    },
+    "preview": {
+      "extends": "base",
+      "environment": "preview",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "extends": "base",
+      "environment": "production"
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

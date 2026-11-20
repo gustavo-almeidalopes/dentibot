@@ -128,20 +128,6 @@ public class FinanceiroRepositorio {
                 .update();
     }
 
-    /** Marca como vencido o que passou da data e ainda tem saldo. Roda em lote. */
-    public int marcarVencidos() {
-        return jdbc.sql("""
-                        UPDATE financeiro.contas_receber cr
-                        SET status = 'vencida'
-                        FROM financeiro.vw_saldo_recebivel v
-                        WHERE v.id_recebivel = cr.id_recebivel
-                          AND cr.status IN ('aberta', 'parcial')
-                          AND cr.vencimento_em < CURRENT_DATE
-                          AND v.saldo_devedor > 0
-                        """)
-                .update();
-    }
-
     // ─── Ledger ──────────────────────────────────────────────────────────────
 
     public List<LancamentoResumo> extrato(long idRecebivel) {
@@ -169,7 +155,6 @@ public class FinanceiroRepositorio {
                 .optional();
     }
 
-    /** Já existe estorno para este lançamento? Estornar duas vezes credita em dobro. */
     public boolean jaEstornado(long idLancamento) {
         return jdbc.sql("""
                         SELECT 1 FROM financeiro.lancamentos

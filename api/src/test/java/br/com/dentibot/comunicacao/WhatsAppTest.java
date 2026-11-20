@@ -227,7 +227,7 @@ class WhatsAppTest extends TesteIntegracao {
 
         Instant inicio = daquiATresDias();
         long idConsulta = agendar(idPaciente, inicio);
-        agenda.cancelar(idConsulta, "paciente pediu");
+        agenda.transicionar(idConsulta, "cancelar", "paciente pediu");
         programar(TiposDeEvento.CONSULTA_CANCELADA, idConsulta);
         assertThat(mensagens()).extracting(m -> m.get("tipo")).containsExactly("oferta_vaga");
         despacharTudo();

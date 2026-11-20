@@ -13,13 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * Invariantes de schema verificados contra o catálogo do Postgres.
  *
- * <p>Este é o teste que a V1 do projeto não tinha. Lá, um bloco {@code DO} criava
- * as políticas de RLS em laço; ele abortava na décima primeira tabela (uma sem
- * coluna {@code id_clinica}), e como {@code DO} é uma transação só, NENHUMA
- * política era criada. O script "rodava", o sistema subia, e o vazamento entre
- * clínicas era demonstrável em três linhas de SQL. Nada nem ninguém avisava.
- *
- * <p>Uma consulta ao catálogo teria pego tudo de uma vez. É o que está aqui.
+ * <p>Um bloco {@code DO} que cria políticas em laço e aborta numa tabela não
+ * cria NENHUMA — {@code DO} é uma transação só —, e o sistema sobe sem RLS,
+ * sem aviso. Uma consulta ao catálogo pega isso de uma vez.
  */
 @DisplayName("Conformidade do schema")
 class ConformidadeDoSchemaTest extends TesteIntegracao {
@@ -161,9 +157,12 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
                           AND NOT has_table_privilege('dentibot_app', c.oid, 'SELECT')
                           -- Sem leitura DE PROPÓSITO: pre_cadastros é ficha de
                           -- saúde sem dono, só escrita até existir o vínculo por
-                          -- CPF (V20); o histórico do Flyway é do migrador.
+                          -- CPF (V20); aceites_cadastro é prova de consentimento,
+                          -- só escrita até existir a tela do titular (V26); o
+                          -- histórico do Flyway é do migrador.
                           AND (n.nspname, c.relname) NOT IN (
                                 ('pacientes', 'pre_cadastros'),
+                                ('lgpd', 'aceites_cadastro'),
                                 ('plataforma', 'flyway_schema_history'))
                         ORDER BY 1
                         """.formatted(SCHEMAS_DE_DOMINIO))
@@ -196,7 +195,8 @@ class ConformidadeDoSchemaTest extends TesteIntegracao {
                                 ('estoque','movimentacoes'),
                                 ('ia','chamadas'),
                                 ('ia','confirmacoes'),
-                                ('lgpd','preferencias'))
+                                ('lgpd','preferencias'),
+                                ('lgpd','aceites_cadastro'))
                         ORDER BY 1
                         """)
                 .query(String.class)

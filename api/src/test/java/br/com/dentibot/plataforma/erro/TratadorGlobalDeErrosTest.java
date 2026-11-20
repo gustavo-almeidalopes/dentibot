@@ -23,10 +23,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 /**
  * Requisição malformada é erro do cliente: 4xx, não 500.
  *
- * <p>O handler de {@code Exception} pegava as exceções que o próprio Spring MVC
- * lança antes do controller — JSON quebrado, parâmetro com tipo errado, método
- * que a rota não aceita — e respondia 500 com {@code log.error}. O cliente não
- * sabia o que corrigir, e o alerta de erro disparava por bug de quem chamou.
+ * <p>O que o próprio Spring MVC lança antes do controller — JSON quebrado,
+ * parâmetro com tipo errado, método que a rota não aceita — não pode cair no
+ * handler de {@code Exception}: viraria 500 com {@code log.error}, e o alerta
+ * dispararia por bug de quem chamou.
  *
  * <p>Sem banco e sem contexto: nenhum destes casos chega ao serviço.
  */

@@ -1,4 +1,5 @@
 import { ClerkProvider } from '@clerk/expo';
+import { resourceCache } from '@clerk/expo/resource-cache';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { Slot } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -16,12 +17,20 @@ if (!publishableKey) {
 
 /**
  * tokenCache guarda a sessão no Keychain (iOS) / Keystore (Android) via
- * expo-secure-store. Sem ele o usuário reloga a cada abertura — e era esse o
- * trabalho do ProvedorDeAuth, que saiu junto com o refresh manual.
+ * expo-secure-store. Sem ele o usuário reloga a cada abertura.
+ *
+ * resourceCache guarda environment e client do Clerk no mesmo armazenamento.
+ * Sem ele, abrir o app sem rede deixa isLoaded false para sempre e o porteiro
+ * gira em <Carregando /> — com ele a sessão sobe do cache e a tela mostra
+ * "Sem conexão com a API." em vez de um spinner eterno.
  */
 export default function Raiz() {
   return (
-    <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      tokenCache={tokenCache}
+      __experimental_resourceCache={resourceCache}
+    >
       <SafeAreaProvider>
         <StatusBar style="light" />
         <View style={{ flex: 1, backgroundColor: cor.obsidiana }}>

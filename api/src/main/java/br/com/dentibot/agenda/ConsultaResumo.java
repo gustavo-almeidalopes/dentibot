@@ -1,6 +1,7 @@
 package br.com.dentibot.agenda;
 
 import java.time.Instant;
+import java.util.List;
 
 /**
  * Linha da agenda como a recepção a vê.
@@ -24,6 +25,9 @@ public record ConsultaResumo(
         Instant inicioEm,
         Instant terminoEm,
         String status,
+        /* O que ESTE usuário pode fazer com a consulta agora — o front não
+           repete a máquina de estados. */
+        List<String> acoes,
         int faltasRecentes,
         int consultasRecentes) {
 }

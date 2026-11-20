@@ -11,6 +11,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public class ProcedimentoRepositorio {
 
+    /* O mesmo DEFAULT de clinicas.procedimentos.duracao_minutos (V8). Ele vale
+       aqui também porque o UPDATE com null precisa voltar ao padrão, e um
+       INSERT com null explícito não aciona o DEFAULT da coluna. */
+    private static final int DURACAO_PADRAO_MIN = 30;
+
     private final JdbcClient jdbc;
 
     public ProcedimentoRepositorio(JdbcClient jdbc) {
@@ -51,7 +56,7 @@ public class ProcedimentoRepositorio {
                 .param("nome", novo.nomeServico())
                 .param("tuss", novo.codigoTuss())
                 .param("preco", novo.precoParticular())
-                .param("duracao", novo.duracaoMinutos() == null ? 30 : novo.duracaoMinutos())
+                .param("duracao", novo.duracaoMinutos() == null ? DURACAO_PADRAO_MIN : novo.duracaoMinutos())
                 .query(Long.class)
                 .single();
     }
@@ -67,7 +72,7 @@ public class ProcedimentoRepositorio {
                 .param("nome", dados.nomeServico())
                 .param("tuss", dados.codigoTuss())
                 .param("preco", dados.precoParticular())
-                .param("duracao", dados.duracaoMinutos() == null ? 30 : dados.duracaoMinutos())
+                .param("duracao", dados.duracaoMinutos() == null ? DURACAO_PADRAO_MIN : dados.duracaoMinutos())
                 .param("ativo", ativo)
                 .update();
     }

@@ -36,8 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  * <p>O {@code MatrizDePermissaoTest} confere a tabela; este confere que os
  * serviços perguntam a ela e respeitam o {@link
  * br.com.dentibot.plataforma.seguranca.Alcance} devolvido. Os dois defeitos que
- * motivaram esta classe passavam no teste da matriz: o de pacientes não
- * chamava {@code exigir()}, e o da agenda chamava e jogava o alcance fora.
+ * ela guarda passam no teste da matriz: serviço que não chama {@code exigir()},
+ * e serviço que chama e joga o alcance fora.
  */
 @DisplayName("Alcance aplicado nas escritas")
 class AlcanceNaEscritaTest extends TesteIntegracao {
@@ -76,8 +76,10 @@ class AlcanceNaEscritaTest extends TesteIntegracao {
                 "Dra. A", "dra.a" + n + "@teste.local", Papel.DENTISTA, "A" + n, "SP", null));
         usuarioDentistaB = identidade.admitirMembro(new NovoMembro(
                 "Dr. B", "dr.b" + n + "@teste.local", Papel.DENTISTA, "B" + n, "SP", null));
-        dentistaA = identidade.dentistaDoUsuario(usuarioDentistaA).orElseThrow();
-        dentistaB = identidade.dentistaDoUsuario(usuarioDentistaB).orElseThrow();
+        como(Papel.DENTISTA, usuarioDentistaA);
+        dentistaA = identidade.dentistaCorrente().orElseThrow();
+        como(Papel.DENTISTA, usuarioDentistaB);
+        dentistaB = identidade.dentistaCorrente().orElseThrow();
     }
 
     @AfterEach
@@ -134,10 +136,10 @@ class AlcanceNaEscritaTest extends TesteIntegracao {
     @DisplayName("dentista não mexe na consulta de um colega — nenhuma das transições")
     void dentistaNaoTransicionaConsultaDeOutro() {
         Map<String, LongConsumer> transicoes = Map.of(
-                "confirmar", agenda::confirmar,
-                "cancelar", id -> agenda.cancelar(id, "tentativa"),
-                "registrarFalta", agenda::registrarFalta,
-                "concluir", agenda::concluir);
+                "confirmar", id -> agenda.transicionar(id, "confirmar", null),
+                "cancelar", id -> agenda.transicionar(id, "cancelar", "tentativa"),
+                "falta", id -> agenda.transicionar(id, "falta", null),
+                "concluir", id -> agenda.transicionar(id, "concluir", null));
 
         int dia = 2;
         for (var t : transicoes.entrySet()) {
@@ -163,11 +165,22 @@ class AlcanceNaEscritaTest extends TesteIntegracao {
 
         long propria = agenda.agendar(new NovaConsulta(
                 idPaciente, dentistaA, null, inicio, inicio.plus(30, ChronoUnit.MINUTES), null));
-        agenda.cancelar(propria, "paciente desmarcou");
+        Instant de = inicio.minus(1, ChronoUnit.HOURS);
+        Instant ate = inicio.plus(1, ChronoUnit.HOURS);
 
-        assertThat(agenda.listar(inicio.minus(1, ChronoUnit.HOURS), inicio.plus(1, ChronoUnit.HOURS), null))
+        assertThat(agenda.listar(de, ate, null))
                 .singleElement()
-                .satisfies(c -> assertThat(c.status()).isEqualTo("cancelada"));
+                .satisfies(c -> assertThat(c.acoes())
+                        .containsExactlyInAnyOrder("confirmar", "cancelar", "falta", "concluir"));
+
+        agenda.transicionar(propria, "cancelar", "paciente desmarcou");
+
+        assertThat(agenda.listar(de, ate, null))
+                .singleElement()
+                .satisfies(c -> {
+                    assertThat(c.status()).isEqualTo("cancelada");
+                    assertThat(c.acoes()).isEmpty();
+                });
     }
 
     // ─── auxiliares ──────────────────────────────────────────────────────────

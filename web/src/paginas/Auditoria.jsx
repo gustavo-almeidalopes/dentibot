@@ -1,29 +1,17 @@
 import { useMemo, useState } from 'react';
-import { query } from '../api.js';
-import { hoje, somarDias } from '../apresentacao.js';
-import { Celula, Selo, Tabela } from '../components/primitivos.jsx';
+import { LIMITE_LISTA, query } from '../api.js';
+import {
+  ACAO_AUDITORIA, fimDoDia, hoje, inicioDoDia, nomesPorId, somarDias,
+} from '../apresentacao.js';
+import {
+  Cabecalho, Celula, Estado, Selo, Tabela,
+} from '../components/primitivos.jsx';
 import { useRecurso } from '../dados.js';
-import { Cabecalho, Estado } from './Layout.jsx';
 
 const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
   dateStyle: 'short', timeStyle: 'medium',
 });
 
-const LIMITE = 200;
-
-/* Espelha o CHECK de `auditoria.eventos.acao`. Exclusão, falha de login e
-   exportação são as três que precisam saltar numa trilha — o resto é o ruído
-   normal de um dia de trabalho. */
-const ACOES = {
-  leitura: { rotulo: 'Leitura', tom: 'fraco' },
-  criacao: { rotulo: 'Criação', tom: 'contorno' },
-  alteracao: { rotulo: 'Alteração', tom: 'contorno' },
-  exclusao: { rotulo: 'Exclusão', tom: 'alarme' },
-  login: { rotulo: 'Login', tom: 'fraco' },
-  logout: { rotulo: 'Logout', tom: 'fraco' },
-  falha_login: { rotulo: 'Falha de login', tom: 'alarme' },
-  exportacao: { rotulo: 'Exportação', tom: 'alarme' },
-};
 
 export default function Auditoria() {
   const [filtros, setFiltros] = useState({
@@ -35,11 +23,11 @@ export default function Auditoria() {
      back-end tem um default, mas mandar daqui mantém a tela honesta sobre o que
      está mostrando. */
   const caminho = useMemo(() => `/auditoria${query({
-    de: new Date(`${filtros.de}T00:00:00`).toISOString(),
-    ate: new Date(`${filtros.ate}T23:59:59.999`).toISOString(),
+    de: inicioDoDia(filtros.de),
+    ate: fimDoDia(filtros.ate),
     acao: filtros.acao,
     recurso: filtros.recurso,
-    limite: LIMITE,
+    limite: LIMITE_LISTA,
   })}`, [filtros]);
 
   const trilha = useRecurso(caminho);
@@ -50,8 +38,8 @@ export default function Auditoria() {
      `identidade` (o inverso já existe, e o par fecharia ciclo de construtor).
      A tela casa os dois lados, que é onde isso custa uma linha. */
   const nomeDoUsuario = useMemo(() => {
-    const mapa = new Map((equipe.dados ?? []).map((m) => [m.idUsuario, m.nomeCompleto]));
-    return (id) => (id == null ? 'Sistema' : mapa.get(id) ?? `Usuário ${id}`);
+    const nome = nomesPorId(equipe.dados, 'idUsuario', 'Usuário');
+    return (id) => (id == null ? 'Sistema' : nome(id));
   }, [equipe.dados]);
 
   const mudar = (campo) => (e) =>
@@ -90,7 +78,7 @@ export default function Auditoria() {
           <span className="cap cap-ash">Ação</span>
           <select value={filtros.acao} onChange={mudar('acao')}>
             <option value="">Todas</option>
-            {Object.entries(ACOES).map(([v, { rotulo }]) => (
+            {Object.entries(ACAO_AUDITORIA).map(([v, { rotulo }]) => (
               <option key={v} value={v}>{rotulo}</option>
             ))}
           </select>
@@ -107,18 +95,20 @@ export default function Auditoria() {
         </label>
       </div>
 
-      <p className="cap cap-ash" style={{ marginBottom: 'var(--spacing-20, 20px)' }}>
+      <p className="aviso" data-tom="info">
         Consultar esta tela também gera um evento — a trilha registra quem a leu.
       </p>
 
       <Estado status={trilha.status} erro={trilha.erro} onTentarDeNovo={trilha.recarregar}
               esqueleto={{ linhas: 10, colunas: 5 }}
-              vazio={lista.length === 0 ? 'Nenhum evento no período.' : null}>
+              vazio={lista.length === 0
+                ? { titulo: 'Trilha limpa.', texto: 'Nenhum evento no período e nos filtros escolhidos.' }
+                : null}>
         {/* Truncar calado numa trilha de auditoria é a diferença entre "não
             houve" e "não coube". */}
-        {lista.length >= LIMITE && (
-          <p className="aviso" data-tom="sucesso" role="status">
-            Mostrando os {LIMITE} eventos mais recentes do período. Estreite as datas
+        {lista.length >= LIMITE_LISTA && (
+          <p className="aviso" data-tom="info" role="status">
+            Mostrando os {LIMITE_LISTA} eventos mais recentes do período. Estreite as datas
             para alcançar o resto.
           </p>
         )}
@@ -141,7 +131,7 @@ export default function Auditoria() {
                   <span className="selo-staff"> staff · {e.staffPapel}</span>
                 )}
               </Celula>
-              <Celula rotulo="Ação"><Selo mapa={ACOES} valor={e.acao} /></Celula>
+              <Celula rotulo="Ação"><Selo mapa={ACAO_AUDITORIA} valor={e.acao} /></Celula>
               <Celula rotulo="Recurso">
                 {e.recurso}
                 {e.idRecurso && <span className="cap cap-ash"> #{e.idRecurso}</span>}

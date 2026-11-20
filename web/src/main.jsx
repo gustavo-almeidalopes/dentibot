@@ -17,7 +17,7 @@ import './app.css';
 import { ligarErros } from './erros.js';
 import {
   ACOMPANHAMENTO, AGENDA, AUDITORIA, CADASTRO, CONVERSAS, EQUIPE, ESTOQUE, FINANCEIRO, IA,
-  LOGIN, PACIENTES, PRONTUARIO, TITULAR,
+  LOGIN, PACIENTES, PRIVACIDADE, PRONTUARIO, RECEPCAO, TERMOS, TITULAR,
 } from './rotas.js';
 
 /* Router de verdade, e não o mapa de `window.location.pathname` que estava
@@ -34,6 +34,7 @@ const ComClerk = lazy(() => import('./ComClerk.jsx'));
 const Login = lazy(() => import('./components/Login.jsx'));
 const Cadastro = lazy(() => import('./paginas/Cadastro.jsx'));
 const Layout = lazy(() => import('./paginas/Layout.jsx'));
+const Recepcao = lazy(() => import('./paginas/Recepcao.jsx'));
 const Agenda = lazy(() => import('./paginas/Agenda.jsx'));
 const Pacientes = lazy(() => import('./paginas/Pacientes.jsx'));
 const Prontuario = lazy(() => import('./paginas/Prontuario.jsx'));
@@ -45,6 +46,8 @@ const Acompanhamento = lazy(() => import('./paginas/Acompanhamento.jsx'));
 const Estoque = lazy(() => import('./paginas/Estoque.jsx'));
 const Ia = lazy(() => import('./paginas/Ia.jsx'));
 const Titular = lazy(() => import('./paginas/Titular.jsx'));
+const TermosDeUso = lazy(() => import('./paginas/Juridico.jsx').then((m) => ({ default: m.TermosDeUso })));
+const Privacidade = lazy(() => import('./paginas/Juridico.jsx').then((m) => ({ default: m.Privacidade })));
 
 ligarErros(import.meta.env.VITE_SENTRY_DSN);
 
@@ -55,6 +58,9 @@ createRoot(document.getElementById('root')).render(
         <Suspense fallback={<p className="body body-ash edge" role="status">Carregando…</p>}>
           <Routes>
             <Route path="/" element={<App />} />
+            {/* Sem Clerk: o titular lê os termos ANTES de ter conta (LGPD art. 9º §1º). */}
+            <Route path={TERMOS} element={<TermosDeUso />} />
+            <Route path={PRIVACIDADE} element={<Privacidade />} />
 
             <Route element={<ComClerk />}>
               <Route path={LOGIN} element={<Login />} />
@@ -65,6 +71,7 @@ createRoot(document.getElementById('root')).render(
 
               {/* Tudo sob o Layout exige sessão — o gate fica lá, uma vez. */}
               <Route element={<Layout />}>
+                <Route path={RECEPCAO} element={<Recepcao />} />
                 <Route path={AGENDA} element={<Agenda />} />
                 <Route path={PACIENTES} element={<Pacientes />} />
                 <Route path={CONVERSAS} element={<Conversas />} />

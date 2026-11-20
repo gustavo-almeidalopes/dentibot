@@ -14,11 +14,6 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 /**
  * O Clerk é o emissor dos tokens; esta aplicação só valida.
  *
- * <p>Saiu daqui, na V18, todo o material de assinatura próprio: par RSA,
- * {@code JwtEncoder}, {@code JWKSource} e o endpoint de JWKS. Emitir token
- * deixou de ser trabalho deste serviço — e chave de assinatura que não existe
- * não vaza, não expira sem aviso e não precisa de rotação coordenada.
- *
  * <p>O que continua sendo trabalho daqui, e não do Clerk: decidir de qual
  * clínica é o usuário e o que o papel dele alcança. Ver
  * {@link br.com.dentibot.plataforma.seguranca.ProvedorDeIdentidade}.

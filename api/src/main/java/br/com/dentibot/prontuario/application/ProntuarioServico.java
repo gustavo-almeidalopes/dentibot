@@ -1,5 +1,6 @@
 package br.com.dentibot.prontuario.application;
 
+import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.agenda.AgendaApi;
 import br.com.dentibot.auditoria.AuditoriaApi;
 import br.com.dentibot.ia.IaApi;
@@ -7,7 +8,6 @@ import br.com.dentibot.ia.PedidoDeIa;
 import br.com.dentibot.ia.RespostaDeIa;
 import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.pacientes.PacientesApi;
-import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
 import br.com.dentibot.plataforma.outbox.Outbox;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
@@ -312,11 +312,10 @@ public class ProntuarioServico implements ProntuarioApi {
     private void exigirAcessoAoPaciente(long idPaciente, Acao acao) {
         Alcance alcance = permissao.exigir(Recurso.PRONTUARIO, acao);
 
-        // Antes de ler qualquer coisa: o paciente existe NESTE tenant? Sem esta
-        // checagem, pedir o prontuário de um paciente de outra clínica devolvia
-        // 200 com lista vazia — o RLS não vazava nada, mas a API confirmava um
-        // caminho que não é do chamador, e a auditoria registrava leitura de um
-        // paciente que a clínica não tem.
+        // Antes de ler qualquer coisa: o paciente existe NESTE tenant? O RLS
+        // devolveria lista vazia para paciente de outra clínica, mas o 200
+        // confirmaria um caminho que não é do chamador, e a auditoria
+        // registraria leitura de um paciente que a clínica não tem.
         if (!pacientes.existe(idPaciente)) {
             throw new RecursoNaoEncontradoException("Paciente", idPaciente);
         }
@@ -330,11 +329,7 @@ public class ProntuarioServico implements ProntuarioApi {
     }
 
     private long dentistaAutenticado() {
-        Long idUsuario = ContextoAtual.obter().usuarioId();
-        if (idUsuario == null) {
-            throw new AcessoNegadoException(Recurso.PRONTUARIO, Acao.CRIAR);
-        }
-        return identidade.dentistaDoUsuario(idUsuario)
+        return identidade.dentistaCorrente()
                 // Ato clínico exige profissional inscrito no CRO. Um admin que
                 // não seja dentista administra a clínica, não assina evolução.
                 .orElseThrow(() -> new AcessoNegadoException(Recurso.PRONTUARIO, Acao.CRIAR));

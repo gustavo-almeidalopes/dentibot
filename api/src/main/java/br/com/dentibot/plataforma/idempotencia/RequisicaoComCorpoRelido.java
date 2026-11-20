@@ -14,10 +14,6 @@ import java.nio.charset.StandardCharsets;
  * Buffer do corpo da requisição para que ele possa ser lido duas vezes: uma pelo
  * filtro de idempotência, para calcular o hash, e outra pelo controller.
  *
- * <p>O corpo de uma requisição HTTP é um stream de passagem única — depois de
- * lido, acabou. Sem este wrapper, o filtro consumiria o corpo e o controller
- * receberia vazio.
- *
  * <p>{@code ContentCachingRequestWrapper} do Spring não serve aqui: ele guarda o
  * que já foi lido para inspeção posterior, mas não repõe o stream para quem vem
  * depois.

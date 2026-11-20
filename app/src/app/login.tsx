@@ -14,17 +14,16 @@ import { Botao, Campo, Erro, Titulo } from '../ui';
  */
 
 /**
- * Tarefa de sessão pendente (MFA obrigatório, escolha de organização) não pode
- * cair na agenda: o Clerk ainda não terminou. Nenhuma está ligada hoje, então o
- * caminho certo é simplesmente não navegar.
- */
-/**
  * signUp.status é um sinal: muda durante o await logo acima da leitura, mas o
  * TypeScript guarda a narrowing de antes e passa a jurar que 'complete' é
  * impossível ali. Ler por aqui devolve o valor de verdade.
  */
 const statusAtual = (r: { status: string }) => r.status;
 
+/**
+ * Tarefa de sessão pendente (MFA obrigatório, escolha de organização) não pode
+ * cair na agenda: o Clerk ainda não terminou, então não navega.
+ */
 const navegarAposAuth = ({ session, decorateUrl }: any) => {
   if (session?.currentTask) return;
   router.replace(decorateUrl('/agenda') as Href);
@@ -50,8 +49,7 @@ export default function Login() {
 
   /* Android tem um voltar que o iOS não tem. Sem isto ele sai da tela inteira
      no meio da verificação, e o código que acabou de chegar por e-mail não tem
-     mais onde ser digitado. Antes dos returns condicionais: hook não pode
-     ficar atrás de um if. */
+     mais onde ser digitado. */
   useEffect(() => {
     if (!verificando) return;
     const inscricao = BackHandler.addEventListener('hardwareBackPress', () => {

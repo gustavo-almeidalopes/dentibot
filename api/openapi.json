@@ -126,7 +126,7 @@
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/NovoPaciente"
+                "$ref" : "#/components/schemas/PedidoPreCadastro"
               }
             }
           },
@@ -699,9 +699,9 @@
         "tags" : [ "agenda-controller" ]
       }
     },
-    "/api/v1/consultas/{id}/cancelar" : {
+    "/api/v1/consultas/{id}/{acao}" : {
       "post" : {
-        "operationId" : "Agenda.cancelar",
+        "operationId" : "Agenda.transicionar",
         "parameters" : [ {
           "in" : "path",
           "name" : "id",
@@ -709,78 +709,24 @@
           "schema" : {
             "type" : "integer",
             "format" : "int64"
+          }
+        }, {
+          "in" : "path",
+          "name" : "acao",
+          "required" : true,
+          "schema" : {
+            "type" : "string"
           }
         } ],
         "requestBody" : {
           "content" : {
             "application/json" : {
               "schema" : {
-                "$ref" : "#/components/schemas/PedidoCancelamento"
+                "$ref" : "#/components/schemas/PedidoTransicao"
               }
             }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "OK"
           }
         },
-        "tags" : [ "agenda-controller" ]
-      }
-    },
-    "/api/v1/consultas/{id}/concluir" : {
-      "post" : {
-        "operationId" : "Agenda.concluir",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "required" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          }
-        },
-        "tags" : [ "agenda-controller" ]
-      }
-    },
-    "/api/v1/consultas/{id}/confirmar" : {
-      "post" : {
-        "operationId" : "Agenda.confirmar",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "required" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "OK"
-          }
-        },
-        "tags" : [ "agenda-controller" ]
-      }
-    },
-    "/api/v1/consultas/{id}/falta" : {
-      "post" : {
-        "operationId" : "Agenda.falta",
-        "parameters" : [ {
-          "in" : "path",
-          "name" : "id",
-          "required" : true,
-          "schema" : {
-            "type" : "integer",
-            "format" : "int64"
-          }
-        } ],
         "responses" : {
           "200" : {
             "description" : "OK"
@@ -3140,6 +3086,32 @@
   },
   "components" : {
     "schemas" : {
+      "AceiteDeCadastro" : {
+        "type" : "object",
+        "properties" : {
+          "dadosDeSaude" : {
+            "type" : "boolean"
+          },
+          "novidades" : {
+            "type" : "boolean"
+          },
+          "representacao" : {
+            "type" : "boolean"
+          },
+          "responsavelLegal" : {
+            "type" : "boolean"
+          },
+          "termosEPrivacidade" : {
+            "type" : "boolean"
+          },
+          "versao" : {
+            "type" : "string",
+            "maxLength" : 10,
+            "minLength" : 0
+          }
+        },
+        "required" : [ "termosEPrivacidade", "versao" ]
+      },
       "Acesso" : {
         "type" : "object",
         "properties" : {
@@ -3452,6 +3424,12 @@
       "ConsultaResumo" : {
         "type" : "object",
         "properties" : {
+          "acoes" : {
+            "type" : "array",
+            "items" : {
+              "type" : "string"
+            }
+          },
           "consultasRecentes" : {
             "type" : "integer",
             "format" : "int32"
@@ -4950,6 +4928,9 @@
       "PedidoCadastro" : {
         "type" : "object",
         "properties" : {
+          "aceites" : {
+            "$ref" : "#/components/schemas/AceiteDeCadastro"
+          },
           "cnpj" : {
             "type" : "string",
             "minLength" : 1,
@@ -4977,18 +4958,7 @@
             "type" : "string"
           }
         },
-        "required" : [ "cnpj", "nomeAdmin", "nomeFantasia", "razaoSocial" ]
-      },
-      "PedidoCancelamento" : {
-        "type" : "object",
-        "properties" : {
-          "motivo" : {
-            "type" : "string",
-            "maxLength" : 255,
-            "minLength" : 0
-          }
-        },
-        "required" : [ "motivo" ]
+        "required" : [ "aceites", "cnpj", "nomeAdmin", "nomeFantasia", "razaoSocial" ]
       },
       "PedidoConclusao" : {
         "type" : "object",
@@ -5097,6 +5067,18 @@
           }
         }
       },
+      "PedidoPreCadastro" : {
+        "type" : "object",
+        "properties" : {
+          "aceites" : {
+            "$ref" : "#/components/schemas/AceiteDeCadastro"
+          },
+          "ficha" : {
+            "$ref" : "#/components/schemas/NovoPaciente"
+          }
+        },
+        "required" : [ "aceites", "ficha" ]
+      },
       "PedidoRecusa" : {
         "type" : "object",
         "properties" : {
@@ -5123,6 +5105,16 @@
           }
         },
         "required" : [ "descricao", "motivo" ]
+      },
+      "PedidoTransicao" : {
+        "type" : "object",
+        "properties" : {
+          "motivo" : {
+            "type" : "string",
+            "maxLength" : 255,
+            "minLength" : 0
+          }
+        }
       },
       "Pendencia" : {
         "type" : "object",

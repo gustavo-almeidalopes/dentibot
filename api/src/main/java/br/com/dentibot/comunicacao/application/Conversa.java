@@ -144,14 +144,15 @@ public class Conversa {
             case CONFIRMAR -> proximaConsulta(doNumero)
                     .map(c -> {
                         if (c.status().equals("agendada")) {
-                            agenda.confirmar(c.idConsulta());
+                            agenda.transicionar(c.idConsulta(), "confirmar", null);
                         }
                         return Textos.confirmado(quando(c.inicioEm()));
                     })
                     .orElse(Textos.SEM_CONSULTA);
             case CANCELAR -> proximaConsulta(doNumero)
                     .map(c -> {
-                        agenda.cancelar(c.idConsulta(), "Cancelada pelo paciente pelo WhatsApp");
+                        agenda.transicionar(c.idConsulta(), "cancelar",
+                                "Cancelada pelo paciente pelo WhatsApp");
                         return Textos.cancelado(quando(c.inicioEm()));
                     })
                     .orElse(Textos.SEM_CONSULTA);

@@ -16,7 +16,10 @@ import { fileURLToPath } from 'node:url';
 const RAIZ = fileURLToPath(new URL('.', import.meta.url));
 const contrato = JSON.parse(readFileSync(new URL('../../api/openapi.json', import.meta.url), 'utf8'));
 
-const forma = (caminho) => caminho.split('?')[0].replace(/\$\{[^}]*\}|\{[^}]+\}/g, '{}');
+/* `${query({ de, ate })}` é só a querystring, e o objeto dentro dela tem chaves
+   próprias: sem tirá-la antes, o `}` do objeto encerraria o `${` cedo demais. */
+const forma = (caminho) => caminho.replace(/\$\{query\(.*?\)\}/g, '').split('?')[0]
+  .replace(/\$\{[^}]*\}|\{[^}]+\}/g, '{}');
 const rotas = Object.entries(contrato.paths)
   .map(([caminho, ops]) => [forma(caminho), new Set(Object.keys(ops))]);
 

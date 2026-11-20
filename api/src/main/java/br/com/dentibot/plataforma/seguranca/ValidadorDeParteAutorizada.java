@@ -15,9 +15,8 @@ import org.springframework.security.oauth2.jwt.Jwt;
  * e é por isso que a própria documentação do Clerk trata esta checagem como
  * parte da verificação, não como extra.
  *
- * <p>Lista vazia desliga a checagem. Só o perfil de teste faz isso, onde não
- * existe browser nem origem do outro lado — em produção, uma lista vazia seria
- * a checagem inteira virando enfeite em silêncio, então o log avisa.
+ * <p>Lista vazia desliga a checagem; por isso {@link PropriedadesClerk} recusa
+ * subir com a lista vazia.
  */
 public class ValidadorDeParteAutorizada implements OAuth2TokenValidator<Jwt> {
 

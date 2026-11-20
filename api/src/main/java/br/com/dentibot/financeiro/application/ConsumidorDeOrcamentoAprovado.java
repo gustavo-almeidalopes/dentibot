@@ -5,9 +5,6 @@ import br.com.dentibot.financeiro.RegraComissao;
 import br.com.dentibot.orcamento.ItemResumo;
 import br.com.dentibot.orcamento.OrcamentoApi;
 import br.com.dentibot.orcamento.OrcamentoDetalhado;
-import br.com.dentibot.plataforma.contexto.ContextoAtual;
-import br.com.dentibot.plataforma.contexto.ContextoRequisicao;
-import br.com.dentibot.plataforma.contexto.Papel;
 import br.com.dentibot.plataforma.outbox.ConsumidorDeEvento;
 import br.com.dentibot.plataforma.outbox.EventoDominio;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
@@ -67,13 +64,10 @@ public class ConsumidorDeOrcamentoAprovado implements ConsumidorDeEvento {
     }
 
     /**
-     * O worker roda SEM tenant: {@code ContextoRequisicao.deWorker()} não tem
-     * {@code clinicaId}, e sem ele {@code plataforma.clinica_atual()} é nula.
-     * Consequência, se nada for promovido aqui: toda leitura sob RLS devolve
-     * zero linhas em silêncio — a guarda de idempotência nunca enxerga o
-     * recebível que já existe — e a primeira escrita estoura em
-     * {@code clinicaObrigatoria()}. O evento é reagendado dez vezes e
-     * abandonado, e aprovar orçamento nunca abre recebível.
+     * O worker roda SEM tenant ({@code plataforma.clinica_atual()} nula). Sem
+     * promover a clínica aqui, toda leitura sob RLS devolve zero linhas em
+     * silêncio — a guarda de idempotência não enxerga o recebível existente — e a
+     * primeira escrita estoura em {@code clinicaObrigatoria()}.
      *
      * <p>A clínica vem do envelope do evento, que é escrito pelo servidor no
      * mesmo INSERT do outbox — nunca de conteúdo enviado pelo cliente.
@@ -81,18 +75,10 @@ public class ConsumidorDeOrcamentoAprovado implements ConsumidorDeEvento {
     @Override
     @Transactional
     public void consumir(EventoDominio evento) {
-        ContextoRequisicao anterior = ContextoAtual.obter();
-        contextoBanco.promoverClinica(evento.clinicaId());
-        ContextoAtual.definir(ContextoRequisicao.deClinica(
-                evento.clinicaId(), 0L, Papel.ADMIN, evento.correlationId()));
-        try {
+        contextoBanco.comoClinica(evento.clinicaId(), evento.correlationId(), () -> {
             processar(evento);
-        } finally {
-            // Sem isto a thread do pool leva o tenant do último evento para o
-            // próximo — a versão em memória do vazamento que o is_local=true
-            // evita no banco.
-            ContextoAtual.definir(anterior);
-        }
+            return null;
+        });
     }
 
     private void processar(EventoDominio evento) {

@@ -10,6 +10,7 @@ import br.com.dentibot.estoque.NovoProduto;
 import br.com.dentibot.estoque.PosicaoProduto;
 import br.com.dentibot.estoque.SugestaoCompra;
 import br.com.dentibot.estoque.ProdutoResumo;
+import br.com.dentibot.plataforma.config.Listagem;
 import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.List;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-/** Estoque: posição, produtos, fornecedores e movimentação. */
 @RestController
 @RequestMapping("/api/v1/estoque")
 public class EstoqueController {
@@ -74,10 +74,9 @@ public class EstoqueController {
     @GetMapping("/produtos/{idProduto}/movimentacoes")
     public List<MovimentacaoResumo> extrato(@PathVariable long idProduto,
                                             @RequestParam(defaultValue = "100") int limite) {
-        return estoque.extrato(idProduto, Math.min(Math.max(limite, 1), 200));
+        return estoque.extrato(idProduto, Listagem.limite(limite));
     }
 
-    /** Lotes com saldo que vencem dentro da janela. Alimenta o aviso de reposição. */
     @GetMapping("/vencimentos")
     public List<LoteVencendo> vencimentos(@RequestParam(defaultValue = "60") int emDias) {
         return estoque.lotesVencendo(Math.min(Math.max(emDias, 1), 365));

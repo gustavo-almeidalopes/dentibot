@@ -28,14 +28,11 @@ public class ConsultaRepositorio {
     }
 
     /**
-     * Nenhuma verificação de conflito de horário aqui, de propósito.
-     *
-     * <p>A V1 fazia {@code SELECT COUNT(*) ... IF > 0 THEN RAISE}: duas
-     * requisições simultâneas contam zero, as duas passam, e o dentista fica com
-     * dois pacientes no mesmo horário. A garantia agora é a EXCLUDE constraint
-     * {@code ex_dentista_sem_sobreposicao}, que o banco avalia sob qualquer
-     * concorrência. A violação chega como DataIntegrityViolationException e vira
-     * 409 no TratadorGlobalDeErros.
+     * Sem checagem de conflito de horário aqui, de propósito: um
+     * {@code SELECT COUNT(*)} antes do INSERT deixa duas requisições simultâneas
+     * passarem. Quem garante é a EXCLUDE constraint
+     * {@code ex_dentista_sem_sobreposicao}; a violação chega como
+     * DataIntegrityViolationException e vira 409 no TratadorGlobalDeErros.
      */
     public long inserir(long idPaciente, long idDentista, Long idProcedimento,
                         Instant inicioEm, Instant terminoEm, String observacoes) {
@@ -105,7 +102,7 @@ public class ConsultaRepositorio {
     /**
      * Transição de status com o estado ANTERIOR na cláusula WHERE.
      *
-     * <p>Sem {@code AND status = :de}, dois cliques em "confirmar" e "cancelar"
+     * <p>Sem {@code AND status IN (:de)}, dois cliques em "confirmar" e "cancelar"
      * chegando juntos deixariam o último a escrever vencer, e não há como saber
      * qual foi. Com ele, a segunda transição afeta zero linhas e o serviço
      * responde 409.
@@ -113,32 +110,17 @@ public class ConsultaRepositorio {
      * @return quantas linhas mudaram: 1 se a transição valeu, 0 se o estado já
      *         era outro
      */
-    public int transicionar(long idConsulta, String de, String para, String motivo) {
+    public int transicionar(long idConsulta, List<String> de, String para, String motivo) {
         return jdbc.sql("""
                         UPDATE agenda.consultas
                         SET status = :para,
                             motivo_cancelamento = COALESCE(:motivo, motivo_cancelamento),
                             termino_real_em = CASE WHEN :para = 'realizada' THEN NOW()
                                                    ELSE termino_real_em END
-                        WHERE id_consulta = :id AND status = :de
-                        """)
-                .param("id", idConsulta)
-                .param("de", de)
-                .param("para", para)
-                .param("motivo", motivo)
-                .update();
-    }
-
-    public int transicionarDeQualquerUm(long idConsulta, List<String> deQualquerUm, String para,
-                                        String motivo) {
-        return jdbc.sql("""
-                        UPDATE agenda.consultas
-                        SET status = :para,
-                            motivo_cancelamento = COALESCE(:motivo, motivo_cancelamento)
                         WHERE id_consulta = :id AND status IN (:de)
                         """)
                 .param("id", idConsulta)
-                .param("de", deQualquerUm)
+                .param("de", de)
                 .param("para", para)
                 .param("motivo", motivo)
                 .update();

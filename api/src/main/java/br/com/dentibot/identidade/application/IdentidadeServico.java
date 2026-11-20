@@ -10,11 +10,12 @@ import br.com.dentibot.identidade.IdentidadeApi;
 import br.com.dentibot.identidade.MembroEquipe;
 import br.com.dentibot.identidade.NovoMembro;
 import br.com.dentibot.identidade.PessoaResumo;
-import br.com.dentibot.identidade.infrastructure.DentistaRepositorio;
 import br.com.dentibot.identidade.infrastructure.DentistaRepositorio.LinhaDentista;
+import br.com.dentibot.identidade.infrastructure.DentistaRepositorio;
 import br.com.dentibot.identidade.infrastructure.PessoaRepositorio;
-import br.com.dentibot.identidade.infrastructure.UsuarioRepositorio;
 import br.com.dentibot.identidade.infrastructure.UsuarioRepositorio.LinhaUsuario;
+import br.com.dentibot.identidade.infrastructure.UsuarioRepositorio;
+import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.contexto.Papel;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
 import br.com.dentibot.plataforma.seguranca.Acao;
@@ -105,6 +106,13 @@ public class IdentidadeServico implements IdentidadeApi {
 
     @Override
     @Transactional(readOnly = true)
+    public Optional<Long> dentistaCorrente() {
+        return Optional.ofNullable(ContextoAtual.obter().usuarioId())
+                .flatMap(this::dentistaDoUsuario);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public Optional<Long> dentistaDoUsuario(long idUsuario) {
         return dentistas.idPorUsuario(idUsuario);
     }
@@ -171,8 +179,7 @@ public class IdentidadeServico implements IdentidadeApi {
     }
 
     /**
-     * Admite um membro. Sem senha: a pessoa cria a própria conta no Clerk e o
-     * vínculo acontece na primeira entrada dela — ver
+     * Sem senha: o vínculo com o Clerk acontece na primeira entrada — ver
      * {@link ResolvedorDeAcessoClerk}.
      */
     @Override

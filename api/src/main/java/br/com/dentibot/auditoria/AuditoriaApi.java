@@ -1,9 +1,7 @@
 package br.com.dentibot.auditoria;
 
 /**
- * Porta pública do módulo auditoria.
- *
- * <p>Todos os métodos são {@code REQUIRED}: participam da transação de quem
+ * Todos os métodos são {@code REQUIRED}: participam da transação de quem
  * chamou, de propósito. Auditoria em transação separada significa que ela
  * sobrevive a um rollback do fato auditado — registrando uma leitura que não
  * aconteceu — ou que se perde quando o commit dela falha. As duas são piores que
@@ -33,17 +31,9 @@ public interface AuditoriaApi {
 
     void registrarExclusao(String recurso, String idRecurso, Object dadosAnteriores);
 
-    /** Login, logout, falha de login. Escrito mesmo quando não há usuário resolvido. */
-    void registrarAutenticacao(String acao, Long idClinica, Long idUsuario,
-                               String ipOrigem, String userAgent);
-
     /**
-     * Consulta a trilha da própria clínica.
-     *
-     * <p>Ler a trilha é, ele mesmo, um ato auditável — e é registrado. Sem isso,
-     * a pergunta "quem andou consultando quem acessou o prontuário de fulano?"
-     * não teria resposta, e ela é exatamente o tipo de pergunta que uma
-     * investigação faz.
+     * Consulta a trilha da própria clínica. A consulta em si também é registrada:
+     * "quem andou olhando quem acessou o prontuário de fulano?" precisa de resposta.
      */
     java.util.List<EventoAuditoria> consultar(FiltroDeTrilha filtro);
 

@@ -1,11 +1,6 @@
-/**
- * O vocabulário visual das telas do sistema.
- *
- * <p>Um arquivo e não cinco: são quatro peças pequenas com a mesma
- * responsabilidade — dizer estado sem fazer nada. Quem fizer alguma coisa
- * (o <dialog>) mora separado.
- */
-import { descrever } from '../apresentacao.js';
+/** O vocabulário visual das telas do sistema. */
+import { descrever, telHref } from '../apresentacao.js';
+import { formatarTelefone } from '../documento.js';
 
 /**
  * Status com forma, nunca só cor.
@@ -42,10 +37,6 @@ export function Esqueleto({ linhas = 5, colunas = 3 }) {
 /**
  * O que acabou de acontecer.
  *
- * <p>Nenhuma ação bem-sucedida avisava que deu certo: `useAcao` só expunha
- * erro, e confirmar uma consulta apenas recarregava a lista. Quem clicou não
- * sabia se clicou.
- *
  * <p>`role="status"` e não `alert` para o sucesso: o leitor de tela anuncia
  * quando terminar a frase atual, em vez de interromper.
  */
@@ -60,9 +51,6 @@ export function Aviso({ texto, tom = 'sucesso' }) {
 
 /**
  * A tabela do sistema.
- *
- * <p>Substitui o `.row` da landing, que é grid de duas colunas com 42px de
- * padding e recebia três filhos — a coluna de ações caía numa linha implícita.
  *
  * <p>Abaixo de 620px cada linha vira bloco empilhado, e é `<Celula>` quem
  * carrega o rótulo que aparece ali: rolagem horizontal numa tabela de trabalho
@@ -94,4 +82,86 @@ export function Celula({ rotulo, num, children, ...resto }) {
       {children}
     </td>
   );
+}
+
+export function Estado({ status, erro, vazio, esqueleto, children, onTentarDeNovo }) {
+  if (status === 'carregando') {
+    return esqueleto
+      ? <Esqueleto linhas={esqueleto.linhas} colunas={esqueleto.colunas} />
+      : <p className="body body-ash" aria-live="polite">Carregando…</p>;
+  }
+  if (status === 'erro') {
+    return (
+      <div aria-live="assertive">
+        <p className="aviso" data-tom="erro">
+          {erro?.message || 'Não foi possível carregar.'}
+        </p>
+        {/* O correlacaoId vem do ProblemDetail do back-end e é o que o suporte
+            usa para achar a linha de log exata sem pedir print de tela. */}
+        {erro?.data?.correlacaoId && (
+          <p className="cap cap-ash">
+            Referência: <code>{erro.data.correlacaoId}</code>{' '}
+            {/* O suporte pede este número por telefone. Ler 36 caracteres de
+                UUID em voz alta é onde a pessoa desiste e desliga. */}
+            <button
+              type="button"
+              className="btn btn-sm"
+              onClick={() => navigator.clipboard?.writeText(erro.data.correlacaoId)}
+            >
+              Copiar
+            </button>
+          </p>
+        )}
+        {onTentarDeNovo && (
+          <button type="button" className="btn" onClick={onTentarDeNovo}>
+            Tentar de novo
+          </button>
+        )}
+      </div>
+    );
+  }
+  if (vazio) {
+    /* `vazio` aceita só a frase, ou { titulo, texto } quando o vazio é uma
+       resposta e não um defeito — "Dia livre." diz mais que "nenhuma". */
+    const { titulo, texto } = typeof vazio === 'string' ? { texto: vazio } : vazio;
+    return (
+      <div className="vazio">
+        {titulo && <p className="vazio-titulo">{titulo}</p>}
+        <p className="body">{texto}</p>
+      </div>
+    );
+  }
+  return children;
+}
+
+/* A máscara de onde o título sobe. As classes `.ln` são as do <Lines> da
+   landing; a animação é CSS puro, porque o título já nasce na tela e o
+   IntersectionObserver do Reveal não teria nada a observar. */
+export const Linha = ({ children }) => <span className="ln"><i>{children}</i></span>;
+
+/**
+ * Cabeçalho de tela: o nome dela no corpo da landing, e uma linha de contexto.
+ *
+ * <p>`secao` faz o mesmo papel para um bloco dentro da tela (Recebíveis, abaixo
+ * dos indicadores) — h2, menor, sem subir: só o título da tela anuncia a rota.
+ */
+export function Cabecalho({ titulo, detalhe, acao, secao = false }) {
+  const Titulo = secao ? 'h2' : 'h1';
+  return (
+    <div className={`app-cabecalho${secao ? ' app-cabecalho-secao' : ''}`}>
+      <div>
+        <Titulo className={`display ${secao ? 'display-xs' : 'display-sm titulo-tela'}`}>
+          {secao ? titulo : <Linha>{titulo}</Linha>}
+        </Titulo>
+        {detalhe && <p className="credit">{detalhe}</p>}
+      </div>
+      {acao}
+    </div>
+  );
+}
+
+/** Telefone que liga, ou `vazio` quando o número não é discável. */
+export function Telefone({ numero, className, vazio = null }) {
+  const href = telHref(numero);
+  return href ? <a className={className} href={href}>{formatarTelefone(numero)}</a> : vazio;
 }

@@ -132,10 +132,89 @@ Nada abaixo é código — é o que as lojas exigem e ainda não existe:
 - **Store billing (IAP)** provavelmente **não** se aplica: é assinatura B2B de
   software, vendida fora do app, e o app não vende nada. Não construa o
   adaptador de Store Billing sem confirmar a regra vigente.
-- **Ícones e splash.** `app.json` define só a cor de fundo.
-- **EAS Build** para gerar os binários e assinar. Nada de credencial de
-  assinatura no repositório — o `.gitignore` já barra `*.jks`, `*.p8`, `*.p12`,
-  `*.mobileprovision`.
+- **Clerk de produção.** O `preview` usa a instância de dev (`pk_test_`). Loja
+  exige `pk_live_` no environment `production` do EAS — hoje ele está vazio, e
+  um build `production` sem a chave fecha na abertura.
+- **API no ar.** O build embute `https://api.dentibot.com.br`, que ainda não
+  resolve. Até subir, o app entra (o Clerk é nuvem) e a agenda diz "Sem
+  conexão com a API.".
+
+## Build e release
+
+Projeto EAS: `@gust4_lop3s/dentibot`. Ninguém compila nesta máquina: o EAS roda
+o `prebuild` e o Gradle/Xcode nos workers dele, na imagem que o SDK 57 fixa.
+`android/` e `ios/` são gerados e ignorados.
+
+| Perfil | Android | iOS | Para quê |
+|---|---|---|---|
+| `preview` | APK assinado | IPA ad hoc | instalar direto em aparelho de teste |
+| `production` | AAB | IPA App Store | lojas |
+
+```bash
+cd app
+npm run eas -- login                                   # uma vez por máquina
+npm run eas -- build -p android --profile preview      # APK
+npm run eas -- build -p ios --profile preview          # exige conta Apple
+```
+
+No CI: GitHub → Actions → **mobile** → *Run workflow* (perfil e plataforma).
+
+**Pré-requisitos:** Node 24.17.0 e uma conta Expo. JDK, Android SDK, Xcode e
+CocoaPods não são necessários localmente. Android: `targetSdk 36`,
+`minSdk 24` (Android 7.0), vindos do RN 0.86. R8 e shrink de recursos ligados
+via `expo-build-properties`, com uma regra só: `-dontwarn
+kotlin.MustUseReturnValues`. O `kotlinx-io` traz essa anotação de um Kotlin
+mais novo que o R8 do AGP 8.12, e sem a regra o `minifyReleaseWithR8` falha.
+Anotação ausente não quebra nada em runtime. Remova a regra quando o AGP subir.
+
+### Subir a versão
+
+- **Versão de exibição:** `npm version patch|minor|major` no `app/`. O
+  `app.config.js` repassa `package.json#version` ao Expo; não há outra cópia.
+- **Número de build** (`versionCode` / `buildNumber`): é do EAS
+  (`appVersionSource: remote`) e sobe sozinho a cada build. Para forçar:
+  `npm run eas -- build:version:set`.
+
+### Onde está cada segredo
+
+Nada disto está no repositório; o `.gitignore` barra `*.jks`, `*.p8`, `*.p12`,
+`*.key`, `*.mobileprovision` e `.env*`.
+
+| Segredo | Onde vive | Como chegar |
+|---|---|---|
+| Keystore Android (+ alias e senhas) | EAS credentials do projeto | `npm run eas -- credentials -p android` |
+| Cópia de segurança do keystore | fora do repo, ex. `%USERPROFILE%\.dentibot\` | baixar pelo comando acima |
+| `EXPO_TOKEN` (CI) | GitHub → Settings → Secrets → Actions | gerar em expo.dev → Access tokens |
+| `EXPO_PUBLIC_API_URL`, `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | EAS → environments `preview` / `production` | `npm run eas -- env:list --environment preview` |
+| Certificado de distribuição + perfil iOS | EAS credentials (quando houver conta Apple) | gerados no 1º `build -p ios` |
+| Chave da App Store Connect API (`.p8`) | EAS submit credentials | `npm run eas -- credentials -p ios` |
+
+### Trocar material de assinatura
+
+- **Keystore Android:** para APK fora da loja, um keystore novo **não instala
+  por cima** do antigo — o aparelho exige desinstalar. Na Play, perder o
+  keystore de upload não é fatal (o Google reseta a chave de upload). Faça
+  backup antes de qualquer troca; troque por `eas credentials`.
+- **iOS:** certificado e perfil vencem em 1 ano; `eas credentials -p ios`
+  regenera, e o próximo build usa o novo.
+- **`EXPO_TOKEN`:** revogar em expo.dev, gerar outro e atualizar o secret.
+
+### iOS sem conta Apple (estado atual)
+
+Não há IPA: assinar exige o Apple Developer Program. O projeto já está pronto
+para ele — bundle `br.com.dentibot.app`, sem permissões no `Info.plist`,
+`ITSAppUsesNonExemptEncryption: false`. Quando a conta existir:
+
+1. Team ID em developer.apple.com → Membership.
+2. `npm run eas -- build -p ios --profile preview` — o EAS pede o login Apple,
+   registra o bundle id, cria certificado de distribuição e perfil **Ad Hoc**
+   (registre antes os UDIDs com `npm run eas -- device:create`).
+3. Loja: `--profile production` gera perfil **App Store**; envio com
+   `npm run eas -- submit -p ios` (TestFlight).
+
+Nenhum passo exige Mac. Projeto Xcode local, se um dia for útil:
+`npx expo prebuild -p ios` num Mac gera `ios/DentiBot.xcworkspace`, esquema
+`DentiBot`.
 
 ## Estrutura
 

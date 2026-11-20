@@ -4,13 +4,9 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Porta pública do módulo clínicas.
- *
- * <p>Existe por causa de um caso concreto: o orçamento precisa do preço do
- * procedimento, e o preço mora em {@code clinicas.procedimentos}. Um
- * {@code JOIN} de {@code orcamento.itens} com esse schema funcionaria hoje e é
- * exatamente o que o {@code FronteiraDeSchemaTest} reprova — pela mesma razão de
- * sempre: some na revisão, parecendo só uma consulta eficiente.
+ * O orçamento precisa do preço, que mora em {@code clinicas.procedimentos}: é
+ * por aqui que ele o lê. Um {@code JOIN} de {@code orcamento.itens} com esse
+ * schema é o que o {@code FronteiraDeSchemaTest} reprova.
  */
 public interface ClinicasApi {
 

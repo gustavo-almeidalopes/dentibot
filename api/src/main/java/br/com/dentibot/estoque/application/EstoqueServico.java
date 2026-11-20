@@ -125,9 +125,8 @@ public class EstoqueServico implements EstoqueApi {
             throw new IllegalArgumentException("Quantidade não pode ser zero.");
         }
         if ("ajuste".equals(tipo)) {
-            // Ajuste é o único tipo que aceita os dois sinais — é o que corrige
-            // uma contagem para cima ou para baixo. Por isso ele passa como
-            // veio, e os outros têm o sinal derivado.
+            // Ajuste é o único tipo que aceita os dois sinais: corrige uma
+            // contagem para cima ou para baixo.
             return gravar(tipo, nova.quantidade(), nova);
         }
 
@@ -150,12 +149,9 @@ public class EstoqueServico implements EstoqueApi {
     }
 
     /**
-     * Recusa a baixa que deixaria o saldo negativo.
-     *
-     * <p>Estoque negativo não é um número errado que dá para corrigir depois: é
-     * a clínica achando que tem anestésico e descobrindo no meio do atendimento
-     * que não tem. A conferência é por lote quando há lote, porque é o lote que
-     * sai da prateleira.
+     * Estoque negativo é a clínica achando que tem anestésico e descobrindo no
+     * meio do atendimento que não tem. A conferência é por lote quando há lote,
+     * porque é o lote que sai da prateleira.
      */
     private void exigirSaldo(NovaMovimentacao nova, BigDecimal magnitude) {
         BigDecimal saldo = estoque.saldoDoLote(nova.idProduto(), nova.lote());

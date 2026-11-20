@@ -27,9 +27,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.transaction.support.TransactionTemplate;
 
 /**
- * O teste que a V1 deste projeto não tinha — e cuja ausência deixou passar 31
- * políticas de RLS que nunca foram criadas, com vazamento entre clínicas
- * comprovável em três linhas de SQL.
+ * Isolamento entre clínicas pelo RLS.
  *
  * <p>Cada asserção de NEGAÇÃO vem acompanhada de uma asserção de PERMISSÃO. Sem
  * isso, "A não vê B" fica verde com o banco vazio, que é a forma mais comum de

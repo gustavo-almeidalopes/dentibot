@@ -9,6 +9,12 @@ export const CRIAR = '/login?criar=1';
    tudo — inclusive para quem entrou com Google, Microsoft ou Apple. */
 export const CADASTRO = '/cadastro';
 
+/* Públicas: o aceite do cadastro aponta para elas, e o titular precisa lê-las
+   ANTES de consentir (LGPD art. 9º §1º) — por isso fora do Clerk e sem login. */
+export const TERMOS = '/termos-de-uso';
+export const PRIVACIDADE = '/privacidade';
+
+export const RECEPCAO = '/recepcao';
 export const AGENDA = '/agenda';
 export const PACIENTES = '/pacientes';
 export const EQUIPE = '/equipe';
@@ -34,6 +40,9 @@ export const prontuarioDe = (idPaciente) => PRONTUARIO.replace(':idPaciente', id
  * tentação de "consertar" para PACIENTES quebra a correspondência.
  */
 export const MENU = [
+  /* Recepção antes da Agenda: é quem abre o dia da clínica. As duas leem o
+     mesmo recurso — a Recepção é a agenda vista do balcão, não outra permissão. */
+  { href: RECEPCAO, label: 'Recepção', recurso: 'AGENDA' },
   { href: AGENDA, label: 'Agenda', recurso: 'AGENDA' },
   { href: PACIENTES, label: 'Pacientes', recurso: 'PACIENTE' },
   // AGENDA: responder paciente no WhatsApp é parte de cuidar da agenda.

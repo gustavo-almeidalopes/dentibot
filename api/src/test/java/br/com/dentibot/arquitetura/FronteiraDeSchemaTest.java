@@ -124,9 +124,6 @@ class FronteiraDeSchemaTest {
                         Files.readString(arquivo, StandardCharsets.UTF_8)).size();
             }
         }
-        // Sem esta asserção, um erro no extrator faria o teste de fronteira
-        // passar para sempre sem olhar nada — a armadilha do teste que fica
-        // verde com o conjunto vazio.
         assertThat(blocos)
                 .as("o extrator de SQL precisa estar encontrando consultas de verdade")
                 .isGreaterThan(20);

@@ -11,7 +11,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  AGENDA, CONVERSAS, MENU, PACIENTES, itensDoMenu, prontuarioDe, recursoDaTela,
+  AGENDA, RECEPCAO, CONVERSAS, MENU, PACIENTES, itensDoMenu, prontuarioDe, recursoDaTela,
 } from './rotas.js';
 
 test('prontuário não é confundido com pacientes', () => {
@@ -55,5 +55,5 @@ test('o menu não some quando o /eu falha', () => {
   assert.deepEqual(itensDoMenu('carregando', () => true), []);
   // Com o /eu em mãos, o papel decide — e a ordem do dia de trabalho se mantém.
   const recepcao = (recurso) => recurso === 'AGENDA' || recurso === 'PACIENTE';
-  assert.deepEqual(itensDoMenu('ok', recepcao).map((i) => i.href), [AGENDA, PACIENTES, CONVERSAS]);
+  assert.deepEqual(itensDoMenu('ok', recepcao).map((i) => i.href), [RECEPCAO, AGENDA, PACIENTES, CONVERSAS]);
 });

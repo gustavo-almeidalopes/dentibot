@@ -134,11 +134,8 @@ public class BillingRepositorio {
     }
 
     /**
-     * Encerra a assinatura em trial ao vincular a do provedor.
-     *
-     * <p>Sem isto, o índice parcial recusaria a nova: já existe uma viva. O
-     * erro apareceria como violação de unicidade dentro de um webhook, que é o
-     * pior lugar possível para descobrir isso.
+     * Encerra o trial ao vincular a assinatura do provedor; sem isto o índice
+     * parcial recusaria a nova, que já existe uma viva.
      */
     public int encerrarTrialSemProvedor(long idClinica) {
         return jdbc.sql("""
@@ -206,27 +203,6 @@ public class BillingRepositorio {
                         rs.getInt("mensagens_enviadas"), rs.getInt("profissionais_ativos") })
                 .optional()
                 .orElse(new int[] { 0, 0 });
-    }
-
-    /**
-     * Soma ao contador do mês. UPSERT em vez de ler-somar-gravar: duas mensagens
-     * disparadas ao mesmo tempo perderiam uma contagem no caminho de leitura, e
-     * o limite de plano viraria sugestão.
-     */
-    public void somarMensagens(long idClinica, LocalDate competencia, int quantas) {
-        jdbc.sql("""
-                        INSERT INTO billing.uso_mensal
-                            (id_clinica, competencia, mensagens_enviadas)
-                        VALUES (:clinica, :competencia, :quantas)
-                        ON CONFLICT (id_clinica, competencia) DO UPDATE
-                            SET mensagens_enviadas =
-                                    billing.uso_mensal.mensagens_enviadas + EXCLUDED.mensagens_enviadas,
-                                atualizado_em = NOW()
-                        """)
-                .param("clinica", idClinica)
-                .param("competencia", competencia)
-                .param("quantas", quantas)
-                .update();
     }
 
     /** Fotografia do número de profissionais — substitui, não soma. */

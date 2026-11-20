@@ -1,6 +1,7 @@
 package br.com.dentibot.plataforma.idempotencia;
 
 import br.com.dentibot.plataforma.contexto.ContextoAtual;
+import br.com.dentibot.plataforma.ratelimit.FiltroRateLimit;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import java.security.MessageDigest;
 import java.util.HexFormat;
 import java.util.Optional;
 import java.util.Set;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,7 @@ import org.springframework.web.util.ContentCachingResponseWrapper;
  * o resultado de outro pedido seria bem pior que recusar.
  */
 @Component
+@Order(FiltroRateLimit.ORDEM + 1)
 public class FiltroIdempotencia extends OncePerRequestFilter {
 
     public static final String CABECALHO = "Idempotency-Key";
@@ -78,8 +81,6 @@ public class FiltroIdempotencia extends OncePerRequestFilter {
             return;
         }
 
-        // O corpo de uma requisição é stream de passagem única. O wrapper o
-        // guarda para que o hash saia aqui e o controller ainda consiga ler.
         RequisicaoComCorpoRelido requisicao = new RequisicaoComCorpoRelido(req);
         String hash = sha256(requisicao.corpo());
 

@@ -17,22 +17,18 @@ import org.junit.jupiter.api.Test;
  * O {@code Alcance} devolvido por {@code exigir()} não pode ser descartado numa
  * escrita.
  *
- * <p>Existe por causa de um bug real, encontrado em revisão de segurança. Os
- * seis mutadores de orçamento chamavam
- * {@code permissoes.exigir(ORCAMENTO, ALTERAR)} e jogavam o retorno fora.
- * {@code PROPRIOS} satisfaz {@code permite()}, então a chamada passava — e nada
- * mais no caminho olhava para o {@code id_dentista}. Na prática um dentista
- * aprovava o orçamento de um colega da mesma clínica só pelo id, e o evento
- * {@code orcamento.aprovado} saía com o {@code idDentista} dele, abrindo
- * recebível e comissão para um plano que ele nunca aprovou.
+ * <p>{@code PROPRIOS} satisfaz {@code permite()}: um mutador que chama
+ * {@code permissoes.exigir(ORCAMENTO, ALTERAR)} e joga o retorno fora deixa um
+ * dentista aprovar o orçamento de um colega da mesma clínica só pelo id — e o
+ * {@code orcamento.aprovado} abre recebível e comissão para um plano que ele
+ * nunca aprovou.
  *
  * <p>O RLS não pega isto: ele fecha o eixo do tenant, e os dois dentistas estão
  * no mesmo. Nenhum teste de isolamento ficaria vermelho.
  *
- * <p>É exatamente o tipo de defeito que some numa revisão — a linha
- * {@code permissoes.exigir(...)} está lá, parece uma checagem completa, e a
- * diferença entre checar o verbo e checar o objeto não aparece na leitura. Por
- * isso a garantia é de máquina, no mesmo espírito do {@link FronteiraDeSchemaTest}.
+ * <p>Na revisão a linha {@code permissoes.exigir(...)} parece uma checagem
+ * completa — a diferença entre checar o verbo e checar o objeto não aparece na
+ * leitura. Por isso a garantia é de máquina, como no {@link FronteiraDeSchemaTest}.
  */
 @DisplayName("Escopo PROPRIOS nas escritas de orçamento")
 class EscopoDeOrcamentoTest {
@@ -78,8 +74,7 @@ class EscopoDeOrcamentoTest {
                 .isEmpty();
 
         // Sem esta asserção, um erro no parser faria o teste acima passar para
-        // sempre olhando o conjunto vazio — a armadilha que o
-        // FronteiraDeSchemaTest também precisou fechar.
+        // sempre olhando o conjunto vazio.
         assertThat(escritas)
                 .as("o parser precisa estar encontrando os métodos de escrita de verdade")
                 .isGreaterThanOrEqualTo(6);

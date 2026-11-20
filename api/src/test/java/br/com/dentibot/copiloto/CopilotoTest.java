@@ -104,9 +104,9 @@ class CopilotoTest extends TesteIntegracao {
         orcamentos.aprovar(orcamento);
 
         // Histórico: duas faltas e uma consulta realizada, no passado.
-        agenda.registrarFalta(agendar(-20));
-        agenda.registrarFalta(agendar(-15));
-        agenda.concluir(agendar(-10));
+        agenda.transicionar(agendar(-20), "falta", null);
+        agenda.transicionar(agendar(-15), "falta", null);
+        agenda.transicionar(agendar(-10), "concluir", null);
     }
 
     @AfterEach

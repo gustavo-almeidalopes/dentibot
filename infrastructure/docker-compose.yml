@@ -67,9 +67,9 @@ services:
     container_name: dentibot-redis
     command:
       - redis-server
-      # Rate limit, idempotência e blocklist são cache e estado temporário;
-      # nenhum deles é fonte de verdade (camada 11). Sem persistência em dev
-      # para que isso fique evidente: reiniciar o Redis não pode corromper nada.
+      # O Redis guarda só o rate limit, estado temporário e não fonte de
+      # verdade (camada 11). Sem persistência em dev para que isso fique
+      # evidente: reiniciar o Redis não pode corromper nada.
       - --save
       - ""
       - --appendonly

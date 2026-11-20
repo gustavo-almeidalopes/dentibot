@@ -13,8 +13,8 @@ import br.com.dentibot.orcamento.OrcamentoDetalhado;
 import br.com.dentibot.orcamento.OrcamentoResumo;
 import br.com.dentibot.orcamento.infrastructure.OrcamentoRepositorio;
 import br.com.dentibot.orcamento.infrastructure.OrcamentoRepositorio.LinhaItem;
-import br.com.dentibot.plataforma.contexto.ContextoAtual;
 import br.com.dentibot.plataforma.erro.RecursoNaoEncontradoException;
+import br.com.dentibot.plataforma.erro.TransicaoInvalidaException;
 import br.com.dentibot.plataforma.outbox.Outbox;
 import br.com.dentibot.plataforma.outbox.TiposDeEvento;
 import br.com.dentibot.plataforma.seguranca.Acao;
@@ -233,17 +233,10 @@ public class OrcamentoServico implements OrcamentoApi {
      * Porta única das escritas: carrega a linha e confere o alcance antes de
      * qualquer mutação.
      *
-     * <p>Existe porque o alcance vinha sendo obtido e jogado fora nos seis
-     * mutadores — {@code exigir()} devolve {@link Alcance}, {@code PROPRIOS}
-     * satisfaz {@code permite()}, e nada mais olhava para o {@code id_dentista}.
-     * Na prática um dentista aprovava o orçamento de um colega da mesma clínica
-     * pelo id, e o evento {@code orcamento.aprovado} saía com o
-     * {@code idDentista} do colega — abrindo recebível e comissão para um plano
-     * que ele nunca aprovou. O RLS não pega isso: ele fecha o eixo do tenant, e
-     * os dois dentistas estão no mesmo.
-     *
-     * <p>Todo mutador passa por aqui. Um caminho de escrita que não chame este
-     * método é o bug voltando.
+     * <p>Todo mutador passa por aqui. O RLS fecha só o eixo do tenant: sem esta
+     * conferência, um dentista com alcance {@code PROPRIOS} aprovaria pelo id o
+     * orçamento de um colega da mesma clínica, abrindo recebível e comissão em
+     * nome do colega.
      */
     private OrcamentoResumo carregar(long idOrcamento, Alcance alcance) {
         OrcamentoResumo o = orcamentos.buscar(idOrcamento)
@@ -264,7 +257,7 @@ public class OrcamentoServico implements OrcamentoApi {
         if (alcance != Alcance.PROPRIOS) {
             return idDentistaPedido;
         }
-        Long proprio = dentistaCorrente();
+        Long proprio = identidade.dentistaCorrente().orElse(null);
         if (proprio == null) {
             throw new AcessoNegadoException(Recurso.ORCAMENTO, Acao.CRIAR);
         }
@@ -330,7 +323,7 @@ public class OrcamentoServico implements OrcamentoApi {
         if (alcance != Alcance.PROPRIOS) {
             return todos;
         }
-        Long idDentista = dentistaCorrente();
+        Long idDentista = identidade.dentistaCorrente().orElse(null);
         return idDentista == null
                 ? List.of()
                 : todos.stream().filter(o -> o.idDentista() == idDentista).toList();
@@ -338,7 +331,7 @@ public class OrcamentoServico implements OrcamentoApi {
 
     private void exigirAlcance(OrcamentoResumo o, Alcance alcance) {
         if (alcance == Alcance.PROPRIOS) {
-            Long idDentista = dentistaCorrente();
+            Long idDentista = identidade.dentistaCorrente().orElse(null);
             if (idDentista == null || o.idDentista() != idDentista) {
                 // 404 e não 403: confirmar que o orçamento existe já é informação
                 // sobre um paciente de outra pessoa.
@@ -355,8 +348,7 @@ public class OrcamentoServico implements OrcamentoApi {
      * forma de ver a agenda alheia.
      */
     private Long dentistaCorrente() {
-        Long idUsuario = ContextoAtual.obter().usuarioId();
-        return idUsuario == null ? null : identidade.dentistaDoUsuario(idUsuario).orElse(null);
+        return identidade.dentistaCorrente().orElse(null);
     }
 
     public static class TransicaoInvalidaException extends RuntimeException {

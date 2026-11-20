@@ -1,0 +1,38 @@
+# Binários do app (app/). Manual de propósito: cada build gasta cota do EAS, e
+# nenhum push precisa de APK novo. JDK, Gradle, Xcode e CocoaPods não aparecem
+# aqui porque não rodam aqui: o EAS compila na imagem que o SDK 57 fixa, e o
+# Gradle vem fixado pelo wrapper que o prebuild gera.
+name: mobile
+
+on:
+  workflow_dispatch:
+    inputs:
+      perfil:
+        type: choice
+        options: [preview, production]
+        default: preview
+      plataforma:
+        type: choice
+        options: [android, ios, all]
+        default: android
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24.17.0'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+      - uses: expo/expo-github-action@v8
+        with:
+          eas-version: 27.10.0
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+      - run: npm run typecheck && npm test
+      - run: eas build --platform ${{ inputs.plataforma }} --profile ${{ inputs.perfil }} --non-interactive --wait

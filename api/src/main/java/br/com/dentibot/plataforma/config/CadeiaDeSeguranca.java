@@ -30,8 +30,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
  * CORS → Correlation-Id → Autenticação → Autorização → Rate limit → Validação →
  * Idempotência → módulo de negócio.
  *
- * <p>Nota conceitual que quase todo mundo erra: <b>CORS não é comunicação entre
- * serviços</b>. CORS é o navegador em {@code app.dentibot.com.br} falando com
+ * <p><b>CORS não é comunicação entre serviços</b>. CORS é o navegador em {@code app.dentibot.com.br} falando com
  * {@code api.dentibot.com.br}. Java ↔ Python e agente .NET → Java não passam por
  * CORS: passam por HTTP autenticado ou por evento. Afrouxar CORS não resolve
  * problema de integração interna — só abre a API para qualquer página.
@@ -116,9 +115,7 @@ public class CadeiaDeSeguranca {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         // Cadastro de clínica: sem tenant (é ele que o cria), mas
                         // não anônimo — o controller exige token do Clerk válido,
-                        // porque o `sub` vira o dono da clínica. Desde a V18 esta
-                        // aplicação não emite token nenhum e por isso não publica
-                        // mais JWKS: o emissor é o Clerk.
+                        // porque o `sub` vira o dono da clínica.
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/actuator/health", "/actuator/health/**").permitAll()
                         // Webhook um a um, nunca /webhooks/**: liberado de
