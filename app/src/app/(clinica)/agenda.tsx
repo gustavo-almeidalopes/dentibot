@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ErroApi, api, type Acao, type Consulta } from '../../api';
@@ -55,13 +55,20 @@ export default function Agenda() {
   const [cancelando, setCancelando] = useState<number | null>(null);
   const [motivo, setMotivo] = useState('');
 
+  /** Só a requisição mais recente escreve: tocar → → rápido não deixa a
+      resposta de ontem chegar por último e aparecer sob "Amanhã". */
+  const ultimoPedido = useRef(0);
+
   const carregar = useCallback(async (alvo: Date) => {
+    const pedido = ++ultimoPedido.current;
     setErro(null);
     try {
       const { de, ate } = janelaDoDia(alvo);
       const linhas = await api.agenda(de, ate);
+      if (pedido !== ultimoPedido.current) return;
       setConsultas([...linhas].sort((a, b) => a.inicioEm.localeCompare(b.inicioEm)));
     } catch (e) {
+      if (pedido !== ultimoPedido.current) return;
       // 401 não cai aqui: o cliente já derrubou a sessão e o layout redireciona.
       setErro(e instanceof ErroApi ? e.message : 'Não foi possível carregar a agenda.');
       setConsultas([]);
@@ -132,7 +139,9 @@ export default function Agenda() {
           keyExtractor={(c) => String(c.idConsulta)}
           ItemSeparatorComponent={Divisoria}
           contentContainerStyle={{ paddingBottom: espaco.xxl }}
-          ListEmptyComponent={<Vazio>Nenhuma consulta neste dia.</Vazio>}
+          // Com erro, a lista vazia não é "dia livre": é "não sei". O erro acima
+          // diz o que houve; afirmar que não há consulta seria mentir offline.
+          ListEmptyComponent={erro ? null : <Vazio>Nenhuma consulta neste dia.</Vazio>}
           refreshControl={
             <RefreshControl
               refreshing={recarregando}

@@ -5,10 +5,11 @@
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "android": "expo run:android",
-    "ios": "expo run:ios",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
     "typecheck": "tsc --noEmit",
-    "test": "node --test src/*.test.mjs"
+    "test": "node --test src/*.test.mjs",
+    "eas": "npx -y eas-cli@27.10.0"
   },
   "dependencies": {
     "@clerk/expo": "^4.6.6",

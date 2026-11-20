@@ -28,7 +28,8 @@
         {
           "android": {
             "enableMinifyInReleaseBuilds": true,
-            "enableShrinkResourcesInReleaseBuilds": true
+            "enableShrinkResourcesInReleaseBuilds": true,
+            "extraProguardRules": "-dontwarn kotlin.MustUseReturnValues"
           }
         }
       ]
@@ -57,6 +58,13 @@
     },
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "03b97cd7-9a56-483e-a3bc-f66586d59172"
+      }
+    },
+    "owner": "gust4_lop3s"
   }
 }

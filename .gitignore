@@ -32,6 +32,14 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# ─── Ferramenta local de agente ──────────────────────────────────────────────
+# Skills instalados por `npx skills add`: são da máquina, não do projeto. O
+# symlink em .claude/skills derruba o upload do EAS no Windows (EPERM ao
+# recriá-lo na cópia do repositório).
+.agents/
+.claude/skills/
+skills-lock.json
+
 # ─── Java ────────────────────────────────────────────────────────────────────
 *.class
 *.jar
