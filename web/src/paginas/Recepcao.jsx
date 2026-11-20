@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { api, query } from '../api.js';
 import {
   STATUS_CONSULTA, cabeAgora, contagem, diaDe, fimDoDia, hora, inicioDoDia, jaPassou, momento,
-  nomeDoPaciente, nomesPorId, porExtenso, relativo, semDesfecho, somarDias, telHref,
+  nomeDoPaciente, porExtenso, relativo, semDesfecho, somarDias, telHref,
   whatsappHref,
 } from '../apresentacao.js';
 import Agendar from '../components/Agendar.jsx';
@@ -12,7 +12,7 @@ import Transicoes from '../components/Transicao.jsx';
 import {
   Aviso, Cabecalho, Celula, Estado, Selo, Tabela, Telefone,
 } from '../components/primitivos.jsx';
-import { useAcao, useRecurso } from '../dados.js';
+import { useAcao, useDentistas, useRecurso } from '../dados.js';
 import { usePode } from '../permissoes.js';
 
 /* O relógio da tela. Meio minuto basta: "em 25 min" não precisa de segundos,
@@ -45,7 +45,8 @@ export default function Recepcao() {
   const amanha = somarDias(dia, 1);
 
   const consultas = useRecurso(`/consultas${query({ de: inicioDoDia(dia), ate: fimDoDia(amanha) })}`);
-  const dentistas = useRecurso('/equipe/dentistas');
+  const dentistas = useDentistas();
+  const { nomeDoDentista } = dentistas;
   const clinica = useRecurso('/clinica');
   const { executar, enviando, sucesso } = useAcao(consultas.recarregar);
 
@@ -55,10 +56,6 @@ export default function Recepcao() {
   const [novo, setNovo] = useState(state?.paciente ?? null);
   const cadastro = useAcao();
 
-  const nomeDoDentista = useMemo(
-    () => nomesPorId(dentistas.dados, 'idDentista', 'Dentista'),
-    [dentistas.dados],
-  );
 
   const todas = consultas.dados ?? [];
   const doDia = (d) => todas.filter((c) => diaDe(c.inicioEm) === d)

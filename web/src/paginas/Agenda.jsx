@@ -3,12 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import { query } from '../api.js';
 import {
   STATUS_CONSULTA, agruparPorHora, contagem, faixaHoraria, fimDoDia, hoje, inicioDoDia,
-  nomeDoPaciente, nomesPorId, porExtenso, somarDias,
+  nomeDoPaciente, porExtenso, somarDias,
 } from '../apresentacao.js';
 import Agendar from '../components/Agendar.jsx';
 import Transicoes from '../components/Transicao.jsx';
 import { Aviso, Cabecalho, Estado, Selo, Telefone } from '../components/primitivos.jsx';
-import { useAcao, useRecurso } from '../dados.js';
+import { useAcao, useDentistas, useRecurso } from '../dados.js';
 import { usePode } from '../permissoes.js';
 import { RECEPCAO } from '../rotas.js';
 
@@ -25,15 +25,12 @@ export default function Agenda() {
   );
 
   const consultas = useRecurso(caminho);
-  const dentistas = useRecurso('/equipe/dentistas');
+  const dentistas = useDentistas();
+  const { nomeDoDentista } = dentistas;
   const { executar, enviando, sucesso } = useAcao(consultas.recarregar);
 
   const lista = consultas.dados ?? [];
 
-  const nomeDoDentista = useMemo(
-    () => nomesPorId(dentistas.dados, 'idDentista', 'Dentista'),
-    [dentistas.dados],
-  );
 
   return (
     <>

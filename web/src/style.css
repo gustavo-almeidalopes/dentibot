@@ -177,9 +177,6 @@ a { color: inherit; text-decoration: none; }
   text-transform: uppercase;
 }
 
-.rule { height: 1px; background: var(--bone); border: 0; margin: 0; }
-.rule-hair { height: 1px; background: var(--hair); border: 0; margin: 0; }
-
 /* ── BUTTONS — blocks, not pills. Hard edge, hard border, hard label. ── */
 .btn {
   display: inline-flex;

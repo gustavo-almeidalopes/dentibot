@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { CONDICAO_DENTE, descrever, nomesPorId } from '../apresentacao.js';
+import { CONDICAO_DENTE, descrever } from '../apresentacao.js';
 import { Aviso, Cabecalho, Estado } from '../components/primitivos.jsx';
-import { useAcao, useRecurso } from '../dados.js';
+import { useAcao, useDentistas, useRecurso } from '../dados.js';
 import { PACIENTES } from '../rotas.js';
 
 const DATA_HORA = new Intl.DateTimeFormat('pt-BR', {
@@ -86,14 +86,8 @@ function Evolucoes({ idPaciente, recurso }) {
     recurso.recarregar();
   });
 
-  /* A evolução traz `idDentista` e não o nome: "Dentista 3" assinando registro
-     clínico não serve. É id de DENTISTA, então a lista é a de dentistas — a de
-     /equipe é por idUsuario, outro número. */
-  const dentistas = useRecurso('/equipe/dentistas');
-  const nomeDoDentista = useMemo(
-    () => nomesPorId(dentistas.dados, 'idDentista', 'Dentista'),
-    [dentistas.dados],
-  );
+  const dentistas = useDentistas();
+  const { nomeDoDentista } = dentistas;
 
   /* Uma entrada que retifica outra aponta para ela, e as DUAS continuam
      visíveis. Prontuário se corrige somando, nunca sobrescrevendo (CFO-226) —
