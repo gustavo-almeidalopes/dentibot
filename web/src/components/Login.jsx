@@ -19,63 +19,44 @@ const ENTRAR = { ...COMUM, forceRedirectUrl: AGENDA };
 const CRIAR_CONTA = { ...COMUM, forceRedirectUrl: CADASTRO };
 
 /* Quais provedores aparecem NÃO se decide aqui — o widget mostra o que estiver
-   habilitado no dashboard do Clerk (SSO connections). Este objeto só pinta o
-   que já vem. Se um dia precisar esconder um provedor pontual sem mexer no
-   dashboard, dá pra fazer via elements: { socialButtonsBlockButton__apple:
-   { display: 'none' } }. */
+   habilitado no dashboard do Clerk (SSO connections). */
+const CAMPO = {
+  fontFamily: 'inherit',
+  fontSize: '1rem',
+  background: 'transparent',
+  color: 'var(--bone)',
+  border: '1px solid var(--hair)',
+  borderRadius: '0',
+  boxShadow: 'none',
+};
+
+/* Cores e canto vivo vêm do ClerkProvider (APARENCIA.escuro, em tema.js). Aqui
+   só o que as variáveis não alcançam: classes do site e o que precisa sumir. */
 const APARENCIA = {
-  variables: {
-    colorPrimary: 'var(--brand, #0f766e)',
-    colorText: 'var(--ink, #111418)',
-    colorTextSecondary: 'var(--ash, #6b7280)',
-    colorBackground: 'transparent',
-    colorInputBackground: 'var(--surface, #ffffff)',
-    colorInputText: 'var(--ink, #111418)',
-    colorDanger: 'var(--danger, #b42318)',
-    colorSuccess: 'var(--brand, #0f766e)',
-    /* Nada de border-radius por variável: cada elemento arredonda por conta
-       própria em `elements`, senão o card e o botão brigam pelo mesmo token. */
-    fontFamily: 'inherit',
-    fontSize: '1rem',
-  },
   elements: {
     /* O widget monta em volta do card; tiramos a sombra e a moldura dele para
        ele se fundir com a coluna .who-half. */
     rootBox: { width: '100%' },
-    card: {
-      background: 'transparent',
-      boxShadow: 'none',
-      border: 'none',
-      padding: '0',
-      width: '100%',
-    },
+    cardBox: { width: '100%', boxShadow: 'none', border: 'none', borderRadius: '0' },
+    card: { background: 'transparent', boxShadow: 'none', border: 'none', padding: '0', width: '100%' },
 
-    header: { display: 'none' }, // o <Lines> acima já faz esse papel
+    header: { display: 'none' }, // o <Lines> ao lado já faz esse papel
     logoBox: { display: 'none' },
+    /* "Não possui conta? Registre-se", "Secured by Clerk" e o selo de dev: o
+       nosso .auth-swap logo abaixo já troca entre entrar e criar. */
+    footer: { display: 'none' },
 
     /* Botões OAuth — reaproveitam .btn para herdar borda, altura e foco. */
     socialButtonsBlockButton: 'btn btn-lg',
-    socialButtonsBlockButtonText: {
-      fontFamily: 'inherit',
-      fontWeight: '500',
-      color: 'var(--ink, #111418)',
-    },
-    socialButtonsIconButton: 'btn btn-lg',
+    socialButtonsIconButton: { ...CAMPO, height: '52px' },
+    socialButtonsBlockButtonText: { fontFamily: 'inherit', color: 'var(--bone)' },
 
-    dividerRow: { marginBlock: 'var(--spacing-30, 1.5rem)' },
-    dividerLine: { background: 'var(--line, #e5e7eb)' },
+    dividerRow: { marginBlock: 'var(--spacing-30)' },
+    dividerLine: { background: 'var(--hair)' },
     dividerText: 'credit',
 
     formFieldLabel: 'credit',
-    formFieldInput: {
-      fontFamily: 'inherit',
-      fontSize: '1rem',
-      background: 'var(--surface, #ffffff)',
-      color: 'var(--ink, #111418)',
-      border: '1px solid var(--line, #e5e7eb)',
-      borderRadius: 'var(--radius-sm, 10px)',
-      padding: '0.75rem 0.9rem',
-    },
+    formFieldInput: { ...CAMPO, padding: '0.75rem 0.9rem' },
     formFieldInputShowPasswordButton: 'credit',
 
     formButtonPrimary: 'btn btn-lg btn-fill',
@@ -86,19 +67,10 @@ const APARENCIA = {
     formFieldAction: 'credit',
     formResendCodeLink: 'credit',
     identityPreviewEditButton: 'credit',
-    footerAction: { marginTop: 'var(--spacing-20, 1rem)' },
-    footerActionText: 'body body-ash',
-    footerActionLink: 'credit',
 
-    otpCodeFieldInput: {
-      fontFamily: 'inherit',
-      fontSize: '1.125rem',
-      textAlign: 'center',
-      border: '1px solid var(--line, #e5e7eb)',
-      borderRadius: 'var(--radius-sm, 10px)',
-    },
+    otpCodeFieldInput: { ...CAMPO, fontSize: '1.125rem', textAlign: 'center' },
 
-    alert: { borderRadius: 'var(--radius-sm, 10px)' },
+    alert: { borderRadius: '0', border: '1px solid var(--alarm)', background: 'transparent' },
     alertText: 'body',
     formFieldErrorText: 'credit',
   },

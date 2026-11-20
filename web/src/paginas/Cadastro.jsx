@@ -1,5 +1,6 @@
 import { RedirectToSignIn, Show, useUser } from '@clerk/react';
 import { useState } from 'react';
+import { Lines, Reveal } from '../components/Reveal.jsx';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import FichaPaciente from '../components/FichaPaciente.jsx';
@@ -38,8 +39,19 @@ export default function Cadastro() {
         <RedirectToSignIn />
       </Show>
       <Show when="signed-in">
-        <main id="main" className="app-main edge">
-          <Passos />
+        {/* Mesmo desenho do /login: título à esquerda, formulário à direita.
+            É o passo seguinte do mesmo fluxo, e não uma tela do sistema. */}
+        <main id="main" className="who edge">
+          <section className="who-half">
+            <Lines as="h1" className="display" lines={['Falta o', 'cadastro.']} />
+            <Reveal as="p" className="body body-ash" delay="90ms">
+              A conta existe. O cadastro é o que abre o sistema: com CNPJ, é clínica;
+              com CPF, dentista autônomo ou paciente.
+            </Reveal>
+          </section>
+          <section className="who-half area">
+            <Passos />
+          </section>
         </main>
       </Show>
     </>
@@ -67,15 +79,8 @@ function Passos() {
 
   return (
     <>
-      <div className="app-cabecalho">
-        <div>
-          <h1 className="display display-sm">Falta o cadastro.</h1>
-          <p className="credit">A conta existe. O cadastro é o que abre o sistema.</p>
-        </div>
-      </div>
-
       <div className="form-bloco">
-        <label className="campo-app" style={{ maxWidth: '22rem' }}>
+        <label className="campo-app">
           <span className="cap cap-ash">CPF ou CNPJ *</span>
           <input
             inputMode="numeric"
@@ -106,7 +111,7 @@ function Passos() {
         )}
 
         {valido && tipo === 'cpf' && (
-          <label className="campo-app" style={{ maxWidth: '22rem' }}>
+          <label className="campo-app">
             <span className="cap cap-ash">Com CPF, você é *</span>
             <select value={perfil} onChange={(e) => setPerfil(e.target.value)}>
               <option value="">—</option>
@@ -159,7 +164,7 @@ function FormularioClinica({ documento, tipo, nome, email }) {
       <h2 className="sub">{autonomo ? 'Dentista autônomo' : 'Dados da clínica'}</h2>
 
       <div className="form-linha">
-        <label className="campo-app" style={{ flex: '2 1 320px' }}>
+        <label className="campo-app">
           <span className="cap cap-ash">
             {autonomo ? 'Nome do profissional *' : 'Razão social *'}
           </span>
