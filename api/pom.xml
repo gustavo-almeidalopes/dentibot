@@ -24,7 +24,7 @@
 		<jetbrains-annotations.version>26.1.0</jetbrains-annotations.version>
 		<awssdk.version>2.56.0</awssdk.version>
 		<anthropic.version>3.3.0</anthropic.version>
-		<springdoc.version>3.1.1</springdoc.version>
+		<springdoc.version>3.2.0</springdoc.version>
 		<jacoco.version>0.8.16</jacoco.version>
 		<cobertura.minima>0.60</cobertura.minima>
 	</properties>
